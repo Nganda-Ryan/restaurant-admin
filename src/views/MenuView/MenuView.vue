@@ -86,8 +86,9 @@
     onBeforeMount(async () => {
         await fetMenu();
     });
-    const cancel = () => {
+    const cancel = (payload: any) => {
         isViewing.value = true;
+        payload == true && location.reload()
 
     }
     const handleAddMenu = (e:any) => {

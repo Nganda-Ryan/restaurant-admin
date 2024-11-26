@@ -1,4 +1,10 @@
 import axios from "axios";
+import type { PlateOption, Content, PlateContent, Compositions } from "./serviceInterface";
+import { createPinia } from "pinia";
+
+import { useAuthStore } from '@/stores/auth';
+
+const pinia = createPinia();
 
 /* MENU */
 export const fetchMenu = async () => {
@@ -123,6 +129,46 @@ export const fetchPlate = async () => {
         throw error;
     }
 }
+export const createPlate = async (payload: PlateOption) => {
+    const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats`;
+
+    try {
+        const response = await axios.post(url, { 
+            plats: [payload]
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        return response.data.body;
+    } catch (error) {
+        console.log('Database.createPlate.error ::', error);
+        throw error;
+    }
+}
+export const createConsistency = async (payload: Compositions[]) => {
+    const url =  `${import.meta.env.VITE_APP_CONSISTENCY_BASE_URL_V1}/compositions`;
+
+    try {
+        const response = await axios.post(url, { 
+            Compositions: payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        return response.data.body;
+    } catch (error) {
+        console.log('Database.createPlate.error ::', error);
+        throw error;
+    }
+}
+
+
+
+
+
+
 
 /* PRODUCT */
 export const fetchProduct = async () => {
@@ -142,11 +188,9 @@ export const fetchProduct = async () => {
         throw error;
     }
 }
-
-
-/* CONTENT */
-export const fetchConfig = async () => {
-    const url =  `${import.meta.env.VITE_APP_CONFIG_BASE_URL_V1}/configs?categories=true&QuantityUnit=true`;
+export const fetchSingleProduct = async (productCode:string) => {
+    const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products?ProductCode=${productCode}`;
+    
 
     try {
         const response = await axios (url, {
@@ -159,6 +203,103 @@ export const fetchConfig = async () => {
         return response.data.body.results;
     } catch (error) {
         console.error('Database.fetchProduct.error ::', error);
+        throw error;
+    }
+}
+export const createProduct = async (payload: any) => {
+    const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products`;
+
+    try {
+        const response = await axios.post(url, { 
+            products: [payload]
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        return response.data.body;
+    } catch (error) {
+        console.log('Database.createProduct.error ::', error);
+        throw error;
+    }
+};
+export const updateProduct = async (payload: any) => {
+    const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products`;
+    console.log("** payload", payload);
+    try {
+        const response = await axios.put(url, { 
+            product: payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        return response.data.body;
+    } catch (error) {
+        console.log('Database.updateProduct.error ::', error);
+        throw error;
+    }
+};
+
+/* CONTENT */
+    /* Product */
+export const createContent = async (payload: Content[] | PlateContent[]) => {
+    const url =  `${import.meta.env.VITE_APP_CONFIG_BASE_URL_V1}/contents`;
+    try {
+        const response = await axios.post(url, { 
+            Contents: payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        console.log('database.createContent', response.data.body)
+        return response.data.body;
+    } catch (error) {
+        console.log('Database.createContent.error ::', error);
+        throw error;
+    }
+    
+}
+
+export const uploadContent = async (file: File) => {
+    const cloudName = import.meta.env.VITE_APP_CLOUD_NAME; // Remplacez par votre Cloud Name
+    const uploadPreset = import.meta.env.VITE_APP_UPLOAD_PRESET_KEY
+
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', uploadPreset); // On passe le preset ici
+
+    try {
+        // Envoyer la requête POST vers Cloudinary
+        const response = await axios.post(
+            `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+            formData
+        );
+        
+        return response.data.secure_url;
+    } catch (error) {
+        console.error('Erreur lors de l\'upload :', error);
+        console.log('Échec de l\'upload de l\'image.');
+    }
+}
+
+/* CONFIG */
+export const fetchConfig = async () => {
+    const url =  `${import.meta.env.VITE_APP_CONFIG_BASE_URL_V1}/configs?categories=true&QuantityUnit=true`;
+
+    try {
+        const response = await axios (url, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            method: "GET",
+        });
+        return response.data.body;
+    } catch (error) {
+        console.error('Database.fetchConfig.error ::', error);
         throw error;
     }
 }
@@ -185,4 +326,8 @@ export const formatedDate = (date: Date): string => {
 
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
+
+
+
+
 

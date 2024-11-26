@@ -26,11 +26,26 @@ const router = createRouter({
       path: '/plates',
       name: 'plate',
       component: () => import('../views/PlateView/PlateView.vue')
+    },{
+      path: '/plates/:platecode/:action',
+      name: 'platetaction',
+      component: () => import('../views/ProductView/ProductDetails.vue'),
+      meta: {
+        title: 'Users',
+      }
     },
     {
       path: '/products',
       name: 'product',
       component: () => import('../views/ProductView/ProductView.vue')
+    },
+    {
+      path: '/products/:productcode/:action',
+      name: 'productaction',
+      component: () => import('../views/ProductView/ProductDetails.vue'),
+      meta: {
+        title: 'Users',
+      }
     }
   ]
 })

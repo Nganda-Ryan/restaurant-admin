@@ -31,12 +31,18 @@
   onBeforeMount(() => {
     selectFilter.value = props.options ? props.options[0] as Option : selectFilter.value;
   });
-
+  const getCustomStyle = (option:any) => {
+    // console.log('option', option)
+    if(option.style){
+      return 'px-6 py-3.5 ' + option.style;
+    }
+    return 'px-6 py-3.5';
+  }
   const selectFilter = ref<Option>({ name: "", api: "", price: 0 });
 </script>
 
 <template>
-  <div class="rounded-sm bg-white px-5 pt-0 pb-2.5 shadow-default dark:bg-boxdark sm:px-7.5 xl:pb-1">
+  <div class="rounded-sm bg-white px-5 pt-0 pb-2.5 shadow-default dark:bg-boxdark sm:px-7.5 xl:pb-1 overflow-x-scroll md:overflow-x-auto">
     <!-- Header start -->
     <div class="flex justify-between items-center my-4 text-black" v-if="searchable || props.filterable">
       <div class="flex justify-between items-center text-sm font-semibold" v-if="props.filterable">
@@ -69,7 +75,7 @@
       <template v-if="datas && datas.length > 0">
         <tbody>
           <tr v-for="(dt, key) in datas" :key="key" :class="`bg-white hover:bg-teal-50 dark:bg-slate-800`">
-            <td class="px-6 py-3.5 " v-for="(it, i) in items" :key="i">
+            <td :class="getCustomStyle(it)" v-for="(it, i) in items" :key="i">
               <template v-if="dt[it.name] !== undefined">
                 <template v-if="it.type === 'url'">
                   <a href="#" @click="emits(it.event, dt)">{{ dt[it.name] }}</a>

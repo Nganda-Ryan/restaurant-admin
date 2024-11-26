@@ -1,22 +1,27 @@
 <script setup lang="ts">
   import HeaderArea from '@/components/Header/HeaderArea.vue'
-  import FooterArea from '@/components/Footer/FooterArea.vue';
   import SidebarArea from '@/components/Sidebar/SidebarArea.vue'
   import Toast from '@/components/Alerts/Toast.vue';
-  import { onBeforeMount, ref } from 'vue';
+  import { onBeforeMount, onMounted, ref } from 'vue';
   import { fetchConfig } from '@/services/database';
   import EventBus from '@/EventBus';
   import type ToastPayload from '@/types/Toast'
+  import { useConfigStore } from '@/stores/config';
 
   let toastVisible = ref(false);
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   let toast = ref<ToastPayload>({ type: 'info', message: '' });
 
+  const configStore = useConfigStore();
   const handleShowToast = (payload: unknown) => {
     toast.value = payload as ToastPayload;
     toastVisible.value = true;
     hideToast();
   }
+  const googleLoginBtn = ref<HTMLDivElement | null>(null)
+  const clientId = "389621995817-nognoucvgoou81evmk9kts0t3iobjftc.apps.googleusercontent.com";
+  const apiKey = "AIzaSyCvrOfTyH101mxaeHhpOLb6hT9C-rmBd4g";
+  const scope = "https://www.googleapis.com/auth/drive.file";
 
   const hideToast = () => {
     if (timeoutId) {
@@ -32,14 +37,22 @@
   EventBus.on('showToast', handleShowToast);
   EventBus.on('hideToast', () => { toastVisible.value = false });
 
+  
+
   const init = async () => {
     try {
-     
+      const config = await fetchConfig();
+      console.log('** config', config)
+      configStore.plateCategories = config.PlatCategories;
+      configStore.productCategories = config.ProductCategories;
+      configStore.quantityUnits = config.QuantityUnits;
     } catch (err) {
       console.log("DefaultLayout.fetchMenu.error: " + err)
     } 
   };
-  onBeforeMount(init);
+  onMounted(async () => {
+    await init();
+  });
 </script>
 
 <template>

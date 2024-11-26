@@ -25,7 +25,7 @@
         }
     });
     
-    
+    const reloadView = ref(false);
     const plateList = ref<Array<PlateOption>>([])
     const plateListToadd = ref<Array<any>>([])
     const isSaving = ref<Boolean>(false);
@@ -95,21 +95,21 @@
     ]);
     const filterOptions = ref([]);
     const resetInput = ref<boolean>(false);
-    
+    const startTime = ref(`${(new Date().getHours()).toString().padStart(2, '0')}:${(new Date().getMinutes() + 10).toString().padStart(2, '0')}`);
+    const endTime = ref(`${(new Date().getHours() + 6).toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}`);
 
 
     const handleSelection = (item: string) => {
         selectedItem.value = item
     }
     const stopAction = () => {
-        emits('cancel');
+        emits('cancel', reloadView);
     }
     const saveMenu = async () => {
         isSaving.value = true;
         try {
             let code: string | undefined = "";
             console.log("ACTION", props.action)
-            console.log("enuInfo.value", menuInfo.value.Code)
             if(menuInfo.value.Title){
                 code = props.action == "update" ? menuInfo.value.Code : generateCode(menuInfo.value.Title);
             }
@@ -120,13 +120,14 @@
                     QuantityAvailable: i.quantity
                 }
             });
+            
 
             const payload = {
                 "Code": props.action == "update" ? code : code!.replace(/\s+/g, ''),
                 "Title": menuInfo.value.Title,
                 "Description": menuInfo.value.Description,
-                "StartDate":props.action == "update" ? menuInfo.value.StartDate : formatedDate(new Date()),
-                "EndDate":menuInfo.value.EndDate,
+                "StartDate": getStartDate(menuInfo.value.StartDate + ' ' + startTime.value + ':00'),
+                "EndDate": getEndDate(menuInfo.value.EndDate + ' ' + endTime.value + ':00'),
                 "items":plates
             }
             console.log('**Payload', payload)
@@ -138,7 +139,7 @@
             } else {
                 result = await createMenu(payload)
             }
-            // result = props.action == "update" ?  : ;
+            
             const toastPayload: ToastPayload = {
                 type: "success",
                 message: `Menu ${props.action == "update" ? "Updated" : "Created"} successfully. Happy meal ;P`
@@ -151,11 +152,13 @@
                 EndDate: "",
             };
             plateListToadd.value = [];
+            reloadView.value = true;
             EventBus.emit('showToast', toastPayload);
+            reloadView.value = true;
         } catch (error:any) {
             console.log('error: ', error);
             console.log('Trace', error.stack)
-            const errMsg = error.response.data.body ? error.response.data.body.errors[0].message : "Oups, something went wrong during the processing";
+            const errMsg = error ? error : "Oups, something went wrong during the processing";
             const payload: ToastPayload = {
                 type: "danger",
                 message: errMsg
@@ -225,6 +228,51 @@
         resetInput.value = !resetInput.value;
         quantity.value = 1;
     }
+
+
+
+    const validDate = (date: string, context: 'start' | 'end'): boolean => {
+
+        if(context == 'start'){
+            if(new Date(date) < new Date()){
+                throw new Error("The start date should be higher than the current date");
+            }
+        } else if(context == 'end'){
+            if(menuInfo.value.StartDate){
+                if(new Date(date) <= new Date(menuInfo.value.StartDate + ' ' + startTime.value + ':00')){
+                    throw new Error("The end date should be higher than the start date");
+                }
+            }
+        }
+        return true;
+    }
+
+    const getStartDate = (_date: string | undefined) => {
+        if(_date == undefined) return '';
+
+        console.log('_date', _date)
+        let result: string | undefined = '';
+        if(validDate(_date, "start")){
+            console.log('starIsValid')
+            result =  menuInfo.value.StartDate + ' ' + startTime.value + ':00';
+        }
+
+        return result;
+    }
+    const getEndDate = (_date: string | undefined) => {
+        if(_date == undefined)
+            return '';
+        
+        let result = '';
+        if(menuInfo.value.EndDate){
+            if(validDate(_date, "end")){
+                result = menuInfo.value.EndDate + ' ' + endTime.value + ':00'
+            }
+        }
+
+        return result;
+    }
+
     onBeforeMount(() => {
         getPlate();
         if(props.action == "update" || props.action == "clone"){
@@ -255,11 +303,14 @@
     };
 
     const getAction = (act:string | undefined) => {
+        console.log('act', act)
         switch (act) {
             case "edit":
                 return "Update"
             case "clone":
                 return "Clone"
+            case "add":
+                return "Save"
             default:
                 return "Update"
         }
@@ -272,17 +323,31 @@
         <div class="flex flex-col gap-9">
             <!-- Input Fields Start -->
             <DefaultCard :cardTitle="`${getAction(props.action)} Menu`">
+                <template v-slot:button>
+                    <button class="flex items-center" @click="stopAction">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                        </svg>&nbsp;&nbsp;
+                        <span class="text-nowrap">{{ 'Go back' }}</span>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                    </button>
+                </template>
                 <form @submit.prevent="saveMenu">
                     <div class="p-6.5">
                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row">
-                            <input-group label="Title" type="text" placeholder="Enter the menu title"
-                                customClasses="w-full xl:w-1/2" v-model="menuInfo.Title" required />
-                            <input-group label="End Date" type="date" placeholder=""
-                                customClasses="w-full xl:w-1/2" v-model="menuInfo.EndDate" required />
+                            <input-group label="Title" type="text" placeholder="Enter the menu title" customClasses="w-full xl:w-1/2" v-model="menuInfo.Title" required />
+                            <div class="flex justify-between items-end w-full xl:w-1/2">
+                                <input-group label="Start Date" type="date" placeholder=""
+                                    customClasses="w-5/6" v-model="menuInfo.StartDate" required />
+                                <input type="time" id="sdtime" name="sdtime" class="h-10" v-model="startTime">
+                            </div>
                         </div>
                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row">
-                            <input-group label="Start Date" type="date" placeholder=""
-                                customClasses="w-full xl:w-1/2" v-model="menuInfo.StartDate" required />
+                            <div class="flex justify-between items-end w-full xl:w-1/2">
+                                <input-group label="End Date" type="date" placeholder=""
+                                    customClasses="w-5/6" v-model="menuInfo.EndDate" required />
+                                <input type="time" id="edtime" name="edtime" class="h-10" v-model="endTime">
+                            </div>
                             <input-group label="Describe the menu" type="textarea" placeholder="Enter the description of your menu" customClasses="xl:w-1/2" v-model="menuInfo.Description" required />
                         </div>
 
@@ -313,7 +378,7 @@
 
                         <div class="flex justify-end mt-10">
                             <button @click="stopAction" type="button" class="text-white bg-gradient-to-r from-rose-400 via-rose-500 to-rose-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-rose-300 dark:focus:ring-rose-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
-                                {{ 'Cancel' }}
+                                Cancel
                             </button>
                             <button type="submit" class="flex flex-nowrap text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
                                 <spinner v-if="isSaving" /> {{ getAction(props.action)}}

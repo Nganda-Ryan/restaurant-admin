@@ -194,57 +194,57 @@
     <div class="grid grid-cols-1 gap-12 sm:grid-cols-1">
         <div class="flex flex-col gap-9">
             <!-- Input Fields Start -->
-             <template v-if="!isEditing && !isCloning">
-                <DefaultCard :cardTitle="`${menuInfo.Title}`" v-if="!isloading">
-                    <template v-slot:button>
-                        <button class="flex items-center" @click="goBack">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                            </svg>&nbsp;&nbsp;
-                            <span class="text-nowrap">{{ 'Go back' }}</span>
-                            &nbsp;&nbsp;&nbsp;&nbsp;
-                        </button>
-                    </template>
-                    <template v-slot:header>
-                        <div class="flex items-center justify-center">
-                            <button-action @click='handleEditMenu' custom-classes="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Edit</button-action>
-                            <!-- <button-action @click="handleAddPlate" custom-classes="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Add Plate</button-action> -->
-                            <button-action @click="handleCloneMenu" custom-classes="text-gray-900 bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Clone</button-action>
-                            <button-action @click="handleDeleteMenu" custom-classes="text-white bg-gradient-to-r from-rose-400 via-rose-500 to-rose-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-rose-300 dark:focus:ring-rose-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Delete</button-action>
-                        </div>
-                    </template>
-                    <form @submit.prevent="">
-                        <div class="p-6.5">
-                            <div class="mb-4.5 flex flex-col gap-6 xl:flex-row">
-                                <input-group label="Menu Code" type="text" customClasses="w-full xl:w-1/2" disabled v-model="menuInfo.Code" />
-
-                                <input-group label="Title" type="text" customClasses="w-full xl:w-1/2" disabled v-model="menuInfo.Title" />
-                            </div>
-                            <div class="mb-4.5 flex flex-col gap-6 xl:flex-row">
-                                <input-group label="Start Date" type="text" customClasses="w-full xl:w-1/2" disabled v-model="menuInfo.StartDate" />
-
-                                <input-group label="End Date" type="text" customClasses="w-full xl:w-1/2" disabled v-model="menuInfo.EndDate" />
-                            </div>
-                            <div class="mb-4.5 flex flex-col gap-6 xl:flex-row pr-5">
-                                <input-group label="Description" type="textarea" customClasses="w-full xl:w-1/2" disabled v-model="menuInfo.Description" />
-                            </div>
-                        </div>
-                    </form>
-
-                    <div class="w-full px-6 font-bold gap-2.5 py-2 hover:bg-opacity-90 lg:px-6 xl:px-6 text-white bg-gradient-to-r from-olive-800 to-olive-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 text-sm me-2 mb-2">
-                        PLATE LIST
+            <template v-if="!isEditing && !isCloning">
+            <DefaultCard :cardTitle="`${menuInfo.Title}`" v-if="!isloading">
+                <template v-slot:button>
+                    <button class="flex items-center" @click="goBack">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                        </svg>&nbsp;&nbsp;
+                        <span class="text-nowrap">{{ 'Go back' }}</span>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                    </button>
+                </template>
+                <template v-slot:header>
+                    <div class="flex items-center justify-center">
+                        <button-action @click='handleEditMenu' custom-classes="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Edit</button-action>
+                        <!-- <button-action @click="handleAddPlate" custom-classes="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Add Plate</button-action> -->
+                        <button-action @click="handleCloneMenu" custom-classes="text-gray-900 bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Clone</button-action>
+                        <button-action @click="handleDeleteMenu" custom-classes="text-white bg-gradient-to-r from-rose-400 via-rose-500 to-rose-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-rose-300 dark:focus:ring-rose-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Delete</button-action>
                     </div>
-                    <div>
-                        <TableOne :items="titles" :datas="plats" :options="filterOptions" @view="viewPlat" :filterable="false"/>
+                </template>
+                <form @submit.prevent="">
+                    <div class="p-6.5">
+                        <div class="mb-4.5 flex flex-col gap-6 xl:flex-row">
+                            <input-group label="Menu Code" type="text" customClasses="w-full xl:w-1/2" disabled v-model="menuInfo.Code" />
+
+                            <input-group label="Title" type="text" customClasses="w-full xl:w-1/2" disabled v-model="menuInfo.Title" />
+                        </div>
+                        <div class="mb-4.5 flex flex-col gap-6 xl:flex-row">
+                            <input-group label="Start Date" type="text" customClasses="w-full xl:w-1/2" disabled v-model="menuInfo.StartDate" />
+
+                            <input-group label="End Date" type="text" customClasses="w-full xl:w-1/2" disabled v-model="menuInfo.EndDate" />
+                        </div>
+                        <div class="mb-4.5 flex flex-col gap-6 xl:flex-row pr-5">
+                            <input-group label="Description" type="textarea" customClasses="w-full xl:w-1/2" disabled v-model="menuInfo.Description" />
+                        </div>
                     </div>
-                </DefaultCard>
-             </template>
-             <template v-else-if="isEditing">
-                <NewMenuForm  @cancel="cancel"  :action="'update'" :menu="menuInfo" :plats="plats"/>
-             </template>
-             <template v-else-if="isCloning">
-                <NewMenuForm  @cancel="cancel"  :action="'clone'" :menu="menuInfo" :plats="plats"/>
-             </template>
+                </form>
+
+                <div class="w-full px-6 font-bold gap-2.5 py-2 hover:bg-opacity-90 lg:px-6 xl:px-6 text-white bg-gradient-to-r from-olive-800 to-olive-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 text-sm me-2 mb-2">
+                    PLATE LIST
+                </div>
+                <div>
+                    <TableOne :items="titles" :datas="plats" :options="filterOptions" @view="viewPlat" :filterable="false"/>
+                </div>
+            </DefaultCard>
+            </template>
+            <template v-else-if="isEditing">
+            <NewMenuForm  @cancel="cancel"  :action="'update'" :menu="menuInfo" :plats="plats"/>
+            </template>
+            <template v-else-if="isCloning">
+            <NewMenuForm  @cancel="cancel"  :action="'clone'" :menu="menuInfo" :plats="plats"/>
+            </template>
             <DefaultCardSkeleton v-if="isloading"/>
             <!-- Input Fields End -->
         </div>

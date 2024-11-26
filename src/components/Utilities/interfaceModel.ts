@@ -5,6 +5,6 @@ export default interface Option {
 export default interface PlateOption {
     name: string,
     api: string,
-    price: number
+    price?: number
 }
 

@@ -21,3 +21,75 @@ export interface Plat {
     Likes: number,
     content: []
 }
+
+export interface Content {
+    "ProductCode"?: string,
+    "Body"?: string,
+    "DisplayOrder"?: number,
+    "TypeCode"?: string
+}
+
+export interface PlateContent {
+    "PlatCode"?: string,
+    "Body"?: string,
+    "DisplayOrder"?: number,
+    "TypeCode"?: string
+}
+
+export interface Product {
+    "Code"?: string,
+    "Title"?: string,
+    "Description"?: string,
+    "QuantityUnitCode"?: string,
+    "AvailableQuantity"?: number,
+    "image"?: string,
+    "CategoryCode"?: string,
+    "Likes"?: number,
+    "Image"?: any
+}
+
+// export interface Content {
+//     "Code": string,
+//     "Title": string,
+//     "isActive": number
+// }
+
+export interface Plate {
+    "Code"?: string,
+    "Title"?: string,
+    "Description"?: string,
+    "Currency"?: string,
+    "CategoryCode"?: string
+    "BasePrice"?: number,
+}
+
+export interface PlateOption {
+    "Code"?: string,
+    "Title"?: string,
+    "Description"?: string,
+    "Currency"?: string,
+    "CategoryCode"?: string
+    "BasePrice"?: number,
+    "Image"?: any,
+}
+
+export interface PlateOption {
+    "Code"?: string,
+    "Title"?: string,
+    "Description"?: string,
+    "Currency"?: string,
+    "CategoryCode"?: string
+    "BasePrice"?: number,
+    "Image"?: any,
+}
+
+export interface Compositions {
+    "ProductCode"?: string,
+    "PlateCode": string
+}
+
+export interface ProductOption {
+    "name"?: string,
+    "api": string,
+    "quantity": number
+}
