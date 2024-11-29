@@ -1,12 +1,12 @@
 <script setup lang="ts">
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import DefaultCardSkeleton from '@/components/Forms/DefaultCardSkeleton.vue';
-    import NewProductForm from './NewProductForm.vue';
-    import Spinner from '@/components/Utilities/Spinner.vue';
+    const NewProductForm = defineAsyncComponent(() => import('./NewProductForm.vue'));
+    const Spinner = defineAsyncComponent(() => import('@/components/Utilities/Spinner.vue'));
     import { computed, defineAsyncComponent, onBeforeMount, ref } from 'vue';
     import router from '@/router';
     import ButtonAction from '@/components/Buttons/ButtonAction.vue';
-    import PopupModal from '@/components/Modals/PopupModal.vue';
+    const PopupModal = defineAsyncComponent(() => import('@/components/Modals/PopupModal.vue'));
     import { fetchSingleProduct } from '@/services/database';
     const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
     const InputGroup = defineAsyncComponent(() => import('@/components/Forms/InputGroup.vue'));

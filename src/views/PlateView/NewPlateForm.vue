@@ -3,7 +3,7 @@
     import Spinner from '@/components/Utilities/Spinner.vue';
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import { useConfigStore } from '@/stores/config';
-    import type { PlateOption, Content, PlateContent, Compositions, ProductOption } from '@/services/serviceInterface';
+    import type { PlateOption, Content, Compositions, ProductOption } from '@/services/serviceInterface';
     import { Cloudinary } from "@cloudinary/url-gen";
     import { AdvancedImage } from "@cloudinary/vue";
     import { fill } from "@cloudinary/url-gen/actions/resize";
@@ -12,7 +12,7 @@
     import SelectGroupSearchable from '@/components/Forms/SelectGroup/SelectGroupSearchable.vue';
     import type Option from '../../../src/components/Utilities/interfaceModel';
     const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
-    import { uploadContent, createPlate, generateCode, createContent, fetchProduct, createConsistency } from '@/services/database';
+    import { uploadContent, createPlate, generateCode, createContent, fetchProduct } from '@/services/database';
     import type ToastPayload from '@/types/Toast';
     import EventBus from '@/EventBus';
     import TableOne from '@/components/Tables/TableOne.vue';
@@ -95,6 +95,7 @@
         }
     ]);
     const filterOptions = ref([]);
+    const rawProduct = ref<any []>([]);
 
 
     const stopAction = () => {
@@ -132,30 +133,50 @@
                 plateInfo.value.Code = generateCode(plateInfo.value.Title);
             }
             const createdPlate = await createPlate(plateInfo.value);
+            let createdCtn = '';
+            let createdCtn2 = '';
+
+            //Content creation
             if(createdPlate[0].success){
-                const compositions: Compositions[] = productListToadd.value.map((item:ProductOption) => {
-                    return {
-                        "ProductCode": item.api,
-                        "PlateCode": plateInfo.value.Code
-                    } as Compositions
+                //Ingredient
+                const ctnList1: Content [] = [];
+                let ingredient = '';
+                productListToadd.value.forEach(p1 => {
+                    rawProduct.value.forEach(p2 => {
+                        if(p1.api == p2.Code){
+                            ingredient = ingredient + ', ' + p2.Title;
+                        }
+                    });
+                });
+                ctnList1.push({
+                    "PlatCode": plateInfo.value.Code,
+                    "Body": ingredient,
+                    "DisplayOrder": 0,
+                    "TypeCode": "ING"
                 })
-                const createdCompositions = await createConsistency(compositions);
-                console.log("createdCompositions", createdCompositions)
-            }
-            if(createdPlate[0].success){
-                const uploadDedImage = await uploadContent(plateInfo.value.Image)
+                createdCtn = await createContent(ctnList1);
+
+                
+                //Cover Image
+                const uploadDedImage = await uploadContent(plateInfo.value.Image);
                 if(uploadDedImage){
                     const uploadedCtn = await uploadContent(plateInfo.value.Image)
                     if(uploadedCtn){
-                        createContent([{
+                        const ctnList: Content [] = [];
+                        ctnList.push({
                             "PlatCode": plateInfo.value.Code,
                             "Body": uploadedCtn,
                             "DisplayOrder": 1,
                             "TypeCode": 'COVER'
-                        }])
+                        })
+                        createdCtn2 = await createContent(ctnList);
                     }
                 }
             }
+
+            console.log('createdCtn', createdCtn);
+            console.log('createdCtn2', createdCtn2);
+            console.log('createdPlate', createdPlate);
 
             const toastPayload: ToastPayload = {
                 type: "success",
@@ -286,8 +307,9 @@
     // const myImg = cld.image('docs/models').resize(fill().width(250).height(250));
 
 
-    const getPlate = async () => {
+    const getProduct = async () => {
         const result = await fetchProduct();
+        rawProduct.value = result;
         console.log('result: ', result)
         productList.value = result.map((item:any) => {
             return {
@@ -304,7 +326,8 @@
     }
 
     onMounted(() => {
-        getPlate();
+        getProduct();
+
         // if(props.action == "update"){
         //     if(props.product){
         //         productInfo.value = props.product

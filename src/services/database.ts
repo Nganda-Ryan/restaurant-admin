@@ -111,6 +111,8 @@ export const deleteMenu = async (codeList: any[]) => {
 }
 
 
+
+
 /* PLATE */
 export const fetchPlate = async () => {
     const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats`;
@@ -163,7 +165,6 @@ export const createConsistency = async (payload: Compositions[]) => {
         throw error;
     }
 }
-
 
 
 

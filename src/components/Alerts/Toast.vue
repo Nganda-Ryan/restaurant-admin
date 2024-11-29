@@ -34,7 +34,7 @@ const hideToast = () => {
 </script>
 
 <template>
-  <div class="w-1/5 min-w-80 rounded-lg min-h-24 border-t-4 text-sm p-4 flex justify-between fixed bottom-4 right-5 lg:right-10"
+  <div class="z-99999 w-1/5 min-w-80 rounded-lg min-h-24 border-t-4 text-sm p-4 flex justify-between fixed bottom-4 right-5 lg:right-10"
     :class="alertClass">
     <div class="flex items-center">
       <div class="flex items-center">

@@ -66,7 +66,7 @@
             const menuList = result.map((menu: any) => {
                 return Object.fromEntries(Object.entries(menu).filter(([key]) => key !== "items"))
             });
-            console.log("menuList", menuList);
+            
             menus.value = menuList;
             rawMenus.value = result;
         } catch (er) {
@@ -88,7 +88,7 @@
     });
     const cancel = (payload: any) => {
         isViewing.value = true;
-        payload == true && location.reload()
+        location.reload()
 
     }
     const handleAddMenu = (e:any) => {
@@ -110,7 +110,7 @@
         </div>
         <SpinnerOverPage v-if="isloading" />
         <template v-if="!isViewing">
-            <new-menu-form @cancel="cancel" :action="'add'"></new-menu-form>
+            <new-menu-form @cancel="cancel" :action="'create'"></new-menu-form>
         </template>
     </div>
 </template>

@@ -99,7 +99,7 @@
 
             const toastPayload: ToastPayload = {
                 type: "success",
-                message: `Product ${props.action == "update" ? "Updated" : "Created"} successfully. Happy meal ;P`
+                message: `Product ${props.action == "update" ? "Updated" : "Created"} successfully. Happy meal 🍕`
             }
             EventBus.emit('showToast', toastPayload);
             productInfo.value = {

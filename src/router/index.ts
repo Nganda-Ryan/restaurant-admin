@@ -29,7 +29,7 @@ const router = createRouter({
     },{
       path: '/plates/:platecode/:action',
       name: 'platetaction',
-      component: () => import('../views/ProductView/ProductDetails.vue'),
+      component: () => import('../views/PlateView/PlateDetail.vue'),
       meta: {
         title: 'Users',
       }

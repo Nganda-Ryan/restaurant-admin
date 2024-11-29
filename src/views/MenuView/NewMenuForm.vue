@@ -2,14 +2,18 @@
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import SelectGroupSearchable from '@/components/Forms/SelectGroup/SelectGroupSearchable.vue';
     import { createMenu, fetchPlate, formatedDate, generateCode, updateMenu, cloneMenu } from '@/services/database';
-    import { onBeforeMount, ref } from 'vue';
+    import { defineAsyncComponent, onBeforeMount, ref } from 'vue';
     import InputGroup from '@/components/Forms/InputGroup.vue';
-    import Spinner from '@/components/Utilities/Spinner.vue';
+
+    const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
+    const Spinner = defineAsyncComponent(() => import('@/components/Utilities/Spinner.vue'));
+    
+    
     import ButtonAction from '@/components/Buttons/ButtonAction.vue';
     import TableOne from '@/components/Tables/TableOne.vue';
     import EventBus from '@/EventBus';
     import type PlateOption from '../../components/Utilities/interfaceModel';
-    import type { MenuRequest } from '../../services/serviceInterface';
+    import type { MenuRequest, FormattedDates } from '../../services/serviceInterface';
     import type ToastPayload from '@/types/Toast';
 
     const emits = defineEmits(['cancel', "save"]);
@@ -95,9 +99,24 @@
     ]);
     const filterOptions = ref([]);
     const resetInput = ref<boolean>(false);
-    const startTime = ref(`${(new Date().getHours()).toString().padStart(2, '0')}:${(new Date().getMinutes() + 10).toString().padStart(2, '0')}`);
-    const endTime = ref(`${(new Date().getHours() + 6).toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}`);
+    const disableStartDate = ref<boolean>(false);
+    const disableEndDate = ref<boolean>(false);
 
+    const currentDate = new Date();
+
+    const startDate = new Date(currentDate.getTime());
+    startDate.setMinutes(currentDate.getMinutes() + 10);
+
+    const endDate = new Date(currentDate.getTime());
+    endDate.setHours(currentDate.getHours() + 6);
+
+    const startTime = ref<string>(`${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`);
+    const endTime = ref<string>(`${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`);
+
+    const range = ref<FormattedDates>({
+        startDate: "",
+        endDate: ""
+    });
 
     const handleSelection = (item: string) => {
         selectedItem.value = item
@@ -109,7 +128,8 @@
         isSaving.value = true;
         try {
             let code: string | undefined = "";
-            console.log("ACTION", props.action)
+            console.log('props.action', props.action)
+            
             if(menuInfo.value.Title){
                 code = props.action == "update" ? menuInfo.value.Code : generateCode(menuInfo.value.Title);
             }
@@ -126,35 +146,43 @@
                 "Code": props.action == "update" ? code : code!.replace(/\s+/g, ''),
                 "Title": menuInfo.value.Title,
                 "Description": menuInfo.value.Description,
-                "StartDate": getStartDate(menuInfo.value.StartDate + ' ' + startTime.value + ':00'),
-                "EndDate": getEndDate(menuInfo.value.EndDate + ' ' + endTime.value + ':00'),
+                "StartDate": menuInfo.value.StartDate + ' ' + startTime.value + ':00',
+                "EndDate": menuInfo.value.EndDate + ' ' + endTime.value + ':00',
                 "items":plates
             }
-            console.log('**Payload', payload)
-            let result: any = "";
-            if(props.action == "update"){
-                result = await updateMenu(payload)
-            } else if(props.action == "clone"){
-                result = await cloneMenu(payload, menuInfo.value.Code)
+            
+            const validation = validateMenu(payload, props.action);
+            console.log('**validation', validation)
+            if(validation.isValid){
+                let result: any = "";
+                if(props.action == "update"){
+                    result = await updateMenu(payload)
+                } else if(props.action == "clone"){
+                    result = await cloneMenu(payload, menuInfo.value.Code)
+                } else {
+                    result = await createMenu(payload)
+                }
+                
+                const toastPayload: ToastPayload = {
+                    type: "success",
+                    message: `Menu ${props.action == "update" ? "Updated" : "Created"} successfully ! 🍕`
+                }
+                menuInfo.value = {
+                    Code: "",
+                    Title: "",
+                    Description: "",
+                    StartDate: "",
+                    EndDate: "",
+                };
+                plateListToadd.value = [];
+                reloadView.value = true;
+                EventBus.emit('showToast', toastPayload);
+                reloadView.value = true;
+
             } else {
-                result = await createMenu(payload)
+                throw new Error(validation.message);
             }
             
-            const toastPayload: ToastPayload = {
-                type: "success",
-                message: `Menu ${props.action == "update" ? "Updated" : "Created"} successfully. Happy meal ;P`
-            }
-            menuInfo.value = {
-                Code: "",
-                Title: "",
-                Description: "",
-                StartDate: "",
-                EndDate: "",
-            };
-            plateListToadd.value = [];
-            reloadView.value = true;
-            EventBus.emit('showToast', toastPayload);
-            reloadView.value = true;
         } catch (error:any) {
             console.log('error: ', error);
             console.log('Trace', error.stack)
@@ -229,53 +257,69 @@
         quantity.value = 1;
     }
 
+    
+    const validateMenu = (payload: any, action: string | undefined): { isValid: boolean, message: string } => {
+        const currentDate = new Date();
 
+        const validateDate = (dateString: string, disable: boolean, fieldName: string): { isValid: boolean, message: string } => {
+            if (!dateString) return { isValid: true, message: '' };
+            const date = new Date(dateString);
+            if (disable) return { isValid: true, message: '' };
+            if (date < currentDate) return { isValid: false, message: `${fieldName} ne peut pas être dans le passé.` };
+            return { isValid: true, message: '' };
+        };
 
-    const validDate = (date: string, context: 'start' | 'end'): boolean => {
-
-        if(context == 'start'){
-            if(new Date(date) < new Date()){
-                throw new Error("The start date should be higher than the current date");
+        if (action === 'create' || action === 'clone') {
+            const startDateValidation = validateDate(payload.StartDate, false, 'Date de début');
+            const endDateValidation = validateDate(payload.EndDate, false, 'Date de fin');
+            if (!startDateValidation.isValid) return startDateValidation;
+            if (!endDateValidation.isValid) return endDateValidation;
+            if (new Date(payload.EndDate) < new Date(payload.StartDate)) {
+                return { isValid: false, message: 'La date de fin doit être après la date de début.' };
             }
-        } else if(context == 'end'){
-            if(menuInfo.value.StartDate){
-                if(new Date(date) <= new Date(menuInfo.value.StartDate + ' ' + startTime.value + ':00')){
-                    throw new Error("The end date should be higher than the start date");
-                }
-            }
-        }
-        return true;
-    }
-
-    const getStartDate = (_date: string | undefined) => {
-        if(_date == undefined) return '';
-
-        console.log('_date', _date)
-        let result: string | undefined = '';
-        if(validDate(_date, "start")){
-            console.log('starIsValid')
-            result =  menuInfo.value.StartDate + ' ' + startTime.value + ':00';
-        }
-
-        return result;
-    }
-    const getEndDate = (_date: string | undefined) => {
-        if(_date == undefined)
-            return '';
-        
-        let result = '';
-        if(menuInfo.value.EndDate){
-            if(validDate(_date, "end")){
-                result = menuInfo.value.EndDate + ' ' + endTime.value + ':00'
-            }
+            return { isValid: true, message: '' };
+        } else if (action === 'update') {
+            const startDateValidation = validateDate(payload.StartDate, disableStartDate.value, 'Date de début');
+            const endDateValidation = validateDate(payload.EndDate, disableEndDate.value, 'Date de fin');
+            if (!startDateValidation.isValid) return startDateValidation;
+            if (!endDateValidation.isValid) return endDateValidation;
+            return { isValid: true, message: '' };
         }
 
-        return result;
-    }
+        return { isValid: false, message: 'Erreur de validation inconnue.' };
+    };
+
+
+
+    const updateDisabledDates = (_menuInfo: any): void => {
+        console.log('_menuInfo', _menuInfo)
+        const currentDate = new Date();
+
+        if (_menuInfo.StartDate) {
+            const startDate = new Date(_menuInfo.StartDate);
+            disableStartDate.value = startDate < currentDate; // Désactive si date antérieure à maintenant
+        } else {
+            disableStartDate.value = false; // Réinitialiser si pas de StartDate
+        }
+
+        if (_menuInfo.EndDate) {
+            const endDate = new Date(_menuInfo.EndDate);
+            disableEndDate.value = endDate < currentDate; // Désactive si date antérieure à maintenant
+        } else {
+            disableEndDate.value = false; // Réinitialiser si pas de EndDate
+        }
+    };
 
     onBeforeMount(() => {
         getPlate();
         if(props.action == "update" || props.action == "clone"){
+            if(props.action == "update"){updateDisabledDates(props.menu);}
+            console.log('disableStartDate', disableStartDate.value)
+            console.log('disableEndDate', disableEndDate.value)
+            range.value = formatDates(props.menu);
+            startTime.value = range.value.startDate;
+            endTime.value = range.value.endDate;
+            
             if(props.plats){
                 plateListToadd.value = props.plats.map((item: any) => {
                     return {
@@ -293,28 +337,61 @@
                 }
             }
         }
-        menuInfo.value.EndDate = formatDate(menuInfo.value.EndDate);
-        menuInfo.value.StartDate = formatDate(menuInfo.value.StartDate);
-        console.log('menuInfo.value.StartDate', menuInfo.value.StartDate)
-    })
-    const formatDate = (rawDate: string | undefined) => {
+        menuInfo.value.EndDate = getDate(menuInfo.value.EndDate);
+        menuInfo.value.StartDate = getDate(menuInfo.value.StartDate);
+    });
+
+    const getDate = (rawDate: string | undefined) => {
         const res = rawDate!.split(" ");
         return res[0];
     };
 
+    
+
     const getAction = (act:string | undefined) => {
-        console.log('act', act)
         switch (act) {
             case "edit":
                 return "Update"
             case "clone":
                 return "Clone"
-            case "add":
+            case "create":
                 return "Save"
             default:
                 return "Update"
         }
     }
+
+    const formatDates = (obj: any): FormattedDates => {
+        // Helper function to format time in "HH:mm" format
+        const formatTime = (date: Date): string => {
+            return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        };
+
+        // Parse StartDate and EndDate into Date objects
+        const startDate = new Date(obj.StartDate);
+        const endDate = obj.EndDate ? new Date(obj.EndDate) : null;
+
+        // Format startDate's time
+        const formattedStartDate = formatTime(startDate);
+
+        let formattedEndDate: string;
+
+        if (endDate && !isNaN(endDate.getTime())) {
+            // If EndDate is valid, format its time
+            formattedEndDate = formatTime(endDate);
+        } else {
+            // Otherwise, calculate EndDate as StartDate + 10 minutes
+            const calculatedEndDate = new Date(startDate);
+            calculatedEndDate.setMinutes(startDate.getMinutes() + 10);
+            formattedEndDate = formatTime(calculatedEndDate);
+        }
+
+        return {
+            startDate: formattedStartDate,
+            endDate: formattedEndDate,
+        };
+    }
+    
 </script>
 
 <template>
@@ -338,15 +415,15 @@
                             <input-group label="Title" type="text" placeholder="Enter the menu title" customClasses="w-full xl:w-1/2" v-model="menuInfo.Title" required />
                             <div class="flex justify-between items-end w-full xl:w-1/2">
                                 <input-group label="Start Date" type="date" placeholder=""
-                                    customClasses="w-5/6" v-model="menuInfo.StartDate" required />
-                                <input type="time" id="sdtime" name="sdtime" class="h-10" v-model="startTime">
+                                    customClasses="w-5/6" v-model="menuInfo.StartDate" required :disabled="disableStartDate"/>
+                                <input type="time" id="sdtime" name="sdtime" class="h-10" v-model="startTime" :disabled="disableStartDate">
                             </div>
                         </div>
                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row">
                             <div class="flex justify-between items-end w-full xl:w-1/2">
                                 <input-group label="End Date" type="date" placeholder=""
-                                    customClasses="w-5/6" v-model="menuInfo.EndDate" required />
-                                <input type="time" id="edtime" name="edtime" class="h-10" v-model="endTime">
+                                    customClasses="w-5/6" v-model="menuInfo.EndDate" required :disabled="disableEndDate" />
+                                <input type="time" id="edtime" name="edtime" class="h-10" v-model="endTime" :disabled="disableEndDate">
                             </div>
                             <input-group label="Describe the menu" type="textarea" placeholder="Enter the description of your menu" customClasses="xl:w-1/2" v-model="menuInfo.Description" required />
                         </div>
@@ -372,7 +449,7 @@
                                 <TableOne :items="titles" :datas="plateListToadd" :options="filterOptions" @remove="handleRemovePlace" @increment="handleIncrement" @decrement="handleDecrement" :filterable="false" :pagination="false"/>
                             </div>
                             <div v-else class="text-center py-4">
-                                Please add a plate ;P
+                                Please add a plate 🍕
                             </div>
                         </template>
 

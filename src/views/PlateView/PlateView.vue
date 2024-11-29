@@ -75,8 +75,7 @@
     const viewPlate = (ts: any) => {
         isViewing.value = true;
         selectedPlate.value = rawPlateList.value.filter((item:any) => item.Code == ts.Code)[0];
-        console.log("selectedPlate", `/plate/${selectedPlate.value.Code}/view`)
-        window.location.href = `/plate/${selectedPlate.value.Code}/view`
+        window.location.href = `/plates/${selectedPlate.value.Code}/view`
     }
     const getPlate = async () => {
         isloading.value = true;
@@ -102,21 +101,19 @@
             return titleA.localeCompare(titleB);
         });
 
-        console.log("plateList", plateList.value)
-        console.log("configStore", configStore.plateCategories)
-
+        rawPlateList.value = result;
         isloading.value = false;
     }
 
     onBeforeMount(async () => {
+        isloading.value = true;
         await getPlate();
     });
     
     const cancel = (payload:any) => {
         console.log("cancel", payload)
         isViewing.value = true;
-        
-        payload == true && location.reload()
+        location.reload()
 
     }
     const handleAddPlate = (e:any) => {

@@ -1,13 +1,13 @@
 <script setup lang="ts">
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import DefaultCardSkeleton from '@/components/Forms/DefaultCardSkeleton.vue';
-    import NewMenuForm from './NewMenuForm.vue';
-    import Spinner from '@/components/Utilities/Spinner.vue';
+    const NewMenuForm = defineAsyncComponent(() => import('./NewMenuForm.vue'));
+    const Spinner = defineAsyncComponent(() => import('@/components/Utilities/Spinner.vue'));
     import { defineAsyncComponent, onBeforeMount, ref } from 'vue';
     import TableOne from '@/components/Tables/TableOne.vue';
     import router from '@/router';
     import ButtonAction from '@/components/Buttons/ButtonAction.vue';
-    import PopupModal from '@/components/Modals/PopupModal.vue';
+    const PopupModal = defineAsyncComponent(() => import('@/components/Modals/PopupModal.vue'));
     import { fetchSingleMenu, deleteMenu } from '@/services/database';
     const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
     const InputGroup = defineAsyncComponent(() => import('@/components/Forms/InputGroup.vue'));
@@ -120,6 +120,7 @@
         console.log("viewPlat", ts);
     }
     const handleEditMenu = (e: any) => {
+        console.log("handleEditMenu", menuInfo.value);
         isEditing.value = true;
         isCloning.value = false;
     }
@@ -240,7 +241,7 @@
             </DefaultCard>
             </template>
             <template v-else-if="isEditing">
-            <NewMenuForm  @cancel="cancel"  :action="'update'" :menu="menuInfo" :plats="plats"/>
+                <NewMenuForm  @cancel="cancel"  :action="'update'" :menu="menuInfo" :plats="plats"/>
             </template>
             <template v-else-if="isCloning">
             <NewMenuForm  @cancel="cancel"  :action="'clone'" :menu="menuInfo" :plats="plats"/>
@@ -248,13 +249,6 @@
             <DefaultCardSkeleton v-if="isloading"/>
             <!-- Input Fields End -->
         </div>
-        <!-- <Modal title="Dish detail" header="header" width="sm" :is-open="isModalOpen" v-if="isModalOpen" @close="handleCloseModal">
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard
-            dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen
-            book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.
-            It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with
-            desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
-        </Modal> -->
 
         <PopupModal :message="`Are you sure you want to delete this Menu ? This action cannot be undone.`" :is-open="isModalOpen" v-if="isModalOpen" @close="handleCloseModal" :title="'Menu deletion'">
             <template v-slot:footer>

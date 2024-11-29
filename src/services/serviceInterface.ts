@@ -6,6 +6,16 @@ export interface MenuRequest {
     EndDate: string | undefined,
 }
 
+export interface PlateInfo {
+    "Code": string,
+    "Title": string,
+    "Description": string,
+    "BasePrice": number,
+    "Currency": string,
+    "CategoryCode": string,
+    "Likes": number,
+    "content": any []
+}
 
 export interface MenuItem {
     PlateCode?: string,
@@ -24,6 +34,7 @@ export interface Plat {
 
 export interface Content {
     "ProductCode"?: string,
+    "PlatCode"?: string,
     "Body"?: string,
     "DisplayOrder"?: number,
     "TypeCode"?: string
@@ -92,4 +103,9 @@ export interface ProductOption {
     "name"?: string,
     "api": string,
     "quantity": number
+}
+
+export interface FormattedDates {
+    startDate: string;
+    endDate: string;
 }
