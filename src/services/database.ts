@@ -167,8 +167,76 @@ export const createConsistency = async (payload: Compositions[]) => {
 }
 
 
+/* ORDER */
 
+    export const fetchOrder = async () => {
+        const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders`;
 
+        try {
+            const response = await axios (url, {
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+                method: "GET",
+            });
+            return response.data.body.results;
+        } catch (error) {
+            console.error('Database.fetchOrder.error ::', error);
+            throw error;
+        }
+    }
+    export const fetchSingleOrder = async (orderCode:string) => {
+        const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders/items?OrderCode=${orderCode}`;
+
+        try {
+            const response = await axios (url, {
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+                method: "GET",
+            });
+            return response.data.body.results;
+        } catch (error) {
+            console.error('Database.fetchSingleOrder.error ::', error);
+            throw error;
+        }
+    }
+    export const updateOrder = async (payload: any) => {
+        const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders`;
+        try {
+            console.log("payload", payload)
+            const response = await axios.put(url, { 
+                Order: payload
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            return response.data.body;
+        } catch (error) {
+            console.log('Database.updateMenu.error ::', error);
+            throw error;
+        }
+    }
+    export const deleteOrder = async (codeList: any[]) => {
+        const url = `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders`;
+        try {
+            const response = await axios.delete(url, {
+                data: { 
+                    Orders: codeList
+                },
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            return response.data.body;
+        } catch (error) {
+            console.log('Database.deleteOrder.error ::', error);
+            throw error;
+        }
+    }
 
 
 /* PRODUCT */

@@ -101,9 +101,27 @@
               
               <template v-else-if="it.type === 'action'">
                   <div class="flex items-center">
-                    <button type="button" v-for="(ac, y) in it.actions" :key="y" @click="emits(ac.event, dt)" :title="ac.name"  class="mx-1">
-                      <span v-html="ac.icone"></span>
-                    </button>
+                    <template  v-for="(ac, y) in it.actions" >
+                      <template v-if="it.colored">
+                        <button type="button" :key="y" @click="emits(ac.event, dt)" :title="ac.name"  class="mx-1">
+                          <template v-if="dt?.event == ac.event">
+                            <div :class="ac.color" class="p-[1px]"><span v-html="ac.icone"></span></div>
+                          </template>
+                          <template v-else>
+                            <div class="p-[1px]">
+                              <span v-html="ac.icone"></span>
+                            </div>
+                          </template>
+                        </button>
+                      </template>
+                      <template v-else>
+                        <button type="button" :key="y" @click="emits(ac.event, dt)" :title="ac.name"  class="mx-1">
+                          <span v-html="ac.icone"></span>
+                        </button>
+                      </template>
+                    </template>
+                    
+                    
                   </div>
                 </template>
             </td>
