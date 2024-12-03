@@ -45,9 +45,7 @@
         console.log('handleCloseModal')
         isModalOpen.value = false;
     }
-    const viewContent = (ts: any) => {
-
-    }
+    
     const deleteAction = async () => {
         try {
             console.log('deleteAction')
@@ -66,7 +64,8 @@
         window.location.reload();
     }
     const goBack = () => {
-        window.location.href = '/plates';
+        // window.location.href = '/plates';
+        window.history.back();
     }
 
 

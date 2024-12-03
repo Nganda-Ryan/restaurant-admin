@@ -50,7 +50,7 @@
         isModalOpen.value = false;
     }
     const category = computed(() => {
-        const cat = configStore.productCategories.filter((p:any) => p.Code == productInfo.value.CategoryCode)
+        const cat: any = configStore.productCategories.filter((p:any) => p.Code == productInfo.value.CategoryCode)
         if(cat[0]) {return cat[0].Title}
 
         return "";
@@ -89,7 +89,8 @@
         }
     }
     const goBack = () => {
-        window.location.href = '/products';
+        // window.location.href = '/products';
+        window.history.back();
     }
     const fetchProduct = async () => {
         isloading.value = true;

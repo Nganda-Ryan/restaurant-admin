@@ -268,7 +268,7 @@
 <template>
   <div>
     <div class="flex flex-col gap-10" v-if="isViewing">
-        <TableOne @view="viewTicket" :items="titles" :datas="computedTickets" :options="filterOptions" @kitchen="handleKitchen" @progress="handleProgress" @completed="handleCompleted" :filterable="true">
+        <TableOne @view="viewTicket" :items="titles" :datas="computedTickets" :options="filterOptions" @kitchen="handleKitchen" @progress="handleProgress" @completed="handleCompleted" :filterable="true" :pagination="true">
         </TableOne>
     </div>
     <SpinnerOverPage v-if="isloading" />

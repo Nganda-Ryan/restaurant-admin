@@ -117,7 +117,8 @@
         Title: "",
     }]);
     const viewPlat = (ts: any) => {
-        console.log("viewPlat", ts);
+        console.log("** viewPlat", ts);
+        window.location.href = `/plates/${ts.api}/view`
     }
     const handleEditMenu = (e: any) => {
         console.log("handleEditMenu", menuInfo.value);
@@ -154,7 +155,8 @@
         window.location.reload();
     }
     const goBack = () => {
-        window.location.href = '/menus';
+        // window.location.href = '/menus';
+        window.history.back();
     }
     const fetchMenu = async () => {
         isloading.value = true;

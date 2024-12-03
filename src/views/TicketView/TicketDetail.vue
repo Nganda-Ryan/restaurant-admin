@@ -130,7 +130,8 @@
                     message: `Order ${ticketInfo.value.Code} Deleted succesfully !`
                 }
                 EventBus.emit('showToast', payload);
-                window.location.href = '/';
+                // window.location.href = '/';
+                window.history.back();
             }
         } catch (e: any) {
             console.error('Error while handling kitchen:', e);
@@ -146,7 +147,8 @@
 
     
     const goBack = () => {
-        window.location.href = '/';
+        // window.location.href = '/';
+        window.history.back();
     }
 
 
