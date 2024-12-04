@@ -55,7 +55,7 @@ export const createMenu = async (payload: any) => {
         });
         return response.data.body;
     } catch (error) {
-        console.log('Database.createMenu.error ::', error);
+        console.error('Database.createMenu.error ::', error);
         throw error;
     }
 };
@@ -71,7 +71,7 @@ export const cloneMenu = async (payload: any, parentCode: string|undefined) => {
         });
         return response.data.body;
     } catch (error) {
-        console.log('Database.createMenu.error ::', error);
+        console.error('Database.createMenu.error ::', error);
         throw error;
     }
 };
@@ -88,7 +88,24 @@ export const updateMenu = async (payload: any) => {
         });
         return response.data.body;
     } catch (error) {
-        console.log('Database.updateMenu.error ::', error);
+        console.error('Database.updateMenu.error ::', error);
+        throw error;
+    }
+};
+export const updateMenuItem = async (payload: any) => {
+    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items`;
+
+    try {
+        const response = await axios.put(url, { 
+            Items: payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        return response.data.body;
+    } catch (error) {
+        console.error('Database.updateMenuItems.error ::', error);
         throw error;
     }
 };
@@ -105,7 +122,24 @@ export const deleteMenu = async (codeList: any[]) => {
         });
         return response.data.body;
     } catch (error) {
-        console.log('Database.createMenu.error ::', error);
+        console.error('Database.createMenu.error ::', error);
+        throw error;
+    }
+}
+export const deleteMenuItem = async (codeList: any[]) => {
+    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items`;
+    try {
+        const response = await axios.delete(url,{
+            data: { 
+                Items: codeList
+            },
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        return response.data.body;
+    } catch (error) {
+        console.error('Database.deleteMenuItem.error ::', error);
         throw error;
     }
 }
@@ -144,7 +178,7 @@ export const createPlate = async (payload: PlateOption) => {
         });
         return response.data.body;
     } catch (error) {
-        console.log('Database.createPlate.error ::', error);
+        console.error('Database.createPlate.error ::', error);
         throw error;
     }
 }
@@ -161,7 +195,7 @@ export const createConsistency = async (payload: Compositions[]) => {
         });
         return response.data.body;
     } catch (error) {
-        console.log('Database.createPlate.error ::', error);
+        console.error('Database.createPlate.error ::', error);
         throw error;
     }
 }
@@ -206,7 +240,6 @@ export const createConsistency = async (payload: Compositions[]) => {
     export const updateOrder = async (payload: any) => {
         const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders`;
         try {
-            console.log("payload", payload)
             const response = await axios.put(url, { 
                 Order: payload
             }, {
@@ -216,7 +249,7 @@ export const createConsistency = async (payload: Compositions[]) => {
             });
             return response.data.body;
         } catch (error) {
-            console.log('Database.updateMenu.error ::', error);
+            console.error('Database.updateMenu.error ::', error);
             throw error;
         }
     }
@@ -233,7 +266,7 @@ export const createConsistency = async (payload: Compositions[]) => {
             });
             return response.data.body;
         } catch (error) {
-            console.log('Database.deleteOrder.error ::', error);
+            console.error('Database.deleteOrder.error ::', error);
             throw error;
         }
     }
@@ -288,13 +321,12 @@ export const createProduct = async (payload: any) => {
         });
         return response.data.body;
     } catch (error) {
-        console.log('Database.createProduct.error ::', error);
+        console.error('Database.createProduct.error ::', error);
         throw error;
     }
 };
 export const updateProduct = async (payload: any) => {
     const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products`;
-    console.log("** payload", payload);
     try {
         const response = await axios.put(url, { 
             product: payload
@@ -305,7 +337,7 @@ export const updateProduct = async (payload: any) => {
         });
         return response.data.body;
     } catch (error) {
-        console.log('Database.updateProduct.error ::', error);
+        console.error('Database.updateProduct.error ::', error);
         throw error;
     }
 };
@@ -322,10 +354,10 @@ export const createContent = async (payload: Content[] | PlateContent[]) => {
                 'Content-Type': 'application/json',
             }
         });
-        console.log('database.createContent', response.data.body)
+        console.error('database.createContent', response.data.body)
         return response.data.body;
     } catch (error) {
-        console.log('Database.createContent.error ::', error);
+        console.error('Database.createContent.error ::', error);
         throw error;
     }
     
@@ -350,7 +382,7 @@ export const uploadContent = async (file: File) => {
         return response.data.secure_url;
     } catch (error) {
         console.error('Erreur lors de l\'upload :', error);
-        console.log('Échec de l\'upload de l\'image.');
+        console.error('Échec de l\'upload de l\'image.');
     }
 }
 

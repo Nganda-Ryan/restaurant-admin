@@ -8,10 +8,13 @@
     import router from '@/router';
     import ButtonAction from '@/components/Buttons/ButtonAction.vue';
     const PopupModal = defineAsyncComponent(() => import('@/components/Modals/PopupModal.vue'));
-    import { fetchSingleMenu, deleteMenu } from '@/services/database';
+    import { fetchSingleMenu, deleteMenu, deleteMenuItem } from '@/services/database';
     const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
     const InputGroup = defineAsyncComponent(() => import('@/components/Forms/InputGroup.vue'));
     import type { MenuRequest, Plat } from '../../services/serviceInterface';
+    import { isExpiry } from '@/components/Utilities/UtilitiesFunction';
+import type ToastPayload from '@/types/Toast';
+import EventBus from '@/EventBus';
 
 
     const emits = defineEmits(['cancel', "go-back"]);
@@ -116,9 +119,37 @@
         Likes: 0,
         Title: "",
     }]);
+    
+    
     const viewPlat = (ts: any) => {
         console.log("** viewPlat", ts);
         window.location.href = `/plates/${ts.api}/view`
+    }
+    const deleteItemAction = async (ts: any) => {
+        try {
+            isDeleting.value = true;
+            await deleteMenuItem([{
+                "PlateCode": ts.Code,
+                "MenuCode": menuInfo.value.Code
+            }])
+
+            const toastPayload: ToastPayload = {
+                type: "success",
+                message: `Item ${ts.Title} deleted successfully ! 🍕`
+            }
+            EventBus.emit('showToast', toastPayload);
+            await fetchMenu();
+        } catch (e) {
+            console.log("MenuDetails.deleteItemAction.error", e)
+            const toastPayload: ToastPayload = {
+                type: "danger",
+                message: `Something went wrong during the process ! 🍕`
+            }
+            EventBus.emit('showToast', toastPayload);
+        }
+        finally {
+            isDeleting.value = false;
+        }
     }
     const handleEditMenu = (e: any) => {
         console.log("handleEditMenu", menuInfo.value);
@@ -167,6 +198,7 @@
 
             const result = await fetchSingleMenu(menuCode.value);
             menuInfo.value = result[0].Menu;
+            console.log('result[0].Menu', result[0].Menu)
             plats.value = result.map((item:any) => {
                 let temp = {
                     ...item.Plat,
@@ -210,8 +242,7 @@
                 </template>
                 <template v-slot:header>
                     <div class="flex items-center justify-center">
-                        <button-action @click='handleEditMenu' custom-classes="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Edit</button-action>
-                        <!-- <button-action @click="handleAddPlate" custom-classes="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Add Plate</button-action> -->
+                        <button-action v-if="!isExpiry(menuInfo.EndDate)" @click='handleEditMenu' custom-classes="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Edit</button-action>
                         <button-action @click="handleCloneMenu" custom-classes="text-slate-900 bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Clone</button-action>
                         <button-action @click="handleDeleteMenu" custom-classes="text-white bg-gradient-to-r from-rose-400 via-rose-500 to-rose-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-rose-300 dark:focus:ring-rose-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Delete</button-action>
                     </div>
@@ -238,7 +269,7 @@
                     PLATE LIST
                 </div>
                 <div>
-                    <TableOne :items="titles" :datas="plats" :options="filterOptions" @view="viewPlat" :filterable="false"/>
+                    <TableOne :items="titles" :datas="plats" :options="filterOptions" @view="viewPlat" @delete="deleteItemAction" :filterable="false"/>
                 </div>
             </DefaultCard>
             </template>

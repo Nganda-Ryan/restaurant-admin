@@ -1,7 +1,7 @@
 <script setup lang="ts">
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import SelectGroupSearchable from '@/components/Forms/SelectGroup/SelectGroupSearchable.vue';
-    import { createMenu, fetchPlate, formatedDate, generateCode, updateMenu, cloneMenu } from '@/services/database';
+    import { createMenu, fetchPlate, formatedDate, generateCode, updateMenu, cloneMenu, updateMenuItem } from '@/services/database';
     import { defineAsyncComponent, onBeforeMount, ref } from 'vue';
     import InputGroup from '@/components/Forms/InputGroup.vue';
 
@@ -155,8 +155,11 @@
             console.log('**validation', validation)
             if(validation.isValid){
                 let result: any = "";
+                let itemResult: any = "";
                 if(props.action == "update"){
                     result = await updateMenu(payload)
+                    const platePayload = payload.items.map(item => ({... item, "MenuCode": payload.Code}))
+                    itemResult = await updateMenuItem(platePayload)
                 } else if(props.action == "clone"){
                     result = await cloneMenu(payload, menuInfo.value.Code)
                 } else {
@@ -310,12 +313,10 @@
         }
     };
 
-    onBeforeMount(() => {
-        getPlate();
+    onBeforeMount(async () => {
+        await getPlate();
         if(props.action == "update" || props.action == "clone"){
             if(props.action == "update"){updateDisabledDates(props.menu);}
-            console.log('disableStartDate', disableStartDate.value)
-            console.log('disableEndDate', disableEndDate.value)
             range.value = formatDates(props.menu);
             startTime.value = range.value.startDate;
             endTime.value = range.value.endDate;
@@ -329,7 +330,7 @@
                         api: item.api
                     }
                 });
-                plateList.value = plateList.value.filter(item1 => !plateListToadd.value.some(item2 => item2.api == item1.api));
+                plateList.value = plateList.value.filter(item1 => !plateListToadd.value.some((item2: any) => item2.api == item1.api));
                 menuInfo.value = props.menu as MenuRequest;
                 if(menuInfo.value.EndDate){
                     let formattedDate = menuInfo.value.EndDate.split(" ")[0]
