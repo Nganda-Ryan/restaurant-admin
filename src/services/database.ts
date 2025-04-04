@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { PlateOption, Content, PlateContent, Compositions } from "./serviceInterface";
+import type { PlateOption, Content, PlateContent, Compositions, composition } from "./serviceInterface";
 import { createPinia } from "pinia";
 
 import { useAuthStore } from '@/stores/auth';
@@ -109,6 +109,23 @@ export const updateMenuItem = async (payload: any) => {
         throw error;
     }
 };
+
+export const addMenuItem = async (payload: any) => {
+    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items`;  
+    try {   
+        const responce = await axios.post(url, {
+            Items: payload
+        }, {    
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        return responce.data.body;
+    } catch (error) {
+        console.error('Database.addMenuItems.error ::', error);
+        throw error;
+    }
+}
 export const deleteMenu = async (codeList: any[]) => {
     const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus`;
     try {
@@ -182,9 +199,43 @@ export const createPlate = async (payload: PlateOption) => {
         throw error;
     }
 }
+export const deletePlate = async (codeList: any[]) => {
+    const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats`;
+    try {
+        const response = await axios.delete(url,{
+            data: { 
+                plats:codeList
+            },
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        return response.data.body;
+    } catch (error) {
+        console.error('Database.deletePlate.error ::', error);
+        throw error;
+    }
+}
+
+export const updatePlate = async (payload: PlateOption) => {
+    const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats`;
+    try {
+        const response = await axios.put(url, { 
+            plat: payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        return response.data.body;
+    } catch (error) {
+        console.error('Database.updatePlate.error ::', error);
+        throw error;
+    }
+}
 export const createConsistency = async (payload: Compositions[]) => {
     const url =  `${import.meta.env.VITE_APP_CONSISTENCY_BASE_URL_V1}/compositions`;
-
+    console.log('Database.createConsistency.createPlate.payload', payload)
     try {
         const response = await axios.post(url, { 
             Compositions: payload
@@ -195,7 +246,41 @@ export const createConsistency = async (payload: Compositions[]) => {
         });
         return response.data.body;
     } catch (error) {
-        console.error('Database.createPlate.error ::', error);
+        console.error('Database.createConsistency.createPlate.error ::', error);
+        throw error;
+    }
+}
+export const UpdateConsistency = async (payload: composition) => {
+    const url =  `${import.meta.env.VITE_APP_CONSISTENCY_BASE_URL_V1}/compositions`;
+    console.log('Database.createConsistency.createPlate.payload', payload)
+    try {
+        const response = await axios.put(url, { 
+            Composition: payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        return response.data.body;
+    } catch (error) {
+        console.error('Database.UpdateConsistency.createPlate.error ::', error);
+        throw error;
+    }
+}
+export const getConsistency = async  (plateCode: string): Promise<{body: { results: any[] } }>  => {
+    const url = `${import.meta.env.VITE_APP_CONSISTENCY_BASE_URL_V1}/compositions?PlateCode=${plateCode}`;
+
+    try {
+        const response = await axios(url, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            method: "GET",
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Database.fetchOrder.error ::', error);
         throw error;
     }
 }
@@ -346,6 +431,7 @@ export const updateProduct = async (payload: any) => {
     /* Product */
 export const createContent = async (payload: Content[] | PlateContent[]) => {
     const url =  `${import.meta.env.VITE_APP_CONFIG_BASE_URL_V1}/contents`;
+    console.log('Database.createConsistency.createContent.payload', payload)
     try {
         const response = await axios.post(url, { 
             Contents: payload
@@ -355,9 +441,46 @@ export const createContent = async (payload: Content[] | PlateContent[]) => {
             }
         });
         console.error('database.createContent', response.data.body)
-        return response.data.body;
+        return response.data;
     } catch (error) {
-        console.error('Database.createContent.error ::', error);
+        console.error('Database.Content.createContent.error ::', error);
+        throw error;
+    }
+    
+}
+export const updateContent = async (payload: Content [] | PlateContent[]) => {
+    const url =  `${import.meta.env.VITE_APP_CONFIG_BASE_URL_V1}/contents`;
+    console.log('Database.createConsistency.createContent.payload', payload)
+    try {
+        const response = await axios.put(url, { 
+            Content: payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        console.error('database.createContent', response.data.body)
+        return response.data;
+    } catch (error) {
+        console.error('Database.Content.updateContent.error ::', error);
+        throw error;
+    }
+    
+}
+export const fetchContent = async (plateCode:String) => {
+    const url =  `${import.meta.env.VITE_APP_CONFIG_BASE_URL_V1}/contents?PlateCode=${plateCode}`;
+    try {
+        const response = await axios (url, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            method: "GET",
+        });
+        console.error('database.fetchContent', response.data.body)
+        return response.data;
+    } catch (error) {
+        console.error('Database.Content.fetchContent.error ::', error);
         throw error;
     }
     

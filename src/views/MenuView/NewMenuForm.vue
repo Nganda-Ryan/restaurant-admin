@@ -1,7 +1,7 @@
 <script setup lang="ts">
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import SelectGroupSearchable from '@/components/Forms/SelectGroup/SelectGroupSearchable.vue';
-    import { createMenu, fetchPlate, formatedDate, generateCode, updateMenu, cloneMenu, updateMenuItem } from '@/services/database';
+    import { createMenu, fetchPlate, formatedDate, generateCode, updateMenu, cloneMenu, updateMenuItem,addMenuItem } from '@/services/database';
     import { defineAsyncComponent, onBeforeMount, ref } from 'vue';
     import InputGroup from '@/components/Forms/InputGroup.vue';
 
@@ -33,7 +33,7 @@
     const plateList = ref<Array<PlateOption>>([])
     const plateListToadd = ref<Array<any>>([])
     const isSaving = ref<Boolean>(false);
-    const selectedItem = ref<any>(null)
+    const selectedItem = ref<any>(null);
     const menuInfo = ref<MenuRequest>({
         Code: "",
         Title: "",
@@ -133,6 +133,30 @@
             if(menuInfo.value.Title){
                 code = props.action == "update" ? menuInfo.value.Code : generateCode(menuInfo.value.Title);
             }
+            const existingPlates: any[] = [];
+            const newPlates: any[] = [];
+
+            plateListToadd.value.forEach(plate => {
+                // Vérifie si le plat existe déjà dans la base de données (via plateListToadd)
+            const isExisting = props.plats?.some((existingPlate: any) => existingPlate.api === plate.api);
+                if (isExisting) {
+                    // Plat existant (a un Id)
+                    existingPlates.push({
+                    PlateCode: plate.api,
+                    QuantityAvailable: plate.quantity,
+                    MenuCode: code // Inclure le code du menu
+                    });
+                } else {
+                    // Nouveau plat (n'a pas d'Id)
+                    // Nouveau plat
+                    newPlates.push({
+                        PlateCode: plate.api,
+                        QuantityAvailable: plate.quantity,
+                        MenuCode: code // Inclure le code du menu
+                    });
+                }
+            });
+
             
             const plates = plateListToadd.value.map(i => {
                 return {
@@ -158,8 +182,14 @@
                 let itemResult: any = "";
                 if(props.action == "update"){
                     result = await updateMenu(payload)
-                    const platePayload = payload.items.map(item => ({... item, "MenuCode": payload.Code}))
-                    itemResult = await updateMenuItem(platePayload)
+                    if (existingPlates.length > 0) {
+                    itemResult = await updateMenuItem(existingPlates);
+                    }
+
+                    // Ajouter les nouveaux plats
+                    if (newPlates.length > 0) {
+                        itemResult = await addMenuItem(newPlates);
+                    }
                 } else if(props.action == "clone"){
                     result = await cloneMenu(payload, menuInfo.value.Code)
                 } else {
@@ -244,21 +274,39 @@
         })
     }
     const handdleAddPlate = () => {
-        if(plateList.value.length <= 0 || !selectedItem.value){return}
+    if (plateList.value.length <= 0 || !selectedItem.value) { return }
 
-        plateListToadd.value.push({
-            ...selectedItem.value,
-            quantity: quantity.value
-        });
-        selectedItem.value = null;
-        plateList.value = plateList.value.filter(item1 => !plateListToadd.value.some(item2 => item2.api == item1.api));
+    const plateToAdd = {
+        ...selectedItem.value,
+        quantity: quantity.value
+    };
 
-        
-        plateListToadd.value.sort((a, b) => a.name.localeCompare(b.name));
-        plateList.value.sort((a, b) => a.name.localeCompare(b.name));
-        resetInput.value = !resetInput.value;
-        quantity.value = 1;
+    // Vérifie si le plat existe déjà dans plateListToadd
+    const existingPlateIndex = plateListToadd.value.findIndex(plate => plate.api === selectedItem.value.api);
+
+
+    if (existingPlateIndex !== -1) {
+        // Si le plat existe déjà, mettez à jour la quantité
+        plateListToadd.value[existingPlateIndex].quantity += quantity.value;
+    } else {
+        // Sinon, ajoutez le plat à plateListToadd
+        plateListToadd.value.push(plateToAdd);
     }
+
+    // Retire le plat ajouté de plateList
+    plateList.value = plateList.value.filter(item1 => 
+        !plateListToadd.value.some(item2 => item2.api == item1.api)
+    );
+
+    // Trie les listes par ordre alphabétique
+    plateListToadd.value.sort((a, b) => a.name.localeCompare(b.name));
+    plateList.value.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Réinitialise les valeurs
+    selectedItem.value = null;
+    resetInput.value = !resetInput.value;
+    quantity.value = 1;
+};
 
     
     const validateMenu = (payload: any, action: string | undefined): { isValid: boolean, message: string } => {

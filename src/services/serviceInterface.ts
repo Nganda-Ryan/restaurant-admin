@@ -37,7 +37,8 @@ export interface Content {
     "PlatCode"?: string,
     "Body"?: string,
     "DisplayOrder"?: number,
-    "TypeCode"?: string
+    "TypeCode"?: string,
+    "Id"?:number
 }
 
 export interface PlateContent {
@@ -48,17 +49,37 @@ export interface PlateContent {
 }
 
 export interface Product {
-    "Code"?: string,
-    "Title"?: string,
-    "Description"?: string,
-    "QuantityUnitCode"?: string,
-    "AvailableQuantity"?: number,
-    "image"?: string,
-    "CategoryCode"?: string,
-    "Likes"?: number,
-    "Image"?: any
+    Code: string;
+    Title: string;
+    CategoryCode: string;
+    Description: string;
+    Likes: number;
+    AvailableQuantity: number;
+    QuantityUnitCode: string;
 }
-
+export interface Composition {
+    Id: number,
+    AsIngredient: number,
+    QuantityOfConsumption: number,
+    IsOptional: number,
+    ProductCode: string,
+    PlateCode: string,
+    Product: Product; // Détails du produit
+}
+export interface ResultItem {
+    Code: string;
+    Title: string;
+    BasePrice: number;
+    Currency: string;
+    CategoryCode: string;
+    Likes: number;
+    composition: Composition[]; // `items` est ici appelé `composition`
+}
+export interface ApiResponse {
+    body: {
+        results: ResultItem[];
+    };
+}
 // export interface Content {
 //     "Code": string,
 //     "Title": string,
@@ -96,13 +117,21 @@ export interface PlateOption {
 
 export interface Compositions {
     "ProductCode"?: string,
-    "PlateCode": string
+    "PlateCode": string,
+    "QuantityOfConsumption": number;
 }
-
+export interface composition{
+    "Id": number,
+    "ProductCode": string,
+    "PlateCode": string,
+    "QuantityOfConsumption": number;
+}
 export interface ProductOption {
     "name"?: string,
     "api": string,
-    "quantity": number
+    "quantity": number,
+    "inputField"?:String
+    "Id"?: number; 
 }
 
 export interface FormattedDates {

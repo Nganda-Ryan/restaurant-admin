@@ -18,6 +18,10 @@
       type: Boolean,
       default: false
     },
+    inputField: {
+      type: String,// Valeur par défaut correcte
+  
+    },
     pagination: {
       type: Boolean,
       default: false
@@ -62,6 +66,7 @@
           <th scope="col" class="px-6 py-3" v-for="(it, i) in items" :key="i">
            <div class="flex items-center">
               <h5 class="text-sm font-medium xsm:text-base">{{ it.label }}</h5>
+              
               <a href="#" v-if="it.filterable">
                 <svg class="w-3 h-3 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8.574 11.024h6.852a2.075 2.075 0 0 0 1.847-1.086 1.9 1.9 0 0 0-.11-1.986L13.736 2.9a2.122 2.122 0 0 0-3.472 0L6.837 7.952a1.9 1.9 0 0 0-.11 1.986 2.074 2.074 0 0 0 1.847 1.086Zm6.852 1.952H8.574a2.072 2.072 0 0 0-1.847 1.087 1.9 1.9 0 0 0 .11 1.985l3.426 5.05a2.123 2.123 0 0 0 3.472 0l3.427-5.05a1.9 1.9 0 0 0 .11-1.985 2.074 2.074 0 0 0-1.846-1.087Z"/>
@@ -76,9 +81,17 @@
         <tbody>
           <tr v-for="(dt, key) in datas" :key="key" :class="`bg-white hover:bg-teal-50 dark:bg-slate-800`">
             <td :class="getCustomStyle(it)" v-for="(it, i) in items" :key="i">
+             
               <template v-if="dt[it.name] !== undefined">
                 <template v-if="it.type === 'url'">
                   <a href="#" @click="emits(it.event, dt)">{{ dt[it.name] }}</a>
+
+                  <input v-if="it.inputField" 
+                 :type="it.inputField.type" 
+                 :placeholder="it.inputField.placeholder" 
+                  v-model = "dt.inputField"
+                  class="w-full h-8 rounded border-[1.5px] text-black border-stroke bg-transparent py-1.5 px-1 font-normal outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-slate-50 dark:disabled:bg-black  dark:text-white dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"/>
+                  
                 </template>
                 <template v-else-if="it.type === 'percentage'">
                   {{ dt[it.name] }} <span>%</span>

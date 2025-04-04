@@ -1,12 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView/HomeView.vue'
-
+// @ts-ignore
+import HomeSetting from '../views/SettingsView/HomeSetting.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
       name: 'home',
+
+      component: () => import('../views/HomeView/DashboardView.vue')
+    },
+    {
+      path: '/dashoboard',
+      name: 'dashboard',
       component: HomeView
     },
     {
@@ -18,6 +25,11 @@ const router = createRouter({
       path: '/menus',
       name: 'menu',
       component: () => import('../views/MenuView/MenuView.vue')
+    },    
+    {
+      path: '/settings',
+      name: 'setting',
+      component: HomeSetting 
     },
     {
       path: '/menus/:menucode/:action',

@@ -225,7 +225,7 @@
                         </div>
                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
                             <input-group label="Image" type="file" placeholder=""
-                                customClasses="w-full xl:w-1/2" v-model="productInfo.Image" />
+                                customClasses="w-full xl:w-1/2" v-model="productInfo.image" />
                             <input-group label="Describe the menu" type="textarea" placeholder="Enter the description of your menu" 
                                 customClasses="xl:w-1/2" v-model="productInfo.Description" required />
                         </div>

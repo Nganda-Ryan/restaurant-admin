@@ -1,18 +1,19 @@
 <script setup lang="ts">
-    import { ref, defineAsyncComponent, computed, onMounted } from 'vue';
+    import { ref, defineAsyncComponent, computed, onMounted, onBeforeMount } from 'vue';
+    import router from '@/router';
     import Spinner from '@/components/Utilities/Spinner.vue';
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import { useConfigStore } from '@/stores/config';
-    import type { PlateOption, Content, Compositions, ProductOption } from '@/services/serviceInterface';
+    import type { PlateOption, Content, Composition,Compositions, ProductOption , ResultItem, ApiResponse, composition } from '@/services/serviceInterface';
     import { Cloudinary } from "@cloudinary/url-gen";
-    import { AdvancedImage } from "@cloudinary/vue";
+    import { AdvancedImage, placeholder } from "@cloudinary/vue";
     import { fill } from "@cloudinary/url-gen/actions/resize";
     import ButtonAction from '@/components/Buttons/ButtonAction.vue';
     import InputGroup from '@/components/Forms/InputGroup.vue';
     import SelectGroupSearchable from '@/components/Forms/SelectGroup/SelectGroupSearchable.vue';
     import type Option from '../../../src/components/Utilities/interfaceModel';
     const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
-    import { uploadContent, createPlate, generateCode, createContent, fetchProduct } from '@/services/database';
+    import { fetchContent ,uploadContent, createPlate, generateCode, createContent, fetchProduct, updatePlate, getConsistency,createConsistency, fetchPlate, UpdateConsistency, updateContent} from '@/services/database';
     import type ToastPayload from '@/types/Toast';
     import EventBus from '@/EventBus';
     import TableOne from '@/components/Tables/TableOne.vue';
@@ -20,13 +21,15 @@
 
     const configStore = useConfigStore();
     const isSaving = ref<Boolean>(false);
+    const isProductList= ref<Boolean>(false);
     const emits = defineEmits(['cancel', "save", "back", "created"]);
     const props = defineProps({
         action: {
             type: String,
         },
         plate: {
-            type: Object
+            type: Object,
+            default: () => ({}) // Fournit un objet vide par défaut
         }
     });
     const plateInfo = ref<PlateOption>({
@@ -52,12 +55,17 @@
             type: 'url',
             event: "view",
             filterable: false,
+            inputField: {
+                placeholder: 'Enter the value',
+                type:'text'
+            }
         },
         {
             name: 'quantity',
             type: "text",
             label: 'Quantity',
             filterable: true,
+            class: 'aligned-column'
         },
         {
             name: 'Actions',
@@ -125,40 +133,187 @@
         return result;
     })
     
+    
     const savePlate = async () => {
         
         try {
             isSaving.value = true;
-            if(plateInfo.value.Title){
-                plateInfo.value.Code = generateCode(plateInfo.value.Title);
+            
+            // Déterminer le code du plat
+            if (props.action === "update") {
+                console.log('props.plate', props.plate)
+                plateInfo.value.Code = props.plate.Code; // Gardez le code existant ou une chaîne vide
+            } else if (props.action == "add" && plateInfo.value.Title) {
+                plateInfo.value.Code = generateCode(plateInfo.value.Title); // Générer un nouveau code pour un nouvel ajout
             }
-            const createdPlate = await createPlate(plateInfo.value);
+
+            let result;
+     
             let createdCtn = '';
             let createdCtn2 = '';
 
             //Content creation
-            if(createdPlate[0].success){
+            if(props.action == "add"){
+                result = await createPlate(plateInfo.value); // Création d'un nouveau plat
+                if(result && result[0].success){
+                    //Composition
+                    if(plateInfo.value.Code != undefined){
+                        const ctnList1: Compositions[] = [];
+                    productListToadd.value.forEach(p1 => {
+                        rawProduct.value.forEach(p2 => {
+                            if(p1.api === p2.Code){
+                                if(plateInfo.value.Code){
+                                    ctnList1.push({
+                                        "ProductCode": p1.api,
+                                        "PlateCode": plateInfo.value.Code,
+                                        "QuantityOfConsumption": p1.quantity,
+
+                                    });
+                                } else {
+                                    throw new Error('Plate code is missing');
+                                }
+                            }
+                        });
+                    });
+                 
+                    createdCtn = await createConsistency(ctnList1);
+
+                    //Content de type ING
+                    const CtnList2: Content [] = [];
+                    let ingredients = '';
+                    productListToadd.value.forEach(p1 => {
+                        rawProduct.value.forEach(p2 => {
+                           
+                            if(p1.api == p2.Code){
+                                const inputFieldValue = p1.inputField || ''; // Utilisation du placeholder
+                                ingredients += (ingredients ? '; ' : '') + `${p2.Title} : ${inputFieldValue}`; // Ajouter le produit et la quantité
+                            }
+                        });
+                    });
+                    CtnList2.push({
+                        "PlatCode": plateInfo.value.Code,
+                        "Body": ingredients,
+                        "DisplayOrder": 1,
+                        "TypeCode": "ING"
+                    });
+                    createdCtn = await createContent(CtnList2);
+                    //Cover Image
+                    const uploadDedImage = await uploadContent(plateInfo.value.Image);
+                    if(uploadDedImage){
+                        const uploadedCtn = await uploadContent(plateInfo.value.Image)
+                        if(uploadedCtn){
+                            const ctnList: Content [] = [];
+                            ctnList.push({
+                                "PlatCode": plateInfo.value.Code,
+                                "Body": uploadedCtn,
+                                "DisplayOrder": 1,
+                                "TypeCode": 'COVER'
+                            })
+                            createdCtn2 = await createContent(ctnList);
+                        }
+                    }
+                    }
+                    router.push({path: '/plates'})
+                }
+            }else if(props.action === "update"){
+                 // Mise à jour du plat (si des champs ont été modifiés)
+                if (plateInfo.value.Title !== props.plate.Title || 
+                    plateInfo.value.Description !== props.plate.Description || 
+                    plateInfo.value.CategoryCode !== props.plate.CategoryCode ||
+                    plateInfo.value.BasePrice !== props.plate.BasePrice) {
+                    result = await updatePlate(plateInfo.value); // Mise à jour du plat
+                }
+               // Séparer les produits en deux listes
+            const newProducts: Compositions[] = [];
+            const existingProducts: composition[] = [];
+               // Vérifiez que le code du plat est défini
+            if (plateInfo.value.Code !== undefined) {
+
+                
+                productListToadd.value.forEach(p1 => {
+                const matchingProduct = rawProduct.value.find(p2 => p1.api === p2.Code);
+                if (matchingProduct) {
+                    if (plateInfo.value.Code) {
+                        // Vérifier si le produit existe déjà dans la liste des produits associés au plat
+                        if (p1.Id) { // Utilisez Id au lieu de compositionId
+                            // Ajouter le produit à la liste des produits existants()
+                            if(p1.quantity > 0){
+                                existingProducts.push({
+                                    "Id": p1.Id, // Utilisez Id
+                                    "ProductCode": p1.api,
+                                    "PlateCode": plateInfo.value.Code,
+                                    "QuantityOfConsumption": p1.quantity,
+                                });
+                            }else{
+                                // Supprimer le produit de la liste des produits existants
+                                existingProducts.push({
+                                    "Id": p1.Id, // Utilisez Id
+                                    "ProductCode": p1.api,
+                                    "PlateCode": plateInfo.value.Code,
+                                    "QuantityOfConsumption": 0,
+                                });
+                            }
+                            existingProducts.push({
+                                "Id": p1.Id, // Utilisez Id
+                                "ProductCode": p1.api,
+                                "PlateCode": plateInfo.value.Code,
+                                "QuantityOfConsumption": p1.quantity,
+                            });
+                        } else {
+                            // Ajouter le produit à la liste des nouveaux produits
+                            newProducts.push({
+                                ProductCode: p1.api,
+                                PlateCode: plateInfo.value.Code,
+                                QuantityOfConsumption: p1.quantity,
+                            });
+                        }
+                    } else {
+                        throw new Error('Plate code is missing');
+                    }
+                }
+            });
+
+            // Utiliser createConsistency pour les nouveaux produits
+            if (newProducts.length > 0) {
+                await createConsistency(newProducts);
+            }
+
+            // Utiliser UpdateConsistency pour les produits existants
+            if (existingProducts.length > 0) {
+                for (const product of existingProducts) {
+                await UpdateConsistency({
+                    Id: product.Id, // Assurez-vous que Id est présent
+                    ProductCode: product.ProductCode,
+                    PlateCode: product.PlateCode,
+                    QuantityOfConsumption: product.QuantityOfConsumption,
+                });
+    }
+            }
+
+            }
                 //Ingredient
-                const ctnList1: Content [] = [];
-                let ingredient = '';
+                const ctnList2: Content [] = [];
+                let ingredients = '';
                 productListToadd.value.forEach(p1 => {
                     rawProduct.value.forEach(p2 => {
                         if(p1.api == p2.Code){
-                            ingredient = ingredient + ', ' + p2.Title;
+                            const inputFieldValue = p1.inputField || ''; // Utilisation du placeholder
+                            ingredients += (ingredients ? '; ' : '') + `${p2.Title} : ${inputFieldValue}`; // Ajouter le produit et la quantité
                         }
                     });
                 });
-                ctnList1.push({
-                    "PlatCode": plateInfo.value.Code,
-                    "Body": ingredient,
-                    "DisplayOrder": 0,
-                    "TypeCode": "ING"
-                })
-                createdCtn = await createContent(ctnList1);
-
-                
-                //Cover Image
-                const uploadDedImage = await uploadContent(plateInfo.value.Image);
+                if (ingredients) {
+                    ctnList2.push({
+                        "PlatCode": plateInfo.value.Code,
+                        "Body": ingredients,
+                        "DisplayOrder": 1,
+                        "TypeCode": "ING",  
+                    });
+                    createdCtn = await createContent(ctnList2);
+                    console.log('createdCtn', createdCtn);
+                }
+                    //Cover Image
+                    const uploadDedImage = await uploadContent(plateInfo.value.Image);
                 if(uploadDedImage){
                     const uploadedCtn = await uploadContent(plateInfo.value.Image)
                     if(uploadedCtn){
@@ -166,7 +321,7 @@
                         ctnList.push({
                             "PlatCode": plateInfo.value.Code,
                             "Body": uploadedCtn,
-                            "DisplayOrder": 1,
+                            "DisplayOrder": 2,
                             "TypeCode": 'COVER'
                         })
                         createdCtn2 = await createContent(ctnList);
@@ -176,7 +331,7 @@
 
             console.log('createdCtn', createdCtn);
             console.log('createdCtn2', createdCtn2);
-            console.log('createdPlate', createdPlate);
+            console.log('createdPlate', result);
 
             const toastPayload: ToastPayload = {
                 type: "success",
@@ -195,8 +350,8 @@
             reloadView.value = true;
             EventBus.emit('showToast', toastPayload);
 
-            console.log("createdPlate", createdPlate)
-        } catch(error:any){
+            console.log("createdPlate", result)
+        }catch(error:any){
             console.log('error: ', error);
             console.log('Trace', error.stack)
             const errMsg = error ? error : "Oups, something went wrong during the processing";
@@ -217,13 +372,22 @@
     
     const handdleAddProduct = () => {
         if(productList.value.length <= 0 || !selectedItem.value){return}
-        //Ajout du produit au plat
+
+        const existingProduct = productListToadd.value.find(item => item.api === selectedItem.value.api);
+
+      if (existingProduct) {
+        // Mettre à jour la quantité du produit existant
+        existingProduct.quantity += producQuantity.value;
+    } else {
+        // Ajouter le produit au plat
         productListToadd.value.push({
             ...selectedItem.value,
-            quantity: producQuantity.value
+            inputField: '',
+            quantity: producQuantity.value,
         });
+    }
         selectedItem.value = null;
-        
+        isProductList.value = true;
         //retrait du produit ajouté de la liste des produits.
         productList.value = productList.value.filter(item1 => !productListToadd.value.some(item2 => item2.api == item1.api));
 
@@ -270,8 +434,8 @@
         productListToadd.value = productListToadd.value.map(item => {
             if(item.api == ts.api){
                 return {
-                   ...item,
-                    quantity: item.quantity + 1
+                    ...item,
+                    quantity: item.quantity + 1  // Incrémente la quantité
                 }
             }
             return item;
@@ -325,15 +489,72 @@
         });
     }
 
-    onMounted(() => {
-        getProduct();
+    onBeforeMount(async () => {
+    await getProduct(); // Récupérer la liste des produits disponibles
+    await fetchPlate()
+    if (props.action === "update") {
+        if (props.plate) {
+            plateInfo.value = { ...props.plate };
+            const plateCode = props.plate.Code
 
-        // if(props.action == "update"){
-        //     if(props.product){
-        //         productInfo.value = props.product
-        //     }
-        // }
-        // console.log('props', props)
+            // Utiliser getConsistency pour récupérer les produits associés au plat
+                // Récupérer le contenu du plat
+            const contentResponse = await fetchContent(plateCode);
+            const consistencyResponse: ApiResponse = await getConsistency(plateCode);	
+            console.log('Consistency Response:', consistencyResponse); // Vérifiez la réponse
+
+            const ingredientMap = contentResponse.body.results.flatMap((result: any) => 
+            result.content
+                    .filter((item: any) => item.TypeCode === "ING")
+                    .map((item: any) => {
+                        const bodyParts = item.Body.split(';'); // On suppose que les ingrédients sont séparés par des `;`
+                        return bodyParts.map((part: any) => {
+                            const [name, value] = part.split(':').map((p:any) => p.trim()); // Extraire nom et valeur
+                            return { name, value: value || '' }; // Si pas de valeur, on met une chaîne vide
+                        });
+                    })
+            ).flat();
+                        // Construire un dictionnaire pour accès rapide
+                const ingredientDict = Object.fromEntries(ingredientMap.map((ing: any )=> [ing.name, ing.value]));
+            if (consistencyResponse.body && consistencyResponse.body.results) {
+                const results: ResultItem[] = consistencyResponse.body.results;
+                // Extraire les produits de la réponse
+                if (results.length > 0 && Array.isArray(results[0].composition)) {
+                    const uniqueIngredients = new Set(); // Set pour stocker les ingrédients uniques
+
+                    productListToadd.value = results.flatMap(result => 
+                    result.composition.map((item: Composition) =>{
+                        const productName = item.Product.Title;
+                        if (!uniqueIngredients.has(productName)) { // Vérifier si l'ingrédient est déjà ajouté
+                    uniqueIngredients.add(productName); // Ajouter l'ingrédient au Set
+
+                    const inputFieldValue = ingredientDict[productName] || ''; // Récupérer la valeur ou chaîne vide si non trouvée
+                    return {
+                        name: `${item.Product.Title} (${item.Product.QuantityUnitCode})`,
+                        api: item.Product.Code,
+                        quantity: item.QuantityOfConsumption,
+                        Id: item.Id,
+                        inputField: inputFieldValue // Afficher l'ingrédient ou une chaîne vide
+                    };
+                }
+                return null; // Retourner null pour les ingrédients en double
+            }).filter(item => item !== null) // Filtrer les valeurs null
+        );
+            } else {
+                console.error('composition is not an array or is empty');
+                productListToadd.value = [];
+            }
+            } else {
+                // Gérer le cas où la récupération échoue
+                productListToadd.value = [];
+            }
+
+            // Mettre à jour la liste des produits disponibles
+            productList.value = productList.value.filter(item => 
+                !productListToadd.value.some(p => p.api === item.api)
+            );
+        }
+    }
     });
 </script>
 
@@ -393,16 +614,13 @@
 
                     
                         <div class="w-full px-6 font-bold gap-2.5 py-2  mb-10 mt-8 hover:bg-opacity-90 lg:px-6 xl:px-6 text-white bg-gradient-to-r from-olive-800 to-olive-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 text-sm me-2">
-                            PRODUCT LIST
+                          INGEDIENTS LIST
                         </div>
-                        
                         <div v-if="productListToadd.length > 0">
-                            <TableOne :items="titles" :datas="productListToadd" :options="filterOptions" @remove="handleRemovePlace" @increment="handleIncrement" @decrement="handleDecrement" :filterable="false" :pagination="false"/>
+                            <TableOne :items="titles" :datas="productListToadd" :options="filterOptions" :inputField="''" @remove="handleRemovePlace" @increment="handleIncrement" @decrement="handleDecrement" :filterable="false" :pagination="false"/>                          
                         </div>
-
-                        
-                        <div v-else class="text-center py-4">
-                            Please add a plate ;P
+                        <div v-else class="text-center py-4"> 
+                            Please add a plate;
                         </div>
 
 
@@ -426,3 +644,10 @@
     </div>
     <!-- ====== Form Elements Section End -->
 </template>
+<style>
+.aligned-column {
+    display: flex; /* Utiliser flexbox pour aligner le contenu */
+    align-items: center; /* Centrer le contenu verticalement */
+    padding-left: 10px; /* Ajuster le padding selon vos besoins */
+}
+</style>
