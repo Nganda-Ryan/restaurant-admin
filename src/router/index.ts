@@ -12,14 +12,19 @@ const router = createRouter({
       component: () => import('../views/HomeView/DashboardView.vue')
     },
     {
-      path: '/dashoboard',
-      name: 'dashboard',
+      path: '/commande-list',
+      name: 'command',
       component: HomeView
     },
     {
       path: '/tickets/:ticketcode/:action',
       name: 'ticket',
       component: () => import('../views/TicketView/TicketDetail.vue')
+    },
+    {
+      path: '/Stocks-entree',
+      name: 'EntreeStocks',
+      component: () => import('../views/Stocks/StocksEntree.vue')
     },
     {
       path: '/menus',

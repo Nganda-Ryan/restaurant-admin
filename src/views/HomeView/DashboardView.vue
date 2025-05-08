@@ -24,9 +24,9 @@
         />
         
         <StatCard 
-          title="Clients" 
+          title="Menus" 
           :value="stats.customers" 
-          icon="👥" 
+          icon="🍽️" 
           color="bg-purple-100 text-purple-600"
         />
         <StatCard 
