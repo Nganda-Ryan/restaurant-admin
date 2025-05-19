@@ -80,11 +80,11 @@ export interface ApiResponse {
         results: ResultItem[];
     };
 }
-// export interface Content {
-//     "Code": string,
-//     "Title": string,
-//     "isActive": number
-// }
+ export interface Categorieplat {
+    "Code"?: string,
+    "Title"?: string,
+    "IsActive"?: boolean
+ }
 
 export interface Plate {
     "Code"?: string,

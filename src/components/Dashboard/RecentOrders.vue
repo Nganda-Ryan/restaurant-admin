@@ -39,7 +39,7 @@ const router = useRouter()
 
   
 const navigateToDashboard = () => {
-  router.push('/dashoboard')
+  router.push('/commande-list')
 }
 </script>
 

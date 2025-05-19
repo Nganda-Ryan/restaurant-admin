@@ -14,7 +14,6 @@
     import ButtonAction from '@/components/Buttons/ButtonAction.vue';
     const InputGroup = defineAsyncComponent(() => import('@/components/Forms/InputGroup.vue'));
 
-
     interface Param {
         action: string,
         platecode: string

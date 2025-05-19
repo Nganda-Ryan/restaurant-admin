@@ -608,11 +608,7 @@
                             <input-group label="Describe the menu" type="textarea" placeholder="Enter the description of your menu" 
                                 customClasses="w-full xl:w-1/2" v-model="plateInfo.Description" required />
                         </div>
-                        
-                        
-                        
-
-                    
+            
                         <div class="w-full px-6 font-bold gap-2.5 py-2  mb-10 mt-8 hover:bg-opacity-90 lg:px-6 xl:px-6 text-white bg-gradient-to-r from-olive-800 to-olive-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 text-sm me-2">
                           INGEDIENTS LIST
                         </div>

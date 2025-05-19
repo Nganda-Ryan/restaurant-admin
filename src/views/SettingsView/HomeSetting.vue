@@ -64,15 +64,7 @@
               <span>+</span> Ajouter un membre
             </button>
           </div>
-  
-              <TableOne 
-                :items="titles"  
-                :datas="teamMembers"
-                :options="filterOptions" 
-                @view="viewPlate"
-                :filterable="false" 
-                :pagination="false"
-            />
+          <TeamTable/>
         </div>
   
         <!-- Compte -->
@@ -87,10 +79,25 @@
           
         <!-- Categorie des plats -->
         <div v-if="activeTab === 'Categorie plat'" class="space-y-6">
-          <h2 class="text-xl font-semibold mb-4">Categories des plat</h2>
+            <h2 class="text-xl font-semibold mb-4">Categories des plat</h2>
+          <Categorieplate/>
         </div>
-
+          
         <!-- Categorie des plats -->
+        <div v-if="activeTab === 'tables'" class="space-y-6">
+          <h2 class="text-xl font-semibold mb-4">Paremetres des tables</h2>
+          <div class="flex justify-between items-center">
+            <h2 class="text-xl font-semibold">Gestion de l'équipe</h2>
+            <button 
+              @click="showAddMemberModal = true"
+              class="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+            >
+              <span>+</span> Ajouter une table
+            </button>
+          </div>
+          <TableSettings/>
+        </div>
+        <!-- langues -->
         <div v-if="activeTab === 'langue'" class="space-y-6">
             <h2 class="text-xl font-semibold mb-4">Parametre de la langue</h2>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -110,21 +117,6 @@
           </button>
         </div>
       </div>
-  
-      <!-- Modals -->
-      <AddTeamMemberModal 
-        v-if="showAddMemberModal"
-        @close="showAddMemberModal = false"
-        @save="addTeamMember"
-      />
-  
-      <ConfirmationModal 
-        v-if="memberToRemove"
-        title="Confirmer la suppression"
-        message="Êtes-vous sûr de vouloir supprimer ce membre de l'équipe ?"
-        @confirm="removeTeamMember"
-        @cancel="memberToRemove = null"
-      />
     </div>
   </template>
   
@@ -134,8 +126,10 @@
   import ToggleSetting from '@/components/SettingsComponent/ToggleSetting.vue'
   import TeamTable from '@/components/SettingsComponent/TeamTable.vue'
   import AccountSettings from '@/components/SettingsComponent/AccountSettings.vue'
-  import TableOne from '@/components/Tables/TableOne.vue';
-//   import AddTeamMemberModal from '@/components/SettingsComponent/AddTeamMemberModal.vue'
+  import TableSettings from '@/components/SettingsComponent/TableSetting.vue'
+  import Categorieplate from '@/components/SettingsComponent/Categories/CategoriePlate.vue'
+
+  //import AddTeamMemberModal from '@/components/SettingsComponent/AddTeamMemberModal.vue'
 //   import ConfirmationModal from '@/components/ui/ConfirmationModal.vue'
   
   // Onglets de navigation
@@ -167,8 +161,16 @@
       icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
             </svg>`
-    }
-    ,
+    },    
+    
+    {
+      id: 'tables',
+      label: 'Table',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v16.5h16.5V3.75H3.75zM3.75 8.25h16.5M3.75 15.75h16.5M8.25 3.75v16.5M15.75 3.75v16.5" />
+            </svg>`
+    },
+
     {
       id: 'Categorie plat',
       label: 'Categorie plat',

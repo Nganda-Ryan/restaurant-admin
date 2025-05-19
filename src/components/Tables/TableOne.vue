@@ -29,6 +29,10 @@
     searchable: {
       type: Boolean,
       default: false
+    },
+    component: {
+      type: String,
+      default: 'TableOne'
     }
   });
   const emits = defineEmits();

@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { PlateOption, Content, PlateContent, Compositions, composition } from "./serviceInterface";
+import type { PlateOption, Content, PlateContent, Compositions, composition, Categorieplat } from "./serviceInterface";
 import { createPinia } from "pinia";
 
 import { useAuthStore } from '@/stores/auth';
@@ -528,6 +528,81 @@ export const fetchConfig = async () => {
     }
 }
 
+/* CATEGORIE PLATE */
+
+export const fetchCategoriePlate = async () => {
+    const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories`;
+    try {
+        const response = await axios (url, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            method: "GET",
+        });
+        return response.data.body.results
+    } catch (error) {
+        console.error('Database.fetchProduct.error ::', error);
+        throw error;
+    }
+}
+export const createCategoriePlate = async (payload:Categorieplat) => {
+    const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories`;
+    console.log('Database.createConsistency.createContent.payload', payload)
+    try {
+        const response = await axios.post(url, { 
+            PlatCategory: payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        console.error('database.createContent', response.data.body)
+        return response.data;
+    } catch (error) {
+        console.error('Database.Content.createContent.error ::', error);
+        throw error;
+    }
+    
+}
+export const updateCategoriePlat = async (payload:Categorieplat) => {
+    const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories`;
+    console.log('Database.createConsistency.createContent.payload', payload)
+    try {
+        const response = await axios.put(url, { 
+            PlatCategory: payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        console.error('database.createContent', response.data.body)
+        return response.data;
+    } catch (error) {
+        console.error('Database.Content.updateContent.error ::', error);
+        throw error;
+    }
+    
+}
+export const deleteCategoriePlat = async (Code: any[]) => {
+    const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories`;
+    try {
+        const response = await axios.delete(url,{
+            data: { 
+                PlatCategories: Code
+            },
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        return response.data.body;
+    } catch (error) {
+        console.error('Database.createMenu.error ::', error);
+        throw error;
+    }
+}
+
+//generate code function
 
 export const generateCode = (title:string) => {
     let result = '';
