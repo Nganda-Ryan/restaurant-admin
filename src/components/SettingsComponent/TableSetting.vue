@@ -9,18 +9,43 @@
     :pagination="false"
   />
 
-  <div v-if="showQRModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-lg max-w-sm mx-auto text-center">
-      <h3 class="text-lg font-bold mb-4">QR Code pour la table {{ selectedTable?.numero }}</h3>
-      <img :src="qrCodeUrl" alt="QR Code" class="mx-auto mb-4" />
-      <button 
-        @click="showQRModal = false"
-        class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-      >
-        Fermer
-      </button>
+<div v-if="showQRModal" class="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+      <!-- En-tête -->
+      <div class="flex justify-between items-center border-b p-4">
+        <h3 class="text-xl font-bold text-gray-800">
+          QR Code - Table {{ selectedTable?.numero }}
+        </h3>
+        <button @click="showQRModal = false" class="text-gray-500 hover:texte-red ">
+          <i class="pi pi-times text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Contenu QR Code -->
+      <div class="p-6 text-center">
+        <div class="mb-4 mx-auto w-64 h-64 flex items-center justify-center bg-white p-2 rounded border">
+          <img :src="qrCodeUrl" alt="QR Code" class="w-full h-full object-contain" />
+        </div>
+        
+        <p class="text-sm text-gray-600 mb-4">
+          Scannez ce code avec <strong>l'appareil photo</strong> de votre téléphone
+          pour accéder au menu
+        </p>
+        
+      </div>
+
+      <!-- Pied de page -->
+      <div class="border-t p-4 flex justify-end">
+        <button 
+          @click="showQRModal = false"
+          class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+        >
+          Fermer
+        </button>
+      </div>
     </div>
   </div>
+
 </template>
 
 <script setup>
@@ -93,6 +118,10 @@ const titles = ref([
   }
 ])
 
+const showQRModal = ref(false);
+const selectedTable = ref(null);
+const qrCodeUrl = ref('');
+
 const generateQR = async (table) => {
   try {
     // Vous pouvez personnaliser les données encodées dans le QR code
@@ -102,18 +131,25 @@ const generateQR = async (table) => {
       capacity: table.capacite,
       location: table.localisation
     })
+
+     // Créer l'URL avec les paramètres de la table
+    const clientUrl = `https://nwaar-restaurant-client.netlify.app/?tableId=${table.id}&tableNumber=${table.numero}`;
     
     // Générer le QR code sous forme d'URL de données
-    const qrCodeUrl = await QRCode.toDataURL(qrData, {
-      width: 200,
-      margin: 2
-    })
+    const generaoUrlqrCode = await QRCode.toDataURL(clientUrl, { 
+      width: 300, // Taille augmentée pour meilleure détection
+      margin: 2,
+      color: {
+        dark: "#127086",
+        light: "#ffffff" // Correction: "ffffff" au lieu de "ffff"
+      },
+      errorCorrectionLevel: 'H'
+    });
     
-    // Ouvrir le QR code dans une nouvelle fenêtre ou l'afficher dans un modal
-    const newWindow = window.open('', '_blank')
-    newWindow.document.write(`<img src="${qrCodeUrl}" alt="QR Code pour Table ${table.numero}" style="display:block;margin:auto;">`)
-    newWindow.document.write(`<h2 style="text-align:center;">Table ${table.numero}</h2>`)
-    newWindow.document.close()
+     // Affichez le QR code dans le modal
+    showQRModal.value = true;
+    selectedTable.value = table;
+    qrCodeUrl.value = generaoUrlqrCode;
     
   } catch (err) {
     console.error('Erreur lors de la génération du QR code:', err)
@@ -134,3 +170,9 @@ function statusClasses(status) {
   }
 }
 </script>
+
+<style scoped>
+.texte-red {
+  color: rgb(238, 14, 14);
+}
+</style>

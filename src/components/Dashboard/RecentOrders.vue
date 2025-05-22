@@ -2,13 +2,13 @@
     <div class="space-y-4">
       <div v-for="order in orders" :key="order.id" class="flex items-center justify-between p-3 border-b">
         <div>
-          <p class="font-medium">Commande #{{ order.id }}</p>
+          <p class="font-medium">Commande #{{ order.Code }}</p>
           <p class="text-sm text-gray-500">Table {{ order.table }}</p>
         </div>
         <div class="text-right">
-          <p class="font-semibold">{{ order.amount }}</p>
-          <span :class="statusClass(order.status)" class="text-xs px-2 py-1 rounded-full">
-            {{ order.status }}
+          <p class="font-semibold">{{ order.TotalPrice}} Fcfa</p>
+          <span :class="statusClass(order.StatusCode)" class="text-xs px-2 py-1 rounded-full">
+            {{ order.StatusCode }}
           </span>
         </div>
       </div>
@@ -29,10 +29,10 @@ const router = useRouter()
   
   const statusClass = (status) => {
     switch(status) {
-      case 'Servi': return 'bg-green-100 text-green-800'
-      case 'En cuisine': return 'bg-yellow-100 text-yellow-800'
+      case 'DONE': return 'bg-green-100 text-green-800'
+      case 'PENDING': return 'bg-yellow-100 text-yellow-800'
       case 'Payé': return 'bg-blue-100 text-blue-800'
-      case 'Rejeté': return 'bg-rouge-clair  .text-rouge-fonce'
+      case 'DRAFT': return 'bg-rouge-clair  .text-rouge-fonce'
       default: return 'bg-gray-100 text-gray-800'
     }
   }

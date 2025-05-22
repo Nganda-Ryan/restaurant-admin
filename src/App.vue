@@ -4,24 +4,20 @@
   import DefaultLayout from './layouts/DefaultLayout.vue';
   import router from './router';
   import stores from './stores';
-  
-  
-  
-  const isLogin = true;
-  
-  // const isLogin = computed<boolean>(() => {
-  //   return( router.currentRoute.value.path === '/auth/signin')|| (router.currentRoute.value.path === '/');
-  // });
-
+   
+  const isLogin = computed<boolean>(() => {
+  return( router.currentRoute.value.path === '/login');
+  });
 
 </script>
 
 <template>
+  <!-- Si c’est la route de login, pas de layout -->
   <template v-if="isLogin">
-    <DefaultLayout>
-      <RouterView />
-    </DefaultLayout>
+    <RouterView />
   </template>
+
+  <!-- Sinon, affichage avec le layout par défaut -->
   <template v-else>
     <DefaultLayout>
       <RouterView />

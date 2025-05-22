@@ -602,6 +602,74 @@ export const deleteCategoriePlat = async (Code: any[]) => {
     }
 }
 
+//dashboard
+
+export const fetchPopularplate = async () => {
+    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/popular-plats`;
+    try {
+        const response = await axios (url, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            method: "GET",
+        });
+        return response.data.body
+    } catch (error) {
+        console.error('Database.popularplate.error ::', error);
+        throw error;
+    }
+}
+
+export const fetchDayCommande = async () => {
+    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/orders`;
+    try {
+        const response = await axios (url, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            method: "GET",
+        });
+        return response.data.body
+    } catch (error) {
+        console.error('Database.oders.error ::', error);
+        throw error;
+    }
+}
+export const fetchTotalMenu = async () => {
+    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/menus`;
+    try {
+        const response = await axios (url, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            method: "GET",
+        });
+        return response.data.body
+    } catch (error) {
+        console.error('Database.totalMenu.error ::', error);
+        throw error;
+    }
+}
+export const fetchRecentOrder = async () => {
+    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/recent-orders`;
+    try {
+        const response = await axios (url, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            method: "GET",
+        });
+        return response.data.body.results
+    } catch (error) {
+        console.error('Database.popularplate.error ::', error);
+        throw error;
+    }
+}
+
 //generate code function
 
 export const generateCode = (title:string) => {

@@ -17,21 +17,21 @@
           color="bg-blue-100 text-blue-600"
         />
         <StatCard 
-          title="Commandes aujourd'hui" 
-          :value="stats.orders" 
+          title="Commandes de la semaine" 
+          :value="DayCommande.count" 
           icon="🛒" 
           color="bg-green-100 text-green-600"
         />
         
         <StatCard 
           title="Menus" 
-          :value="stats.customers" 
+          :value="TotalMenu.count" 
           icon="🍽️" 
           color="bg-purple-100 text-purple-600"
         />
         <StatCard 
           title="Plats populaires" 
-          :value="stats.topDish" 
+          :value="popularplate.Title" 
           icon="🍲" 
           color="bg-orange-100 text-orange-600"
         />
@@ -61,30 +61,61 @@
   </template>
   
   <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import StatCard from '@/components/Dashboard/StatCard.vue'
   import SalesChart from '@/components/Dashboard/SalesChart.vue'
   import RecentOrders from '@/components/Dashboard/RecentOrders.vue'
   import PopularDishes from '@/components/Dashboard/PopularDishes.vue'
-  
+  import { fetchTotalMenu, fetchDayCommande, fetchPopularplate, fetchRecentOrder} from '@/services/database.ts'
   // Données statistiques
   const stats = ref({
     revenue: '2,450 €',
-    orders: 56,
-    customers: 48,
-    topDish: 'Poulet rôti'
   })
+
+  const TotalMenu= ref({})
+  const DayCommande = ref({})
+  const popularplate = ref({})
+  const recentOrders = ref({})
+
+  const fetchtotalMenus = async () =>{
+  try{
+    const responsedata = await fetchTotalMenu()
+    TotalMenu.value = responsedata
+    console.log('totalMenu:', TotalMenu)
+  }catch(error){
+    console.log('fetchtotalmenu', error)
+  }
+ }
+
+ const fetchDayCommandes = async () =>{
+  try{
+    const responsedata = await fetchDayCommande()
+    DayCommande.value = responsedata
+    console.log('totalMenu:', TotalMenu)
+  }catch(error){
+    console.log('fetchtotalmenu', error)
+  }
+ }
+
+  const popularplates = async () =>{
+  try{
+    const responsedata = await fetchPopularplate()
+    popularplate.value = responsedata
+    console.log('popularplate:', popularplates)
+  }catch(error){
+    console.log('fetchpopularPlate', error)
+  }
+ }
   
-  // Commandes récentes
-  const recentOrders = ref([
-    { id: 125, table: 'T12', amount: '45.50 €', status: 'Servi', time: '12:45' },
-    { id: 124, table: 'T08', amount: '32.00 €', status: 'En cuisine', time: '12:30' },
-    { id: 123, table: 'T05', amount: '28.50 €', status: 'Payé', time: '12:15' },
-    { id: 122, table: 'T03', amount: '62.00 €', status: 'Servi', time: '11:50' },
-    { id: 121, table: 'T10', amount: '18.00 €', status: 'Payé', time: '11:30' },
-    { id: 120, table: 'T11', amount: '20.00 €', status: 'Rejeté', time: '12:30' }
-  ])
-  
+  const recentOder = async () =>{
+  try{
+    const responsedata = await fetchRecentOrder()
+    recentOrders.value = responsedata
+    console.log('recentOrders:', recentOrders)
+  }catch(error){
+    console.log('recentOrders', error)
+  }
+ }
   // Plats populaires
   const popularDishes = ref([
     { name: 'Poulet rôti', orders: 24, revenue: '288 €' },
@@ -117,6 +148,13 @@
       day: 'numeric' 
     })
   })
+
+onMounted(() => {
+  fetchtotalMenus()
+  fetchDayCommandes()
+  popularplates()
+  recentOder()
+})
   </script>
   
   <style scoped>
