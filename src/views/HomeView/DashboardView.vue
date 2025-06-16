@@ -66,7 +66,17 @@
   import SalesChart from '@/components/Dashboard/SalesChart.vue'
   import RecentOrders from '@/components/Dashboard/RecentOrders.vue'
   import PopularDishes from '@/components/Dashboard/PopularDishes.vue'
-  import { fetchTotalMenu, fetchDayCommande, fetchPopularplate, fetchRecentOrder} from '@/services/database.ts'
+  import { fetchTotalMenu, fetchDayCommande, fetchPopularplate, fetchRecentOrder,getUser} from '@/services/database.ts'
+  import { useAuthStore } from '@/stores/auth';
+  import { storeToRefs } from 'pinia';
+
+const authStore = useAuthStore();
+const { currentToken, decodedToken } = storeToRefs(authStore);
+
+// Pour forcer l'affichage dans la console
+console.log('TOKEN COMPLET:', currentToken.value);
+console.log('TOKEN DÉCODÉ:', decodedToken.value);
+  
   // Données statistiques
   const stats = ref({
     revenue: '2,450 €',
@@ -138,6 +148,15 @@
       }
     ]
   })
+
+  const fetchuser = async () =>{
+    try{
+      const response = await getUser()
+      console.log('-->getuser:',response)
+    }catch(error){
+      console.log('getuser', error)
+    }
+  }
   
   // Date actuelle formatée
   const currentDate = computed(() => {
@@ -154,6 +173,7 @@ onMounted(() => {
   fetchDayCommandes()
   popularplates()
   recentOder()
+  fetchuser()
 })
   </script>
   

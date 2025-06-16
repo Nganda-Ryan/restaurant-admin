@@ -1,47 +1,56 @@
 <template>
-    <div>
-        <div class="flex flex-col gap-10" v-if="isViewing">
-
-            <!-- Tableau des produits -->
-            <TableOne 
-                :items="titles" 
-                :datas="element" 
-                :options="filterOptions" 
-                @view="viewProduct" 
-                :filterable="true" 
-                :pagination="true"
+    <div class="mt-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div 
+                v-for="movement in produitsAffiches" 
+                :key="movement.id"
+                class="bg-white rounded-lg shadow p-4 border-l-4"
+                :class="{
+                'text-rouge-fonce2 text-rouge-fonce2': movement.quantity <= 10,
+                'text-orange-500 border-orange-400': movement.quantity > 10 && movement.quantity <= 30,
+                'text-green-600 border-green-500': movement.quantity > 30
+                }"
             >
-                <template v-slot:headerButton>
-                    <button-action 
-                        @click="handleAddProduct" 
-                        custom-classes="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
-                    >
-                        Ajouter un Produit
-                    </button-action>
-                </template>
-            </TableOne>
+                <div class="flex items-center justify-between">
+                    <h4 class="font-medium">{{ movement.name }}</h4>
+                </div>
+                <div class="mt-2 text-sm text-gray-600">
+                    <p>Quantity: {{ movement.quantity }}</p>
+                </div>
+            </div>
         </div>
+            </div>
             <!-- Carte des mouvements de stock -->
             <div class="mt-8" v-if="isViewing">
                 <h3 class="text-xl font-semibold mb-4">Mouvements Recent</h3>
                 <div class="bg-white rounded-lg shadow p-4">
                     <div class="space-y-2">
-                        <div class="flex justify-end items-center mt-2 my-4 text-black"> 
-                            <select 
-                                name="" 
-                                id="" 
-                                class="border border-gray-100 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-1 appearance-none focus:ring-blue-500"
-                            >
-                                <option 
-                                    v-for="filt in filter" 
-                                    :key="filt.api" 
-                                    :value="filt.api"
+                        <div class="flex flex-col w-full sm:w-auto sm:flex-row justify-between items-start sm:items-center gap-4 mt-2 my-4 text-black">
+                            <div class="w-full sm:w-auto">
+                                <button-action 
+                                    @click="handleAddProduct" 
+                                    custom-classes="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+                                    >
+                                + New entry
+                                </button-action>
+                            </div>
+                            <div class="w-full sm:w-auto">
+                                <select 
+                                    name="" 
+                                    id="" 
+                                    class=" w-full sm:w-auto border border-gray-100 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-1 appearance-none focus:ring-blue-500"
                                 >
-                                    {{ filt.name }}
-                                </option>
-                            </select>
+                                    <option 
+                                        v-for="filt in filter" 
+                                        :key="filt.api" 
+                                        :value="filt.api"
+                                    >
+                                        {{ filt.name }}
+                                    </option>
+                                </select>
+                            </div>
                         </div>
-                        <template v-for="(product, index) in visibleMovements" :key="product.name">
+                        <template v-for="product in visibleMovements" :key="product.name">
                             <div class="border-b last:border-b-0 pb-2">
                                 <!-- Ligne principale -->
                                 <div 
@@ -135,7 +144,6 @@
                 :created="handleCreate" 
             />
         </template>
-    </div>
 </template>
 
 <script setup lang="ts">
@@ -152,65 +160,6 @@ import { all } from 'axios'
     const NewProductForm = defineAsyncComponent(() => import('@/views/Stocks/NewsStocks.vue'))
 
     // Configuration du tableau
-    const titles = ref([
-    {
-        name: 'Title',
-        label: 'Title',
-        type: 'url',
-        event: "view",
-        filterable: true,
-    },
-    {
-        name: 'Description',
-        type: "text",
-        label: 'Description',
-    },
-    {
-        name: 'Category',
-        type: "text",
-        label: 'Category',
-        filterable: true,
-    },
-    {
-        name: 'DateEntrée',
-        type: "text",
-        label: 'Date Entrée',
-        filterable: true,
-    },
-    {
-        name: 'AvailableQuantity',
-        type: "text",
-        label: 'Quantity',
-        filterable: false,
-    },
-    {
-        name: 'PrixUnitaire',
-        type: "integer",
-        label: 'PrixUnitaire',
-        filterable: false,
-    },
-    {
-        name: 'Total',
-        type: "integer",
-        label: 'Total',
-        filterable: false,
-    }
-    ])
-
-    const filterOptions = ref([
-    {
-        name: 'All',
-        api: '',
-    },
-    {
-        name: 'Name',
-        api: 'name',
-    },
-    {
-        name: 'Category',
-        api: 'category',
-    }
-    ])
 
 const filter = ref([
     {
@@ -242,16 +191,6 @@ const filter = ref([
     }
     ])
 
-    // Données de test
-    const element = ref([
-    { id: 1, Title: 'tomates', Description: 'Tomates concentrees', Category: 'fruit',DateEntrée:'02-11-2024 10h:25',AvailableQuantity: '10', PrixUnitaire: 2, Total: 20 },
-    { id: 2, Title: 'Pommes', Description: 'Pommes de terre', Category: 'fruit',DateEntrée:'24-09-2024 12h:00', AvailableQuantity: '5', PrixUnitaire: 1, Total: 5 },
-    { id: 3, Title: 'Bananes', Description: 'Bananes bio', Category: 'fruit',DateEntrée:'25-08-2024 09h:30', AvailableQuantity: '8', PrixUnitaire: 3, Total: 24 },
-    { id: 4, Title: 'Oranges', Description: 'Oranges sanguines', Category: 'fruit', DateEntrée:'28-06-2024 11h:20', AvailableQuantity: '12', PrixUnitaire: 4, Total: 48 },
-    { id: 5, Title: 'Raisins', Description: 'Raisins secs', Category: 'fruit', DateEntrée:'14-06-2024 11h:00', AvailableQuantity: '15', PrixUnitaire: 2, Total: 30 },
-    { id: 6, Title: 'Pastèques', Description: 'Pastèques sucrées', Category: 'fruit', DateEntrée:'25-01-2024 14h:00', AvailableQuantity: '20', PrixUnitaire: 5, Total: 100 }
-    ])
-
     // Données des mouvements de stock
     const stockMovements = ref([
     { id: 1, name: 'tomates', type: 'entry', quantity: 50, date: '2024-11-02T10:25:00' },
@@ -263,6 +202,18 @@ const filter = ref([
     { id: 7, name: 'tomates', type: 'entry', quantity: 25, date: '2024-06-14T11:00:00' },
     { id: 8, name: 'Oranges', type: 'exit', quantity: 10, date: '2024-12-25T14:00:00' }
     ])
+
+const produitsAffiches = computed(() => {
+  const totals : Record<string, number> = {}
+  stockMovements.value.forEach(mvt => {
+    if (!totals[mvt.name]) totals[mvt.name] = 0
+    totals[mvt.name] += mvt.type === 'entry' ? mvt.quantity : -mvt.quantity
+  })
+  return Object.entries(totals).map(([name,quantity]) => ({
+    name,
+    quantity
+  }))
+})
 
     // Gestion des menus déroulants
     const expandedProducts = ref<string[]>([])

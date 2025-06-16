@@ -17,7 +17,8 @@
       },
       placeholder: String,
       disabled: Boolean,
-      modelValue:String
+      modelValue:String,
+      multiple:Boolean
   });
   onBeforeMount(() => {
     selectedOption.value = props.modelValue??''

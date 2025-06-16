@@ -4,7 +4,7 @@
   import TableOne from '@/components/Tables/TableOne.vue';
   import { fetchOrder, updateOrder } from '@/services/database';
   import EventBus from '@/EventBus';
-  import type ToastPayload from '@/types/Toast';
+  import type ToastPayload from '@/types/Toast';  
 
   const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
 
@@ -12,6 +12,7 @@
   const ORANGE = 'bg-orange-300 rounded';
   const BLUE = 'bg-blue-300 rounded';
   const GREEN = 'bg-green-300 rounded';
+  const RED = 'bg-red-300 rounded';
   const NONE = 'p-[2px]';
   const selectedTicket = ref<any>();
   const titles = ref([
@@ -40,6 +41,16 @@
           label: 'Actions',
           colored: true,
           actions: [
+            {
+                name: "CANCELED",
+                icone: `
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                    <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                  </svg>
+                `,
+                event: 'canceled',
+                color: RED,
+              },
               {
                   name: "IN KITCHEN",
                   icone: 
@@ -99,7 +110,6 @@
 
   ]);
   
-
   const tickets = ref([]);
   const computedTickets = computed(() => {
     return tickets.value
@@ -122,6 +132,9 @@
         } else if (ticket.StatusCode == 'COMPLETED'){
           color = GREEN;
           event = 'completed';
+        }else if(ticket.StatusCode == 'CANCELED') {
+          color = RED;
+          event = 'canceled';
         }
 
         return {
@@ -246,6 +259,41 @@
     }
     console.log('handleCompleted ts', ts)
   }
+
+/*   const handleCanceled = async (ts: any) => {
+    try {
+      if(ts.event != 'canceled') {
+        isloading.value = true;
+        const result  = await updateOrder({
+          "Code": ts.code,
+          "StatusCode":"CANCELED"
+        });
+        tickets.value.forEach((ticket: any) => {
+          if (ticket.code === ts.code) {
+            ticket.class = RED;
+            ticket.event = 'canceled';
+          }
+        })
+      }
+      
+      const payload: ToastPayload = {
+          type: "info",
+          message: `Order ${ts.code} canceled !`
+      }
+      EventBus.emit('showToast', payload);
+      console.log('handleKitchen ts', ts);
+    } catch (e: any) {
+      console.error('Error while handling kitchen:', e);
+      const payload: ToastPayload = {
+          type: "warning",
+          message: `Something went wrong during the process !`
+      }
+      EventBus.emit('showToast', payload);
+    } finally {
+      isloading.value = false;
+    }
+  } */
+
   onBeforeMount(async () => {
       await fetchTicket();
   });
@@ -268,7 +316,7 @@
 <template>
   <div>
     <div class="flex flex-col gap-10" v-if="isViewing">
-        <TableOne @view="viewTicket" :items="titles" :datas="computedTickets" :options="filterOptions" @kitchen="handleKitchen" @progress="handleProgress" @completed="handleCompleted" :filterable="true" :pagination="true">
+        <TableOne @view="viewTicket" :items="titles" :datas="computedTickets" :options="filterOptions" @kitchen="handleKitchen" @progress="handleProgress" @completed="handleCompleted" @canceled="handleCanceled" :filterable="true" :pagination="true">
         </TableOne>
     </div>
     <SpinnerOverPage v-if="isloading" />

@@ -9,48 +9,56 @@
     :pagination="false"
   />
 
-<div v-if="showQRModal" class="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
-      <!-- En-tête -->
-      <div class="flex justify-between items-center border-b p-4">
-        <h3 class="text-xl font-bold text-gray-800">
-          QR Code - Table {{ selectedTable?.numero }}
-        </h3>
-        <button @click="showQRModal = false" class="text-gray-500 hover:texte-red ">
-          <i class="pi pi-times text-xl"></i>
-        </button>
-      </div>
-
-      <!-- Contenu QR Code -->
-      <div class="p-6 text-center">
-        <div class="mb-4 mx-auto w-64 h-64 flex items-center justify-center bg-white p-2 rounded border">
-          <img :src="qrCodeUrl" alt="QR Code" class="w-full h-full object-contain" />
+<!-- Conteneur principal -->
+  <div v-if="showQRModal" class="fixed inset-0 z-99999 overflow-y-auto">
+    <!-- Overlay -->
+    <div class="fixed inset-0 bg-black bg-opacity-75" @click="showQRModal = false"></div>
+    
+    <!-- Contenu du modal -->
+    <div class="flex items-center  sticky justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
+        <!-- En-tête -->
+        <div class="flex justify-between items-center border-b p-4 sticky top-0 bg-white">
+          <h3 class="text-xl font-bold text-gray-800">
+            QR Code - Table {{ selectedTable?.numero }}
+          </h3>
+          <button @click="showQRModal = false" class="text-gray-500 hover:text-red-500">
+            <i class="pi pi-times text-xl"></i>
+          </button>
         </div>
-        
-        <p class="text-sm text-gray-600 mb-4">
-          Scannez ce code avec <strong>l'appareil photo</strong> de votre téléphone
-          pour accéder au menu
-        </p>
-        
-      </div>
 
-      <!-- Pied de page -->
-      <div class="border-t p-4 flex justify-end">
-        <button 
-          @click="showQRModal = false"
-          class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-        >
-          Fermer
-        </button>
+        <!-- Corps avec overflow automatique -->
+        <div class="p-6  flex-1 ">
+          <div class="mb-4 mx-auto w-64 h-64 flex items-center justify-center bg-white p-2 rounded border">
+            <img :src="qrCodeUrl" alt="QR Code" class="w-full h-full object-contain" />
+          </div>
+          
+          <p class="text-sm text-gray-600 mb-4">
+            Scannez ce code avec <strong>l'appareil photo</strong> de votre téléphone
+            pour accéder au menu
+          </p>
+        </div>
+
+        <!-- Pied de page -->
+        <div class="border-t p-4 flex justify-end sticky bottom-0 bg-white">
+      <button 
+        @click="showQRModal = false"
+        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+      >
+        Fermer
+      </button>
+    </div>
       </div>
     </div>
   </div>
+
 
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import QRCode from 'qrcode'
+import QRCodeWithLogo from 'qrcode-with-logos'
 import TableOne from '@/components/Tables/TableOne.vue';
 
 // Gestion de l'équipe
@@ -133,8 +141,8 @@ const generateQR = async (table) => {
     })
 
      // Créer l'URL avec les paramètres de la table
-    const clientUrl = `https://nwaar-restaurant-client.netlify.app/?tableId=${table.id}&tableNumber=${table.numero}`;
-    
+    //const clientUrl = `https://nwaar-restaurant-client.netlify.app/?tableId=${table.id}&tableNumber=${table.numero}`;
+    const clientUrl = `  http://localhost:3000/?tableId=${table.id}&tableNumber=${table.numero}`;
     // Générer le QR code sous forme d'URL de données
     const generaoUrlqrCode = await QRCode.toDataURL(clientUrl, { 
       width: 300, // Taille augmentée pour meilleure détection
@@ -146,6 +154,7 @@ const generateQR = async (table) => {
       errorCorrectionLevel: 'H'
     });
     
+    window.open(clientUrl, '_blank');
      // Affichez le QR code dans le modal
     showQRModal.value = true;
     selectedTable.value = table;

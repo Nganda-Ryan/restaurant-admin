@@ -1,3 +1,4 @@
+
 export interface MenuRequest {
     Code: string | undefined,
     Title: string | undefined,
@@ -47,6 +48,9 @@ export interface PlateContent {
     "DisplayOrder"?: number,
     "TypeCode"?: string
 }
+ export interface AuthResponse {
+
+ }
 
 export interface Product {
     Code: string;
@@ -80,11 +84,16 @@ export interface ApiResponse {
         results: ResultItem[];
     };
 }
- export interface Categorieplat {
+export interface Categorieplat {
     "Code"?: string,
     "Title"?: string,
     "IsActive"?: boolean
- }
+}
+
+export interface Stocks {
+    "code"?: string,
+    "quantity"?: number
+}
 
 export interface Plate {
     "Code"?: string,

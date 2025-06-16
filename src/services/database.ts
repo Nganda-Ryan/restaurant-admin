@@ -1,10 +1,49 @@
 import axios from "axios";
-import type { PlateOption, Content, PlateContent, Compositions, composition, Categorieplat } from "./serviceInterface";
+import type { PlateOption, Content, PlateContent, Compositions, composition, Categorieplat, Stocks } from "./serviceInterface";
 import { createPinia } from "pinia";
+import { Client, Account} from 'appwrite'
 
 import { useAuthStore } from '@/stores/auth';
 
 const pinia = createPinia();
+
+/* AUTHENTIFICATION*/
+
+const client = new Client()
+    .setEndpoint(`${import.meta.env.VITE_APP_AUTHENTIFICATION_BASE_URL_V1}`) // Votre endpoint Appwrite
+    .setProject(`${import.meta.env.VITE_APP_NAME_PROJECT}`); // Votre project ID
+
+export const account = new Account(client);
+
+
+/* get-user authentificaion */
+
+export const getUser= async () => {
+    console.log("--> getUser")
+    const authStore = useAuthStore();
+    const url =  `${import.meta.env.VITE_APP_GET_USER_BASE_URL_V1}/get-user`;
+    const apiKey= "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJVU1JENFVqaU1CMzA2NTAyNTM2OSIsInNlc3Npb25JZCI6IjY4NGZlMGM1ZTBiYjU4MWI4YmU2IiwiZXhwIjoxNzUwMDY2MjUxfQ.MFveCs9kGl4CRiH9gYuBWUyTSosOb2TZfuCyet7mS2E"
+    try {
+        const response = await axios (url, {
+            params: {
+                all: true
+            },
+            headers: {
+                //"API_KEY":`${authStore.jwt}`
+                "API_KEY": `${authStore.currentToken}` // Format spécifique visible dans Postman
+            },
+            method: "GET",
+        });
+        console.log('response.data', response)
+        return response.data.body;
+
+
+    } catch (error) {
+        console.error('Database.getuser.error ::', error);
+        throw error;
+    }
+};
+
 
 /* MENU */
 export const fetchMenu = async () => {
@@ -668,6 +707,53 @@ export const fetchRecentOrder = async () => {
         console.error('Database.popularplate.error ::', error);
         throw error;
     }
+}
+
+//invoice
+
+export const fetchinvoice = async (ordercode: string) => {
+    const url = `${import.meta.env.VITE_APP_INVOICE_BASE_URL_v1}/invoice/item?OrderCode=${ordercode}`;
+    try {
+        const response = await axios.get(url, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            validateStatus: function (status) {
+                return status < 500; // Accepter tous les codes < 500
+            }
+        });
+        
+        if (response.data.exit !== "OK") {
+            throw new Error(response.data.message || "API request failed");
+        }
+        
+        return response; // Retourner toute la réponse Axios
+    } catch (error) {
+        console.error('Database.invoice.error ::', error);
+        throw error;
+    }
+}
+
+//stocks
+
+export const createstocks = async (payload:Stocks[]) => {
+    const url =  `${import.meta.env.VITE_APP_STOCKS_BASE_URL_V1}/gestock`;
+    console.log('Database.createConsistency.createContent.payload', payload)
+    try {
+        const response = await axios.post(url, { 
+            products:payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        console.error('database.createStocks', response.data)
+        return response.data;
+    } catch (error) {
+        console.error('Database.createStocks.error ::', error);
+        throw error;
+    }        
 }
 
 //generate code function

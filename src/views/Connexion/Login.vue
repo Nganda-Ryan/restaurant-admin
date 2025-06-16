@@ -1,106 +1,213 @@
 <template>
-  <div class="min-h-screen bg-[rgb(18,112,134)] flex flex-col items-center font-sans p-4">
+  <div class="min-h-screen bg-gradient-to-br from-teal-600 to-teal-900 flex flex-col items-center font-sans p-4 relative overflow-hidden">
     <!-- Contenu principal -->
-    <div class="flex-1 flex flex-col items-center justify-center w-full">
-      <h1 class="text-white text-4xl font-pacifico mb-10">Online Food World</h1>
+    <div class="relative z-10 flex-1 flex flex-col items-center justify-center w-full">
+      <h1 class="text-white text-5xl md:text-6xl font-pacifico mb-8 md:mb-12 text-center drop-shadow-lg">
+        Online Food World
+        <span class="block text-xl font-sans font-normal mt-2">Discover the best culinary experiences</span>
+      </h1>
       
-      <!-- Formulaire -->
-      <div class="flex flex-col md:flex-row bg-white shadow-[10px_10px_15px_-5px_rgba(255,255,255,0.7)] overflow-hidden w-full max-w-4xl">
-        <!-- Image Section -->
-        <div class="flex-1 p-8 md:p-12 md:w-2/5 flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-200">
-          <img
-            src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
-            alt="Delicious Burger"
-            class="rounded-lg w-full h-auto max-h-80 object-cover"
-          />
+      <!-- Carte de formulaire -->
+      <div class="flex flex-col md:flex-row bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden w-full max-w-4xl transition-all duration-300 hover:shadow-3xl">
+        <!-- Section Image -->
+        <div class="flex-1 p-8 md:p-10 md:w-2/5 flex items-center justify-center border-b md:border-b-0 md:border-r border-white/20 relative overflow-hidden min-h-[300px]">
+          <div class="absolute inset-0 bg-gradient-to-br from-red-400/20 to-red-600/30"></div>
+          <div class="absolute inset-0 flex overflow-hidden z-20">
+            <transition-group 
+              name="slide" 
+              tag="div" 
+              class="flex w-full h-full"
+            >
+              <div 
+                v-for="(image, index) in images" 
+                :key="index"
+                class="flex-shrink-0 w-full h-full transition-transform duration-500 ease-in-out"
+                :style="{
+                  transform: `translateX(-${currentImageIndex * 100}%)`,
+                  'min-width': '100%'
+                }"
+              >
+                <img
+                  :src="image"
+                  alt="Food presentation"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+            </transition-group>
+          </div>
         </div>
 
-        <!-- Form Section -->
-        <div class="flex-1 p-8 md:p-12 md:w-3/5">
-          <h2 class="text-[rgb(235,102,102)] text-3xl md:text-[35px] font-pacifico mb-[50px] text-center">Login In !</h2>
+        <!-- Section Formulaire -->
+        <div class="flex-1 p-8 md:p-10 md:w-3/5">
+          <h2 class="text-red-500 text-3xl md:text-4xl font-pacifico mb-8 text-center relative">
+            Welcome Back!
+            <span class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-red-400 rounded-full mt-2"></span>
+          </h2>
           
           <form @submit.prevent="submitForm" class="space-y-6 w-full max-w-sm mx-auto">
             <div class="form-group">
+              <label class="block text-sm font-medium text-gray-700 mb-1 mt-8">Email Address</label>
               <input
-                type="text"
-                v-model="name"
-                placeholder="Name"
-                class="border-b-[1px] border-gray-300 focus:border-[rgb(235,102,102)] outline-none p-2 w-full mb-2 transition duration-300"
+                type="email"
+                v-model="email"
+                placeholder="@email"
+                class="border-b-2 border-gray-300 focus:border-red-500 outline-none p-2 w-full transition duration-300 bg-transparent"
                 required
               />
             </div>
 
             <div class="form-group">
-              <input
-                type="email"
-                v-model="email"
-                placeholder="Email"
-                class="border-b-[1px] border-gray-300 focus:border-[rgb(235,102,102)] outline-none p-2 w-full mb-2 transition duration-300"
-                required
-              />
+              <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <div class="relative">
+                <input
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="password"
+                  placeholder="Enter your password"
+                  class="border-b-2 border-gray-300 focus:border-red-500 outline-none p-2 w-full pr-10 transition duration-300 bg-transparent"
+                  required
+                />
+                <button
+                  type="button"
+                  @click="togglePasswordVisibility"
+                  class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors focus:outline-none"
+                  :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                >
+                  <svg v-if="showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            <div class="form-group relative">
-              <input
-                :type="showPassword ? 'text' : 'password'"
-                v-model="password"
-                placeholder="Password"
-                class="border-b-[1px] border-gray-300 focus:border-[rgb(235,102,102)] outline-none p-2 w-full pr-10 mb-2 transition duration-300"
-                required
-              />
-              <button
-                type="button"
-                @click="showPassword = !showPassword"
-                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <span v-if="showPassword">👁️</span>
-                <span v-else>👁️‍🗨️</span>
-              </button>
+            <div class="flex items-center justify-between">
+              <label class="flex items-center text-sm text-gray-600">
+                <input type="checkbox" class="rounded border-gray-300 text-red-500 focus:ring-red-500 mr-2">
+                Remember me
+              </label>
+              <a href="#" class="text-sm text-red-500 hover:text-red-700">Forgot password?</a>
             </div>
 
             <button
               type="submit"
-              class="bg-[rgb(235,102,102)] text-white px-6 py-3 rounded-full hover:bg-[rgb(235,68,68)] transition w-full font-medium shadow-md hover:shadow-lg"
+              class="relative overflow-hidden bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-3 rounded-full hover:from-red-600 hover:to-red-700 transition-all w-full font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300 group"
             >
-             Connexion
+              <span class="relative z-10">Sign In</span>
+              <span class="absolute inset-0 bg-gradient-to-r from-red-600 to-red-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
             </button>
+
+            <div class="text-center text-sm text-gray-600">
+              Or sign in with
+              <div class="flex justify-center space-x-4 mt-2">
+                <button type="button" class="p-2 rounded-full bg-white shadow hover:bg-gray-100 transition-colors">
+                  <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/>
+                  </svg>
+                </button>
+                <button type="button" class="p-2 rounded-full bg-white shadow hover:bg-gray-100 transition-colors">
+                  <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.972-5.445 3.972-3.332 0-6.033-2.701-6.033-6.032s2.701-6.032 6.033-6.032c1.498 0 2.866.549 3.921 1.453l2.814-2.814C17.503 2.988 15.139 2 12.545 2 7.021 2 2.545 6.476 2.545 12s4.476 10 10 10c8.396 0 10-7.496 10-10 0-.67-.069-1.325-.189-1.961H12.545z"/>
+                  </svg>
+                </button>
+                <button type="button" class="p-2 rounded-full bg-white shadow hover:bg-gray-100 transition-colors">
+                  <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723 10.054 10.054 0 01-3.127 1.195 4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
           </form>
         </div>
       </div>
     </div>
-
-        
-      <!--   <div class="w-full max-w-8xl flex hidden lg:flex justify-between mt-auto">
-      <div class="ml-4 h-32 flex items-end "> 
-        <svg xmlns="http://www.w3.org/2000/svg" width="190" height="400" fill="#FFFFFF" class="bi bi-fork-knife" viewBox="0 0 16 16" preserveAspectRatio="none">
-          <path d="M13 .5c0-.276-.226-.506-.498-.465-1.703.257-2.94 2.012-3 8.462a.5.5 0 0 0 .498.5c.56.01 1 .13 1 1.003v5.5a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5zM4.25 0a.25.25 0 0 1 .25.25v5.122a.128.128 0 0 0 .256.006l.233-5.14A.25.25 0 0 1 5.24 0h.522a.25.25 0 0 1 .25.238l.233 5.14a.128.128 0 0 0 .256-.006V.25A.25.25 0 0 1 6.75 0h.29a.5.5 0 0 1 .498.458l.423 5.07a1.69 1.69 0 0 1-1.059 1.711l-.053.022a.92.92 0 0 0-.58.884L6.47 15a.971.971 0 1 1-1.942 0l.202-6.855a.92.92 0 0 0-.58-.884l-.053-.022a1.69 1.69 0 0 1-1.059-1.712L3.462.458A.5.5 0 0 1 3.96 0z"/>
-        </svg>
-      </div>
-      
-      <div class="mr-4 h-32 flex items-end"> 
-        <svg xmlns="http://www.w3.org/2000/svg" width="190" height="400" fill="#FFFFFF" class="bi bi-fork-knife" viewBox="0 0 16 16" preserveAspectRatio="none">
-          <path d="M13 .5c0-.276-.226-.506-.498-.465-1.703.257-2.94 2.012-3 8.462a.5.5 0 0 0 .498.5c.56.01 1 .13 1 1.003v5.5a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5zM4.25 0a.25.25 0 0 1 .25.25v5.122a.128.128 0 0 0 .256.006l.233-5.14A.25.25 0 0 1 5.24 0h.522a.25.25 0 0 1 .25.238l.233 5.14a.128.128 0 0 0 .256-.006V.25A.25.25 0 0 1 6.75 0h.29a.5.5 0 0 1 .498.458l.423 5.07a1.69 1.69 0 0 1-1.059 1.711l-.053.022a.92.92 0 0 0-.58.884L6.47 15a.971.971 0 1 1-1.942 0l.202-6.855a.92.92 0 0 0-.58-.884l-.053-.022a1.69 1.69 0 0 1-1.059-1.712L3.462.458A.5.5 0 0 1 3.96 0z"/>
-        </svg>
-      </div>
-      </div> -->
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { useRouter } from 'vue-router';
+import rotiBoeuf from '@/assets/images/logo/roti-boeuf.jpg';
+import gombo from '@/assets/images/logo/gombo.jpg';
+import pile from '@/assets/images/logo/pile.jpg';
 
-const name = ref('');
-const email = ref('');
-const password = ref('');
+const router = useRouter();
+const authStore = useAuthStore();
+
+const email = ref('aron-resto@yopmail.com');
+const password = ref('password1234');
 const showPassword = ref(false);
+const currentImageIndex = ref(0);
+let slideInterval = null;
 
-function submitForm() {
-  console.log("User info:", name.value, email.value, password.value);
-}
+
+
+const images = [
+  rotiBoeuf,
+  gombo, 
+  pile,
+  // Ajoutez d'autres images si nécessaire
+];
+
+
+const nextImage = () => {
+  currentImageIndex.value = (currentImageIndex.value + 1) % images.length;
+};
+
+// Fonction pour une image aléatoire
+const randomImage = () => {
+  let newIndex;
+  do {
+    newIndex = Math.floor(Math.random() * images.length);
+  } while (newIndex === currentImageIndex.value && images.length > 1);
+  currentImageIndex.value = newIndex;
+};
+
+// Démarrer le diaporama
+const startSlideShow = () => {
+  slideInterval = setInterval(randomImage, 50000); // Change toutes les 3 secondes
+};
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
+
+const submitForm = async() => {
+  if(!email.value || !password.value) {
+    alert('Please fill in all fields');
+    return;
+  }
+  
+  try {
+    await authStore.login(email.value, password.value);
+    router.push('/');
+  } catch (error) {
+    if (error.message.includes('session is active')) {
+      if (confirm('A session is already active. Do you want to log out first?')) {
+        await authStore.logout();
+        await authStore.login(email.value, password.value);
+      }
+    } else {
+      console.error('Login error:', error);
+    }
+  }
+};
+
+onMounted(() => {
+  startSlideShow();
+});
+
+onBeforeUnmount(() => {
+  if (slideInterval) {
+    clearInterval(slideInterval);
+  }
+});
 </script>
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Open+Sans:wght@400;500;600&display=swap');
+@<style>
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Open+Sans:wght@400;500;600;700&display=swap');
 
 .font-pacifico {
   font-family: 'Pacifico', cursive;
@@ -114,4 +221,44 @@ function submitForm() {
   position: relative;
   margin-bottom: 1.5rem;
 }
+
+/* Animation pour le carrousel */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.5s ease;
+}
+
+.slide-enter-from {
+  transform: translateX(100%);
+}
+
+.slide-leave-to {
+  transform: translateX(-100%);
+}
+
+/* Conteneur du carrousel */
+.carousel-container {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+/* Effet de verre moderne */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Animation pour le bouton */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.hover\:animate-pulse:hover {
+  animation: pulse 1.5s infinite;
+}
 </style>
+

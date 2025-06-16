@@ -105,7 +105,50 @@
     const filterOptions = ref([]);
     const rawProduct = ref<any []>([]);
 
-
+    const origin = ref<Option[]>([
+    {
+        name: 'Adamaoua',
+        api: 'adamoua', // ou un code approprié
+    },
+        {
+            name:'Centre',
+            api: 'centre'
+        },
+        {
+            name:'Est',
+            api: 'est'
+        },
+        {
+            name:'Extrême-Nord',
+            api:'extreme-nord'
+        },
+        {
+            name:'Littoral',
+            api:'littoral'
+        },
+        {
+            name:'Nord',
+            api:'nord'
+        },
+        {
+            name:'Nord-Ouest',
+            api:'nordouest'
+        },
+        {
+            name:'Ouest',
+            api:'ouest'
+        },
+        {
+            name:'Sud',
+            api:'sud'
+        },
+        {
+            name:'Sud-Ouest',
+            api:'sudouest'
+        },
+        
+        
+    ])
     const stopAction = () => {
         emits('cancel', reloadView.value);
     }
@@ -590,22 +633,19 @@
                             </div>
                         </div>
                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
+                            <select-group-one label="
+                                Origin of the dish" :options="origin" :placeholder="'--Select plate Origin--'"
+                                class="w-full xl:w-1/2" v-model="plateInfo.CategoryCode" required/>
+                            <select-group-one label="
+                                Nutritional Value" :options="origin" :placeholder="'--Select plate Origin--'"
+                                class="w-full xl:w-1/2" v-model="plateInfo.CategoryCode" :multiple="true"  required/>
+                        </div>
+                        <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
                             <select-group-one label="Quategory" :options="categoryOption" :placeholder="'Select the category'"
                                 class="w-full xl:w-1/2" v-model="plateInfo.CategoryCode" required/>
                             <input-group label="Cover" type="file" placeholder=""
                                 customClasses="w-full xl:w-1/2" v-model="plateInfo.Image"/> 
                         </div>
-                        <div class="mb-4.5 flex flex-col gap-6 xl:flex-row ">
-                            <label class="mb-2 block text-black dark:text-white">
-                                Plate<span class="text-meta-1">*</span>
-                            </label>
-                            <input min="1" type="number" v-model="plateInfo.BasePrice" required class="w-full rounded border-[1.5px] text-black border-stroke bg-transparent py-1.5 h-[38px] px-1 font-normal outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-slate-50" />
-                            <label class="mb-2 block text-black dark:text-white">
-                                Plate Origin <span class="text-meta-1">*</span>
-                            </label>
-                            <input min="1" type="number" v-model="plateInfo.BasePrice" required class="w-full rounded border-[1.5px] text-black border-stroke bg-transparent py-1.5 h-[38px] px-1 font-normal outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-slate-50" />
-                        </div>
-                        
                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
                             
                             <SelectGroupSearchable customClasses="w-full xl:w-1/2" :items="productList" @item-selected="handleSelection" label="Select a plate" placeholder="Select a plate ..." :required="false" :resetTrigger="resetInput">

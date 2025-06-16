@@ -4,121 +4,104 @@
     import ButtonAction from '@/components/Buttons/ButtonAction.vue';
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import InputGroup from '@/components/Forms/InputGroup.vue';
-    import type { Content, Product } from '@/services/serviceInterface';
+    import type { Content, Product, Stocks} from '@/services/serviceInterface';
     import { useConfigStore } from '@/stores/config';
     import type Option from '../../../src/components/Utilities/interfaceModel';
-    import { createProduct, generateCode, createContent, updateProduct, uploadContent } from '@/services/database';
+    import { createstocks, fetchProduct } from '@/services/database';
     import EventBus from '@/EventBus';
     import type ToastPayload from '@/types/Toast';
-    const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
 
+    const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
     const configStore = useConfigStore();
     const isSaving = ref<Boolean>(false);
+    const products = ref<Product[]>([]);
+    const stocks = ref<Stocks[]>([]);
+    
     const emits = defineEmits(['cancel', "save", "back", "created"]);
     const props = defineProps({
         action: {
             type: String,
         },
-        product: {
-            type: Object
+        stock: {
+            type: Object as () => Stocks
         }
     });
 
-    const productInfo = ref<Product>({
-        "Code": "",
-        "Title": "",
-        "Description": "",
-        "QuantityUnitCode": "UNIT",
-        "AvailableQuantity": 0,
-        "CategoryCode": "",
-        "Image": "",
-        "PrixUnitaire": 0,
-        "DateEntrée": new Date().toISOString().split('T')[0]
-    });
-
-    const saveProduct = async () => {
-       try {
-            let result:any = null;
-            let result2:any = null;
-            
-            if(productInfo.value.Title) {
-                productInfo.value.Code = props.action == "add" ? generateCode(productInfo.value.Title) : productInfo.value.Code;
-            }
-
-            const payload = {
-                ...productInfo.value,
-                AvailableQuantity: Number(productInfo.value.AvailableQuantity),
-                PrixUnitaire: Number(productInfo.value.PrixUnitaire)
-            };
-
-            isSaving.value = true;
-            
-            if(props.action == "add"){
-                result = await createProduct(payload);
-                if(result[0] && result[0].success == true && productInfo.value.Image){
-                    const uploadDedImage = await uploadContent(productInfo.value.Image);
-                    if(uploadDedImage){
-                        const payload2:Content [] = [{
-                            "ProductCode": productInfo.value.Code,
-                            "Body": productInfo.value.Description,
-                            "TypeCode": "DESC",
-                            "DisplayOrder": 1
-                        },{
-                            "ProductCode": productInfo.value.Code,
-                            "Body": uploadDedImage,
-                            "TypeCode": "COVER",
-                            "DisplayOrder": 2
-                        }]
-                        result2 = await createContent(payload2);
-                    }
-                }
-            } else if(props.action == "update") {
-                result = await updateProduct(payload);
-            }
-            
-            const toastPayload: ToastPayload = {
-                type: "success",
-                message: `Produit ${props.action == "update" ? "mis à jour" : "créé"} avec succès`
-            }
-            EventBus.emit('showToast', toastPayload);
-            
-            emits('created', true);
-       } catch (error:any) {
-            const errMsg = error.response?.data?.body?.errors?.[0]?.message || "Une erreur s'est produite lors du traitement";
-            const payload: ToastPayload = {
+    // Récupérer la liste des produits pour le select
+    const fetchProductsList = async() => {
+        try {
+            const result = await fetchProduct();
+            products.value = Array.isArray(result) ? result : [result];
+        } catch(error) {
+            console.error('error.fetchProducts', error);
+            EventBus.emit('showToast', {
                 type: "danger",
-                message: errMsg
-            }
-            EventBus.emit('showToast', payload);
-       } finally {
-            isSaving.value = false;
-       }
+                message: "Erreur lors du chargement des produits"
+            });
+        }
     }
 
-    const categoryOption = computed(() => {
-        return configStore.productCategories.map((prodCat: any) => ({
-            name: prodCat.Title,
-            api: prodCat.Code
-        })) as Option[];
+    // Options pour le select des produits
+    const productOptions = computed<Option[]>(() => {
+        return products.value.map(item => ({
+            name: item.Title,
+            api: item.Code
+        })); 
     });
-    
-    const unitOptions : Option[] = [
-        { "name": "Unité", "api": "UNIT" },
-        { "name": "Kilogramme", "api": "KG" },
-        { "name": "Gramme", "api": "G" },
-        { "name": "Litre", "api": "L" },
-        { "name": "Pièce", "api": "PC" }
-    ];
+
+    // Données du formulaire stock
+    const stockInfo = ref<Stocks>({
+        "code": "",
+        "quantity": 0,
+    });
+
+    // Sauvegarder le stock
+const saveStock = async () => {
+   try {
+        isSaving.value = true;
+        let result: any = null;
+
+        const payload = [
+            {
+                code: stockInfo.value.code,
+                quantity: stockInfo.value.quantity,
+            }
+        ];
+
+        if(props.action == "add") {
+            result = await createstocks(payload);
+            console.log('data.create', result)
+        } else if(props.action == "update") {
+            // result = await updateStock(payload);
+        }
+
+        EventBus.emit('showToast', {
+            type: "success",
+            message: `Stock ${props.action == "update" ? "mis à jour" : "ajouté"} avec succès`
+        });
+
+        emits('created', true);
+   } catch (error: any) {
+        const errMsg = error.response?.data?.body?.errors?.[0]?.message || "Une erreur s'est produite lors de l'opération";
+        EventBus.emit('showToast', {
+            type: "danger",
+            message: errMsg
+        });
+   } finally {
+        isSaving.value = false;
+   }
+}
+
 
     const stopAction = () => {
         emits('cancel');
     }
 
-    const getAction = (act:string | undefined) => {
+    const getActionLabel = (act: string | undefined) => {
         switch (act) {
             case "edit": return "Mettre à jour";
             case "clone": return "Cloner";
-            case "add": return "Save";
+            case "add": return "Enregistrer";
             default: return "Mettre à jour";
         }
     }
@@ -128,14 +111,10 @@
     }
 
     onMounted(() => {
-        if(props.action == "update" && props.product){
-            productInfo.value = props.product;
-            if (!productInfo.value.DateEntrée) {
-                productInfo.value.DateEntrée = new Date().toISOString().split('T')[0];
-            }
-        } else if (props.action == "add") {
-            // Set default date for new entries
-            productInfo.value.DateEntrée = new Date().toISOString().split('T')[0];
+        fetchProductsList();
+        
+        if(props.action == "update" && props.stock) {
+            stockInfo.value = props.stock;
         }
     });
 </script>
@@ -143,92 +122,39 @@
 <template>
     <div class="grid grid-cols-1 gap-12 sm:grid-cols-1">
         <div class="flex flex-col gap-9">
-            <DefaultCard :cardTitle="`${getAction(props.action)} Entry`">
+            <DefaultCard :cardTitle="`${getActionLabel(props.action)} Stock`">
                 <template v-slot:button>
                     <button class="flex items-center" @click="goBack">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                         </svg>
-                        <span class="text-nowrap ml-2">Go Back</span>
+                        <span class="text-nowrap ml-2">Retour</span>
                     </button>
                 </template>
                 
-                <form @submit.prevent="saveProduct">
+                <form @submit.prevent="saveStock">
                     <div class="p-6.5">
                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
-                            <input-group 
-                                label="Titre" 
-                                type="text" 
-                                placeholder="Nom du produit"
-                                customClasses="w-full xl:w-1/2" 
-                                v-model="productInfo.Title" 
-                                required 
-                            />
                             <select-group-one 
-                                label="Catégorie" 
-                                :options="categoryOption" 
-                                placeholder="Sélectionnez une catégorie"
+                                label="Produit" 
+                                :options="productOptions" 
+                                placeholder="Sélectionnez un produit"
                                 class="w-full xl:w-1/2" 
-                                v-model="productInfo.CategoryCode" 
+                                v-model="stockInfo.code" 
                                 required
                             />
-                        </div>
-
-                        <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
                             <input-group 
                                 label="Quantité" 
                                 type="number" 
                                 min="0"
+                                step="1"
                                 placeholder="0"
-                                customClasses="w-full xl:w-1/3" 
-                                v-model="productInfo.AvailableQuantity" 
-                                required 
-                            />
-                            <select-group-one 
-                                label="Unité" 
-                                :options="unitOptions" 
-                                placeholder="Sélectionnez l'unité"
-                                class="w-full xl:w-1/3" 
-                                v-model="productInfo.QuantityUnitCode" 
-                                required
-                            />
-                            <input-group 
-                                label="Prix Unitaire" 
-                                type="number" 
-                                min="0"
-                                step="0.01"
-                                placeholder="0.00"
-                                customClasses="w-full xl:w-1/3" 
-                                v-model="productInfo.PrixUnitaire" 
+                                customClasses="w-full xl:w-1/2" 
+                                v-model="stockInfo.quantity" 
                                 required
                             />
                         </div>
 
-                        <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
-                            <input-group 
-                                label="Date d'entrée" 
-                                type="date" 
-                                customClasses="w-full xl:w-1/2" 
-                                v-model="productInfo.DateEntrée" 
-                                required
-                            />
-                            <input-group 
-                                label="Image du produit" 
-                                type="file" 
-                                accept="image/*"
-                                customClasses="w-full xl:w-1/2" 
-                                v-model="productInfo.Image" 
-                            />
-                        </div>
-                        <div class="mb-4.5">
-                            <input-group 
-                                label="Description" 
-                                type="textarea" 
-                                placeholder="Description du produit"
-                                customClasses="w-full" 
-                                v-model="productInfo.Description" 
-                            />
-                        </div>
 
                         <div class="flex justify-end mt-10 gap-4">
                             <button-action 
@@ -242,7 +168,7 @@
                                 custom-classes="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
                             >
                                 <spinner v-if="isSaving" /> 
-                                {{ getAction(props.action) }}
+                                {{ getActionLabel(props.action) }}
                             </button-action>
                         </div>
                     </div>
