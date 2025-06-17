@@ -4,7 +4,7 @@
     import Spinner from '@/components/Utilities/Spinner.vue';
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import { useConfigStore } from '@/stores/config';
-    import type { PlateOption, Content, Composition,Compositions, ProductOption , ResultItem, ApiResponse, composition } from '@/services/serviceInterface';
+    import type { PlateOption, Content, Composition,Compositions, ProductOption , ResultItem, ApiResponse, composition, NutritionalOption } from '@/services/serviceInterface';
     import { Cloudinary } from "@cloudinary/url-gen";
     import { AdvancedImage, placeholder } from "@cloudinary/vue";
     import { fill } from "@cloudinary/url-gen/actions/resize";
@@ -106,10 +106,10 @@
     const rawProduct = ref<any []>([]);
 
     const origin = ref<Option[]>([
-    {
-        name: 'Adamaoua',
-        api: 'adamoua', // ou un code approprié
-    },
+        {
+            name: 'Adamaoua',
+            api: 'adamoua', // ou un code approprié
+        },
         {
             name:'Centre',
             api: 'centre'
@@ -149,6 +149,65 @@
         
         
     ])
+
+    const nutritionalValues = ref<NutritionalOption[]>([
+    {
+        name: 'Calories',
+        api: 'calories',
+        unit: 'kcal'
+    },
+    {
+        name: 'Protéines',
+        api: 'proteins',
+        unit: 'g'
+    },
+    {
+        name: 'Glucides',
+        api: 'carbohydrates',
+        unit: 'g'
+    },
+    {
+        name: 'Lipides',
+        api: 'fats',
+        unit: 'g'
+    },
+    {
+        name: 'Fibres',
+        api: 'fibers',
+        unit: 'g'
+    },
+    {
+        name: 'Sucre',
+        api: 'sugar',
+        unit: 'g'
+    },
+    {
+        name: 'Sel',
+        api: 'salt',
+        unit: 'g'
+    },
+    {
+        name: 'Vitamine A',
+        api: 'vitamin_a',
+        unit: 'µg'
+    },
+    {
+        name: 'Vitamine C',
+        api: 'vitamin_c',
+        unit: 'mg'
+    },
+    {
+        name: 'Calcium',
+        api: 'calcium',
+        unit: 'mg'
+    },
+    {
+        name: 'Fer',
+        api: 'iron',
+        unit: 'mg'
+    }
+]);
+
     const stopAction = () => {
         emits('cancel', reloadView.value);
     }
@@ -637,7 +696,7 @@
                                 Origin of the dish" :options="origin" :placeholder="'--Select plate Origin--'"
                                 class="w-full xl:w-1/2" v-model="plateInfo.CategoryCode" required/>
                             <select-group-one label="
-                                Nutritional Value" :options="origin" :placeholder="'--Select plate Origin--'"
+                                Nutritional Value" :options="nutritionalValues" :placeholder="'--Select plate Origin--'"
                                 class="w-full xl:w-1/2" v-model="plateInfo.CategoryCode" :multiple="true"  required/>
                         </div>
                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">

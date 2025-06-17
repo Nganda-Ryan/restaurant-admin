@@ -157,7 +157,6 @@ const nextImage = () => {
   currentImageIndex.value = (currentImageIndex.value + 1) % images.length;
 };
 
-// Fonction pour une image aléatoire
 const randomImage = () => {
   let newIndex;
   do {
@@ -166,7 +165,6 @@ const randomImage = () => {
   currentImageIndex.value = newIndex;
 };
 
-// Démarrer le diaporama
 const startSlideShow = () => {
   slideInterval = setInterval(randomImage, 50000); // Change toutes les 3 secondes
 };

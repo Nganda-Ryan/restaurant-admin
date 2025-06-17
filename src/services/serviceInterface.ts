@@ -147,3 +147,9 @@ export interface FormattedDates {
     startDate: string;
     endDate: string;
 }
+
+export interface NutritionalOption {
+    name: string;
+    api: string;
+    unit: string;
+}

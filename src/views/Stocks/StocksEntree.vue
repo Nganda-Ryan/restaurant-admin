@@ -1,6 +1,6 @@
 <template>
     <div class="mt-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div v-if="isViewing" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div 
                 v-for="movement in produitsAffiches" 
                 :key="movement.id"
