@@ -32,7 +32,9 @@
         "QuantityUnitCode": "",
         "AvailableQuantity": 0,
         "CategoryCode": "",
-        "Image": ""
+        "RestaurantCode":"RESD4UjiMB1749635205603",
+        "Image": null,
+        Likes: 0,
     });
     const saveProduct = async () => {
        console.log('product', productInfo.value)
@@ -46,7 +48,8 @@
                 "Description": productInfo.value.Description,
                 "QuantityUnitCode": productInfo.value.QuantityUnitCode,
                 "AvailableQuantity": productInfo.value.AvailableQuantity,
-                "CategoryCode": productInfo.value.CategoryCode
+                "CategoryCode": productInfo.value.CategoryCode,
+                "RestaurantCode": 'RESD4UjiMB1749635205603',
             }
 
             isSaving.value = true;
@@ -55,8 +58,10 @@
                 result = await createProduct(payload);
                 if(result[0] && result[0].success == true) {
                     //upload de l'image vers le bucket
+                        console.log("productInfo.value.Image", productInfo.value.Image);
                     if(productInfo.value.Image){
                         const uploadDedImage = await uploadContent(productInfo.value.Image);
+                        console.log("uploadDedImage inside", uploadDedImage);
                         //liaison de l'image avec le le produit (création du content)
                         if(uploadDedImage){
                             const payload2:Content [] = [{
@@ -77,19 +82,23 @@
             } else if(props.action == "update") {
                 result = await updateProduct(payload);
                 if(result.success == true) {
-                    const payload2:Content [] = [{
-                        "ProductCode": productInfo.value.Code,
-                        "Body": productInfo.value.Description,
-                        "TypeCode": "DESC",
-                        "DisplayOrder": 1
-                    },{
-                        "ProductCode": productInfo.value.Code,
-                        "Body": "https://e7.pngegg.com/pngimages/319/935/png-clipart-yellow-onion-red-onion-pearl-onion-white-onion-onion-food-onion-thumbnail.png",
-                        "TypeCode": "COVER",
-                        "DisplayOrder": 2
-                    }]
-                    result2 = await createContent(payload2);
-                    console.log("updateProduct", result);
+                    if(productInfo.value.Image){
+                    const uploadDedImage1 = await uploadContent(productInfo.value.Image);
+                        const payload2:Content [] = [{
+                            "ProductCode": productInfo.value.Code,
+                            "Body": productInfo.value.Description,
+                            "TypeCode": "DESC",
+                            "DisplayOrder": 1
+                        },{
+                            "ProductCode": productInfo.value.Code,
+                            "Body":uploadDedImage1,
+                            "TypeCode": "COVER",
+                            "DisplayOrder": 2
+                        }];
+                        result2 = await createContent(payload2);
+                        console.log("updateProduct", result);
+                    }
+                    
                 }
             }
             
@@ -109,7 +118,9 @@
                 "QuantityUnitCode": "",
                 "AvailableQuantity": 0,
                 "CategoryCode": "",
-                "Image": ""
+                "Image": null,
+                Likes: 0,
+                RestaurantCode: ""
             }
             emits('created', true)
        } catch (error:any) {
@@ -183,7 +194,7 @@
     onMounted(() => {
         if(props.action == "update"){
             if(props.product){
-                productInfo.value = props.product
+                productInfo.value = props.product as Product
             }
         }
         console.log('props', props)
@@ -225,7 +236,7 @@
                         </div>
                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
                             <input-group label="Image" type="file" placeholder=""
-                                customClasses="w-full xl:w-1/2" v-model="productInfo.image" />
+                                customClasses="w-full xl:w-1/2" v-model="productInfo.Image as File" />
                             <input-group label="Describe the menu" type="textarea" placeholder="Enter the description of your menu" 
                                 customClasses="xl:w-1/2" v-model="productInfo.Description" required />
                         </div>

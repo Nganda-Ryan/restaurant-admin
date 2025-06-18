@@ -5,6 +5,7 @@ export interface MenuRequest {
     Description: string | undefined,
     StartDate: string | undefined,
     EndDate: string | undefined,
+    RestaurantCode: string | undefined,
 }
 
 export interface PlateInfo {
@@ -50,7 +51,7 @@ export interface PlateContent {
 }
  export interface AuthResponse {
 
- }
+}
 
 export interface Product {
     Code: string;
@@ -60,6 +61,12 @@ export interface Product {
     Likes: number;
     AvailableQuantity: number;
     QuantityUnitCode: string;
+    RestaurantCode: string;
+    Image: File | null; // Image peut être un fichier ou null
+}
+
+export interface user {
+    "Id": number,
 }
 export interface Composition {
     Id: number,
@@ -112,6 +119,7 @@ export interface PlateOption {
     "CategoryCode"?: string
     "BasePrice"?: number,
     "Image"?: any,
+    "RestaurantCode": string,
 }
 
 export interface PlateOption {

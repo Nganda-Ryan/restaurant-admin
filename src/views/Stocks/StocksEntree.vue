@@ -1,20 +1,20 @@
 <template>
     <div class="mt-8">
-        <div v-if="isViewing" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div v-if="isViewing" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
             <div 
                 v-for="movement in produitsAffiches" 
                 :key="movement.id"
-                class="bg-white rounded-lg shadow p-4 border-l-4"
+                class="rounded-lg shadow py-2 px-3 max-w-40 border-l-4"
                 :class="{
-                'text-rouge-fonce2 text-rouge-fonce2': movement.quantity <= 10,
-                'text-orange-500 border-orange-400': movement.quantity > 10 && movement.quantity <= 30,
-                'text-green-600 border-green-500': movement.quantity > 30
+                'bg-red-100 text-red-600': movement.quantity <= 10,
+                'bg-orange-100 text-orange-600': movement.quantity > 10 && movement.quantity <= 30,
+                'bg-green-100 text-green-800': movement.quantity > 30
                 }"
             >
                 <div class="flex items-center justify-between">
                     <h4 class="font-medium">{{ movement.name }}</h4>
                 </div>
-                <div class="mt-2 text-sm text-gray-600">
+                <div class=" text-sm text-gray-600">
                     <p>Quantity: {{ movement.quantity }}</p>
                 </div>
             </div>
@@ -29,7 +29,7 @@
                             <div class="w-full sm:w-auto">
                                 <button-action 
                                     @click="handleAddProduct" 
-                                    custom-classes="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+                                    custom-classes="teal-btn"
                                     >
                                 + New entry
                                 </button-action>

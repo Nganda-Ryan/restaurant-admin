@@ -45,7 +45,7 @@ export const getUser= async () => {
 
 /* MENU */
 export const fetchMenu = async () => {
-    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus`;
+    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus?RestaurantCode=RESD4UjiMB1749635205603`;
     
     try {
         const response = await axios (url, {
@@ -66,8 +66,8 @@ export const fetchMenu = async () => {
     }
 };
 export const fetchSingleMenu = async (menuCode: string) => {
-    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items?MenuCode=${menuCode}`;
-    
+    console.log('fetchSingleMenu', menuCode)
+    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items?MenuCode=${menuCode}&RestaurantCode=RESD4UjiMB1749635205603`;
     try {
         const response = await axios (url, {
             headers: {
@@ -175,8 +175,8 @@ export const addMenuItem = async (payload: any) => {
     }
 }
 export const deleteMenu = async (codeList: any[]) => {
-    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus`;
-    
+    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus?RestaurantCode=RESD4UjiMB1749635205603`;
+    console.log('Database.deleteMenu.codeList', codeList)
     try {
         const response = await axios.delete(url,{
             data: { 
@@ -215,7 +215,7 @@ export const deleteMenuItem = async (codeList: any[]) => {
 
 /* PLATE */
 export const fetchPlate = async () => {
-    const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats`;
+    const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats?RestaurantCode=RESD4UjiMB1749635205603`;
     
     try {
         const response = await axios (url, {
@@ -349,7 +349,7 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
 /* ORDER */
 
     export const fetchOrder = async () => {
-        const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders`;
+        const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders?RestaurantCode=RESD4UjiMB1749635205603`;
         
         try {
             const response = await axios (url, {
@@ -424,8 +424,8 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
 
 
 /* PRODUCT */
-export const fetchProduct = async ( code: string) => {
-    const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products?RestaurantCode=${code}`;
+export const fetchProduct = async ( ) => {
+    const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products?RestaurantCode=RESD4UjiMB1749635205603`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -443,7 +443,7 @@ export const fetchProduct = async ( code: string) => {
     }
 }
 export const fetchSingleProduct = async (productCode:string) => {
-    const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products?ProductCode=${productCode}`;
+    const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products?RestaurantCode=RESD4UjiMB1749635205603&ProductCode=${productCode}`;
     const authStore = useAuthStore()
 
     try {
@@ -461,6 +461,27 @@ export const fetchSingleProduct = async (productCode:string) => {
         throw error;
     }
 }
+
+export const deleteProduct = async (Code: any[]) => {
+    const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products`;
+    
+    try {
+        const response = await axios.delete(url,{
+            data: { 
+                products:Code
+            },
+            headers: {
+                'Content-Type': 'application/json',
+                "API_KEY": token
+            }
+        });
+        return response.data.body;
+    } catch (error) {
+        console.error('Database.deletePlate.error ::', error);
+        throw error;
+    }
+}
+
 export const createProduct = async (payload: any) => {
     const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products`;
     const authStore = useAuthStore()
@@ -564,6 +585,7 @@ export const fetchContent = async (plateCode:String) => {
 }
 
 export const uploadContent = async (file: File) => {
+    console.log('uploadContent', file)  
     const cloudName = import.meta.env.VITE_APP_CLOUD_NAME; // Remplacez par votre Cloud Name
     const uploadPreset = import.meta.env.VITE_APP_UPLOAD_PRESET_KEY
 
@@ -710,7 +732,7 @@ export const fetchPopularplate = async () => {
 }
 
 export const fetchDayCommande = async () => {
-    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/orders`;
+    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/orders?RestaurantCode=RESD4UjiMB1749635205603`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -728,7 +750,7 @@ export const fetchDayCommande = async () => {
     }
 }
 export const fetchTotalMenu = async () => {
-    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/menus`;
+    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/menus?RestaurantCode=RESD4UjiMB1749635205603`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {

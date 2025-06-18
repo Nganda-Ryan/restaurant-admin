@@ -40,6 +40,7 @@
         Description: "",
         StartDate: "",
         EndDate: "",
+        RestaurantCode: "RESD4UjiMB1749635205603",
     });
     const quantity = ref<number>(1)
     const titles = ref([
@@ -172,9 +173,10 @@
                 "Description": menuInfo.value.Description,
                 "StartDate": menuInfo.value.StartDate + ' ' + startTime.value + ':00',
                 "EndDate": menuInfo.value.EndDate + ' ' + endTime.value + ':00',
-                "items":plates
+                "items":plates,
+                "RestaurantCode": menuInfo.value.RestaurantCode
             }
-            
+            console.log('payload.clone:', payload)
             const validation = validateMenu(payload, props.action);
             console.log('**validation', validation)
             if(validation.isValid){
@@ -192,6 +194,7 @@
                     }
                 } else if(props.action == "clone"){
                     result = await cloneMenu(payload, menuInfo.value.Code)
+                    console.log('resultclone', result)
                 } else {
                     result = await createMenu(payload)
                 }
@@ -206,6 +209,7 @@
                     Description: "",
                     StartDate: "",
                     EndDate: "",
+                    RestaurantCode: "",
                 };
                 plateListToadd.value = [];
                 reloadView.value = true;

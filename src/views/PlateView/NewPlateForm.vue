@@ -39,7 +39,8 @@
         "Currency": '',
         "CategoryCode": '',
         "BasePrice": 0,
-        Image: ""
+        Image: "",
+        "RestaurantCode":"RESD4UjiMB1749635205603"
     });
     const productList = ref<Array<ProductOption>>([]);
     const productListToadd = ref<Array<ProductOption>>([])
@@ -105,7 +106,7 @@
     const filterOptions = ref([]);
     const rawProduct = ref<any []>([]);
 
-    const origin = ref<Option[]>([
+/*     const origin = ref<Option[]>([
         {
             name: 'Adamaoua',
             api: 'adamoua', // ou un code approprié
@@ -206,7 +207,7 @@
         api: 'iron',
         unit: 'mg'
     }
-]);
+]); */
 
     const stopAction = () => {
         emits('cancel', reloadView.value);
@@ -446,7 +447,8 @@
                 "Currency": '',
                 "CategoryCode": '',
                 "BasePrice": 0,
-                Image: ""
+                Image: "",
+                RestaurantCode:""
             };
             productListToadd.value = [];
             reloadView.value = true;
@@ -691,14 +693,14 @@
                                 <input min="1" type="number" v-model="plateInfo.BasePrice" required class="w-full rounded border-[1.5px] text-black border-stroke bg-transparent py-1.5 h-[38px] px-1 font-normal outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-slate-50" />
                             </div>
                         </div>
-                        <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
+<!--                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
                             <select-group-one label="
                                 Origin of the dish" :options="origin" :placeholder="'--Select plate Origin--'"
                                 class="w-full xl:w-1/2" v-model="plateInfo.CategoryCode" required/>
                             <select-group-one label="
                                 Nutritional Value" :options="nutritionalValues" :placeholder="'--Select plate Origin--'"
                                 class="w-full xl:w-1/2" v-model="plateInfo.CategoryCode" :multiple="true"  required/>
-                        </div>
+                        </div> -->
                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
                             <select-group-one label="Quategory" :options="categoryOption" :placeholder="'Select the category'"
                                 class="w-full xl:w-1/2" v-model="plateInfo.CategoryCode" required/>

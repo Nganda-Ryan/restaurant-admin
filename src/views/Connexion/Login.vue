@@ -41,7 +41,7 @@
         <div class="flex-1 p-8 md:p-10 md:w-3/5">
           <h2 class="text-red-500 text-3xl md:text-4xl font-pacifico mb-8 text-center relative">
             Welcome Back!
-            <span class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-red-400 rounded-full mt-2"></span>
+
           </h2>
           
           <form @submit.prevent="submitForm" class="space-y-6 w-full max-w-sm mx-auto">

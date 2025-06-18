@@ -29,7 +29,8 @@ import EventBus from '@/EventBus';
         Title: "",
         Description: "",
         StartDate: "",
-        EndDate: ""
+        EndDate: "",
+        RestaurantCode: "RESD4UjiMB1749635205603",
     });
     const titles = ref([
         {
@@ -171,7 +172,9 @@ import EventBus from '@/EventBus';
     const deleteAction = async () => {
         try {
             isDeleting.value = true;
+            console.log('menuifa.code', menuInfo.value.Code)
             await deleteMenu([{Code: menuInfo.value.Code}])
+    
             router.push({path: '/menus'})
         } catch (e) {
             console.log("MenuDetails.handleDeleteMenu.error", e)
@@ -197,6 +200,7 @@ import EventBus from '@/EventBus';
             menuCode.value = params.menucode;
 
             const result = await fetchSingleMenu(menuCode.value);
+            console.log('result', result)
             menuInfo.value = result[0].Menu;
             console.log('result[0].Menu', result[0].Menu)
             plats.value = result.map((item:any) => {

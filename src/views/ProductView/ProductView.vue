@@ -66,6 +66,7 @@
         try {
             
             const result = await fetchProduct();
+            console.log("** result", result);
             const productList = result.map((product: any) => {
                 let img = "";
                 product.content.forEach((ctn: any) =>{
