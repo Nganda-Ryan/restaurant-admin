@@ -82,7 +82,8 @@
     const CategorieplateInfo = ref<Categorieplat>({
         "Code": '',
         "Title": '',
-        "IsActive":false 
+        "IsActive":false ,
+        "RestaurantCode": "RESD4UjiMB1749635205603"
     });
 
     const handleEditPlate = (categorie: Categorieplat) => {

@@ -328,6 +328,7 @@ export const UpdateConsistency = async (payload: composition) => {
 }
 export const getConsistency = async  (plateCode: string): Promise<{body: { results: any[] } }>  => {
     const url = `${import.meta.env.VITE_APP_CONSISTENCY_BASE_URL_V1}/compositions?PlateCode=${plateCode}`;
+    console.log('codeplate', plateCode)
     const authStore = useAuthStore()
     try {
         const response = await axios(url, {
@@ -338,9 +339,9 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
             },
             method: "GET",
         });
-        return response.data;
+        return response.data;fetchCategoriePlate
     } catch (error) {
-        console.error('Database.fetchOrder.error ::', error);
+        console.error('Database.fetcconsistency.error ::', error);
         throw error;
     }
 }
@@ -565,6 +566,7 @@ export const updateContent = async (payload: Content [] | PlateContent[]) => {
 }
 export const fetchContent = async (plateCode:String) => {
     const url =  `${import.meta.env.VITE_APP_CONFIG_BASE_URL_V1}/contents?PlateCode=${plateCode}`;
+    console.log('codeplate', plateCode)
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -631,7 +633,7 @@ export const fetchConfig = async () => {
 /* CATEGORIE PLATE */
 
 export const fetchCategoriePlate = async () => {
-    const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories`;
+    const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories?RestaurantCode=RESD4UjiMB1749635205603`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -648,13 +650,13 @@ export const fetchCategoriePlate = async () => {
         throw error;
     }
 }
-export const createCategoriePlate = async (payload:Categorieplat) => {
+export const createCategoriePlate = async (payload:Categorieplat[]) => {
     const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories`;
     const authStore = useAuthStore()
     console.log('Database.createConsistency.createContent.payload', payload)
     try {
         const response = await axios.post(url, { 
-            PlatCategory: payload
+            PlatCategories: payload
         }, {
             headers: {
                 'Content-Type': 'application/json',
@@ -670,7 +672,7 @@ export const createCategoriePlate = async (payload:Categorieplat) => {
     
 }
 export const updateCategoriePlat = async (payload:Categorieplat) => {
-    const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories`;
+    const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories?`;
     const authStore = useAuthStore()
     console.log('Database.createConsistency.createContent.payload', payload)
     try {
@@ -713,7 +715,7 @@ export const deleteCategoriePlat = async (Code: any[]) => {
 //dashboard
 
 export const fetchPopularplate = async () => {
-    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/popular-plats`;
+    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/popular-plats?RestaurantCode=RESD4UjiMB1749635205603`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -768,7 +770,7 @@ export const fetchTotalMenu = async () => {
     }
 }
 export const fetchRecentOrder = async () => {
-    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/recent-orders`;
+    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/recent-orders?RestaurantCode=RESD4UjiMB1749635205603`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -817,7 +819,7 @@ export const fetchinvoice = async (ordercode: string) => {
 //stocks
 
 export const createstocks = async (payload:Stocks[]) => {
-    const url =  `${import.meta.env.VITE_APP_STOCKS_BASE_URL_V1}/gestock`;
+    const url =  `${import.meta.env.VITE_APP_STOCKS_BASE_URL_V1}/Entries/Add?RestaurantCode=RESD4UjiMB1749635205603`;
     
     console.log('Database.createConsistency.createContent.payload', payload)
     try {
@@ -835,6 +837,25 @@ export const createstocks = async (payload:Stocks[]) => {
         console.error('Database.createStocks.error ::', error);
         throw error;
     }        
+}
+
+export const fetchStocks = async () => {
+    const url =  `${import.meta.env.VITE_APP_STOCKS_BASE_URL_V1}/Dashboard?RestaurantCode=RESD4UjiMB1749635205603&StartDate=2025-06-18 13:51:44&Limit=30&Offset=0&OrderBy=Quantity&OrderMode=DESC`;
+    const authStore = useAuthStore()
+    try {
+        const response = await axios (url, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "API_KEY": token
+            },
+            method: "GET",
+        });
+        return response.data.body
+    } catch (error) {
+        console.error('Database.fetchstocks.error ::', error);
+        throw error;
+    }
 }
 
 //generate code function

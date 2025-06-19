@@ -94,7 +94,8 @@ export interface ApiResponse {
 export interface Categorieplat {
     "Code"?: string,
     "Title"?: string,
-    "IsActive"?: boolean
+    "IsActive"?: boolean,
+    "RestaurantCode"?: string 
 }
 
 export interface Stocks {

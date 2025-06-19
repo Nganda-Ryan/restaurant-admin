@@ -1,205 +1,250 @@
 <script setup lang="ts">
-    import { ref, defineAsyncComponent, computed, onMounted, onBeforeMount } from 'vue';
-    import router from '@/router';
-    import Spinner from '@/components/Utilities/Spinner.vue';
-    import DefaultCard from '@/components/Forms/DefaultCard.vue';
-    import { useConfigStore } from '@/stores/config';
-    import type { PlateOption, Content, Composition,Compositions, ProductOption , ResultItem, ApiResponse, composition, Categorieplat } from '@/services/serviceInterface';
-    import { Cloudinary } from "@cloudinary/url-gen";
-    import { AdvancedImage, placeholder } from "@cloudinary/vue";
-    import { fill } from "@cloudinary/url-gen/actions/resize";
-    import ButtonAction from '@/components/Buttons/ButtonAction.vue';
-    import InputGroup from '@/components/Forms/InputGroup.vue';
-    import SelectGroupSearchable from '@/components/Forms/SelectGroup/SelectGroupSearchable.vue';
-    import type Option from '../../Utilities/interfaceModel';
-    const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
-    import { createCategoriePlate, generateCode,  updateCategoriePlat, fetchCategoriePlate} from '@/services/database';
-    import type ToastPayload from '@/types/Toast';
-    import EventBus from '@/EventBus';
-    import TableOne from '@/components/Tables/TableOne.vue';
-    
+import { ref, defineAsyncComponent, computed, onMounted, onBeforeMount } from 'vue';
+import router from '@/router';
+import Spinner from '@/components/Utilities/Spinner.vue';
+import DefaultCard from '@/components/Forms/DefaultCard.vue';
+import { useConfigStore } from '@/stores/config';
+import type { PlateOption, Content, Composition, Compositions, ProductOption, ResultItem, ApiResponse, composition, Categorieplat } from '@/services/serviceInterface';
+import ButtonAction from '@/components/Buttons/ButtonAction.vue';
+import InputGroup from '@/components/Forms/InputGroup.vue';
+import SelectGroupSearchable from '@/components/Forms/SelectGroup/SelectGroupSearchable.vue';
+import type Option from '../../Utilities/interfaceModel';
+const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
+import { createCategoriePlate, generateCode, updateCategoriePlat, fetchCategoriePlate } from '@/services/database';
+import type ToastPayload from '@/types/Toast';
+import EventBus from '@/EventBus';
 
-    const configStore = useConfigStore();
-    const isSaving = ref<Boolean>(false);
-    const isProductList= ref<Boolean>(false);
-    const emits = defineEmits(['cancel', "save", "back", "created"]);
-    const props = defineProps({
-        action: {
-            type: String,
-        },
-        plate: {
-            type: Object,
-            default: () => ({}) // Fournit un objet vide par défaut
-        }
+const configStore = useConfigStore();
+const isSaving = ref<boolean>(false);
+const emits = defineEmits(['cancel', "save", "back", "created"]);
+
+const props = defineProps({
+    action: {
+        type: String,
+        required: true
+    },
+    plate: {
+        type: Object as () => Partial<Categorieplat>,
+        default: () => ({})
+    }
+});
+
+// Utilisation d'un tableau pour gérer plusieurs formulaires
+const categoryForms = ref<Categorieplat[]>([{
+    Code: '',
+    Title: '',
+    IsActive: false,
+    RestaurantCode: 'RESD4UjiMB1749635205603'
+}]);
+
+const status = ref([
+    { label: 'Inactive', value: false },
+    { label: 'Active', value: true }
+]);
+
+// Ajouter un nouveau formulaire de catégorie
+const addCategoryForm = () => {
+    categoryForms.value.push({
+        Code: '',
+        Title: '',
+        IsActive: false,
+        RestaurantCode: 'RESD4UjiMB1749635205603'
     });
-    
-    const CategorieplateInfo = ref<Categorieplat>({
-        "Code": '',
-        "Title": '',
-        "IsActive":false 
-    });
+}
 
-    const selectedItem = ref<any>(null);
-    const quantity = ref<number>(1);
-    const resetInput = ref<boolean>(false);
-    const reloadView = ref<boolean>(false);
-
-    const filterOptions = ref([]);
-    const rawProduct = ref<any []>([]);
-
-    const status = ref([
-        { label: 'Inactive', value: 0 },
-        { label:'Active', value: 0 }
-        ])
-
-    const stopAction = () => {
-        emits('cancel', reloadView.value);
+// Supprimer un formulaire de catégorie
+const removeCategoryForm = (index: number) => {
+    if (categoryForms.value.length > 1) {
+        categoryForms.value.splice(index, 1);
+    } else {
+        EventBus.emit('showToast', {
+            type: "warning",
+            message: "Vous devez avoir au moins un formulaire de catégorie"
+        });
     }
-    const getAction = (act:string | undefined) => {
-        switch (act) {
-            case "edit":
-                return "Update"
-            case "add":
-                return "Save"
-            default:
-                return "Update"
-        }
-    }
-    const goBack = () => {
-        emits('cancel', false);
-    }
+}
 
-const savePlate = async () => {
+// Réinitialiser les formulaires
+const resetForms = () => {
+    categoryForms.value = [{
+        Code: '',
+        Title: '',
+        IsActive: false,
+        RestaurantCode: 'RESD4UjiMB1749635205603'
+    }];
+}
 
+const stopAction = () => {
+    resetForms();
+    emits('cancel');
+}
+
+const getActionLabel = (act: string | undefined) => {
+    switch (act) {
+        case "edit": return "Mettre à jour";
+        case "add": return "Enregistrer";
+        default: return "Mettre à jour";
+    }
+};
+
+const goBack = () => {
+    emits('back');
+};
+
+const saveCategories = async () => {
     try {
         isSaving.value = true;
 
-        // Déterminer le code du plat
-        if (props.action === "update") {
-            console.log('props.plate', props.plate)
-            CategorieplateInfo.value.Code = props.plate.Code; // Gardez le code existant ou une chaîne vide
-        } else if (props.action == "add" && CategorieplateInfo.value.Title) {
-            CategorieplateInfo.value.Code = generateCode(CategorieplateInfo.value.Title); // Générer un nouveau code pour un nouvel ajout
-        }
+        const payload = categoryForms.value.map(form => {
+            // Générer le code pour les nouvelles catégories
+            if (props.action === "add" && form.Title) {
+                form.Code = generateCode(form.Title);
+            }
+            return {
+                Code: form.Code,
+                Title: form.Title,
+                IsActive: form.IsActive,
+                RestaurantCode: form.RestaurantCode
+            };
+        });
 
-        //Content creation
-        if (props.action == "add") {
-            const resultadd = await createCategoriePlate(CategorieplateInfo.value); // Création d'un nouveau plat
-            console.log('createdPlate', resultadd);
+        if (props.action === "add") {
+            const result = await createCategoriePlate(payload);
+            console.log('createdCategories', result);
         } else if (props.action === "update") {
-            const resultupdate = await updateCategoriePlat(CategorieplateInfo.value); // Mise à jour du plat
-
-            console.log('updateCategorieplate', resultupdate)
+            // Pour l'update, on suppose qu'on ne gère qu'un seul formulaire
+            const result = await updateCategoriePlat(payload[0]);
+            console.log('updateCategorieplate', result);
         }
 
-
-        const toastPayload: ToastPayload = {
+        EventBus.emit('showToast', {
             type: "success",
-            message: `Plate ${props.action == "update" ? "Updated" : "Created"} successfully. Happy meal ;P`
-        }
-        CategorieplateInfo.value = {
-            "Code": '',
-            "Title": '',
-            "IsActive": false
-        }
+            message: `Categorie${payload.length > 1 ? 's' : ''} ${props.action === "update" ? "mise à jour" : "créée"} avec succès`
+        });
 
-        EventBus.emit('showToast', toastPayload);
-
+        resetForms();
+        emits('created', true);
 
     } catch (error: any) {
-        console.log('error: ', error);
-        console.log('Trace', error.stack)
-        const errMsg = error ? error : "Oups, something went wrong during the processing";
-        const payload: ToastPayload = {
+        console.error('Error:', error);
+        const errMsg = error.response?.data?.body?.errors?.[0]?.message || "Une erreur s'est produite lors de l'opération";
+        EventBus.emit('showToast', {
             type: "danger",
             message: errMsg
-        }
-        EventBus.emit('showToast', payload);
+        });
     } finally {
         isSaving.value = false;
     }
-}
-    const handleSelection = (item: string) => {
-        selectedItem.value = item;
+};
+
+onBeforeMount(() => {
+    if (props.action === "update" && props.plate) {
+        // Pour l'update, on ne montre qu'un seul formulaire avec les données existantes
+        categoryForms.value = [{
+            Code: props.plate.Code || '',
+            Title: props.plate.Title || '',
+            IsActive: props.plate.IsActive || false,
+            RestaurantCode: props.plate.RestaurantCode || 'RESD4UjiMB1749635205603'
+        }];
     }
-
-    //SPECIAL
-    // const getImage = (payload:any) => {
-    //     console.log('** getImage.payload - ', payload , ' -')
-    // }
-
-    // const cld = new Cloudinary({
-    //     cloud: {
-    //         cloudName: "demo",
-    //     },
-    // });
-    // const myImg = cld.image('docs/models').resize(fill().width(250).height(250));
-
-    onBeforeMount(async () => {
-        if (props.action === "update") {
-            if (props.plate) {
-                CategorieplateInfo.value = props.plate
-
-            }
-        }
-    });
+});
 </script>
 
 <template>
-    <!-- ====== Form Elements Section Start -->
     <div class="grid grid-cols-1 gap-12 sm:grid-cols-1">
         <div class="flex flex-col gap-9">
-            <!-- Input Fields Start -->
-            <DefaultCard :cardTitle="`${getAction(props.action)} Category`">
+            <DefaultCard :cardTitle="`${getActionLabel(props.action)} Catégorie${categoryForms.length > 1 ? 's' : ''}`">
                 <template v-slot:button>
                     <button class="flex items-center" @click="goBack">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                        </svg>&nbsp;&nbsp;
-                        <span class="text-nowrap">{{ 'Go back' }}</span>
-                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        </svg>
+                        <span class="text-nowrap ml-2">Retour</span>
                     </button>
                 </template>
 
-                <form @submit.prevent="savePlate">
+                <form @submit.prevent="saveCategories">
                     <div class="p-6.5">
-                        <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
-                            <input-group label="Title" type="text" placeholder="Enter the product title"
-                                customClasses="w-full xl:w-1/2" v-model="CategorieplateInfo.Title" required />
-                            
-                            <div class="w-full xl:w-1/2">
-                                <label class="mb-2 block text-black dark:text-white">
-                                    Status <span class="text-meta-1">*</span>
-                                </label>
-                                <select name="" id="" required class="w-full rounded border-[1.5px] text-black border-stroke bg-transparent py-1.5 h-[38px] px-1 font-normal outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-slate-50" >
-                                    <option v-for="index in status" :key="index.value" :value="index.value"> {{ index.label }}</option>
-                                </select>
+                        <div v-for="(category, index) in categoryForms" :key="index" class="mb-8 relative">
+                            <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
+                                <InputGroup 
+                                    label="Titre" 
+                                    type="text" 
+                                    placeholder="Entrez le titre de la catégorie"
+                                    class="w-full xl:w-1/2" 
+                                    v-model="category.Title" 
+                                    required 
+                                />
+                                
+                                <div class="w-full xl:w-1/2">
+                                    <label class="mb-2 block text-black dark:text-white">
+                                        Statut <span class="text-meta-1">*</span>
+                                    </label>
+                                    <select 
+                                        v-model="category.IsActive"
+                                        required 
+                                        class="w-full rounded border-[1.5px] text-black border-stroke bg-transparent py-1.5 h-[38px] px-1 font-normal outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-slate-50"
+                                    >
+                                        <option v-for="(item, index) in status" :key="index" :value="item.value">
+                                            {{ item.label }}
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
+                            
+                            <!-- Bouton pour supprimer le formulaire -->
+                            <button 
+                                v-if="categoryForms.length > 1"
+                                @click="removeCategoryForm(index)"
+                                type="button"
+                                class="absolute -right-2 -top-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none"
+                                title="Supprimer cette catégorie"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                </svg>
+                            </button>
                         </div>
-                        <div class="flex justify-end mt-10">
-                            <button @click="stopAction" type="button" class="text-white bg-gradient-to-r from-rose-400 via-rose-500 to-rose-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-rose-300 dark:focus:ring-rose-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
-                                {{ 'Cancel' }}
-                            </button>
-                            <button type="submit" class="flex flex-nowrap text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
-                                <spinner v-if="isSaving" /> {{ getAction(props.action)}}
-                            </button>
+
+                        <!-- Bouton pour ajouter un nouveau formulaire -->
+                        <button 
+                            v-if="props.action === 'add'"
+                            @click="addCategoryForm"
+                            type="button"
+                            class="flex items-center text-blue-500 hover:text-blue-700 mb-6"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Ajouter une autre catégorie
+                        </button>
+
+                        <div class="flex justify-end mt-10 gap-4">
+                            <button-action 
+                                @click="stopAction" 
+                                custom-classes="text-white bg-gradient-to-r from-rose-400 via-rose-500 to-rose-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-rose-300 dark:focus:ring-rose-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                            >
+                                Annuler
+                            </button-action>
+                            <button-action 
+                                type="submit" 
+                                custom-classes="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                            >
+                                <spinner v-if="isSaving" /> 
+                                {{ getActionLabel(props.action) }}
+                            </button-action>
                         </div>
                     </div>
                 </form>
-
             </DefaultCard>
-            <!-- Input Fields End -->
         </div>
     </div>
-    <div>
-        <!-- <AdvancedImage :cldImg="myImg" /> -->
-    </div>
-    <!-- ====== Form Elements Section End -->
 </template>
-<style>
+
+<style scoped>
 .aligned-column {
-    display: flex; /* Utiliser flexbox pour aligner le contenu */
-    align-items: center; /* Centrer le contenu verticalement */
-    padding-left: 10px; /* Ajuster le padding selon vos besoins */
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
 }
 </style>

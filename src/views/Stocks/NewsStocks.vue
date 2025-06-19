@@ -15,7 +15,10 @@
     const configStore = useConfigStore();
     const isSaving = ref<Boolean>(false);
     const products = ref<Product[]>([]);
-    const stocks = ref<Stocks[]>([]);
+    const stockForms = ref<Stocks[]>([{
+        "code": "",
+        "quantity": 0,
+    }]);
     
     const emits = defineEmits(['cancel', "save", "back", "created"]);
     const props = defineProps({
@@ -49,51 +52,69 @@
         })); 
     });
 
-    // Données du formulaire stock
-    const stockInfo = ref<Stocks>({
-        "code": "",
-        "quantity": 0,
-    });
+    // Ajouter un nouveau formulaire de stock
+    const addStockForm = () => {
+        stockForms.value.push({
+            "code": "",
+            "quantity": 0,
+        });
+    }
 
-    // Sauvegarder le stock
-const saveStock = async () => {
-   try {
-        isSaving.value = true;
-        let result: any = null;
-
-        const payload = [
-            {
-                code: stockInfo.value.code,
-                quantity: stockInfo.value.quantity,
-            }
-        ];
-
-        if(props.action == "add") {
-            result = await createstocks(payload);
-            console.log('data.create', result)
-        } else if(props.action == "update") {
-            // result = await updateStock(payload);
+        const resetForms = () => {
+        stockForms.value = [{
+            "code": "",
+            "quantity": 0,
+        }];
+    }
+    // Supprimer un formulaire de stock
+    const removeStockForm = (index: number) => {
+        if (stockForms.value.length > 1) {
+            stockForms.value.splice(index, 1);
+        } else {
+            EventBus.emit('showToast', {
+                type: "warning",
+                message: "Vous devez avoir au moins un formulaire de stock"
+            });
         }
+    }
 
-        EventBus.emit('showToast', {
-            type: "success",
-            message: `Stock ${props.action == "update" ? "mis à jour" : "ajouté"} avec succès`
-        });
+    // Sauvegarder les stocks
+    const saveStock = async () => {
+       try {
+            isSaving.value = true;
+            let result: any = null;
 
-        emits('created', true);
-   } catch (error: any) {
-        const errMsg = error.response?.data?.body?.errors?.[0]?.message || "Une erreur s'est produite lors de l'opération";
-        EventBus.emit('showToast', {
-            type: "danger",
-            message: errMsg
-        });
-   } finally {
-        isSaving.value = false;
-   }
-}
+            const payload = stockForms.value.map(form => ({
+                code: form.code,
+                quantity: form.quantity,
+            }));
 
+            if(props.action == "add") {
+                result = await createstocks(payload);
+                console.log('data.create', result)
+            } else if(props.action == "update") {
+                // result = await updateStock(payload);
+            }
+
+            EventBus.emit('showToast', {
+                type: "success",
+                message: `Stock${payload.length > 1 ? 's' : ''} ${props.action == "update" ? "mis à jour" : "ajouté"} avec succès`
+            });
+            resetForms();
+            emits('created', true);
+       } catch (error: any) {
+            const errMsg = error.response?.data?.body?.errors?.[0]?.message || "Une erreur s'est produite lors de l'opération";
+            EventBus.emit('showToast', {
+                type: "danger",
+                message: errMsg
+            });
+       } finally {
+            isSaving.value = false;
+       }
+    }
 
     const stopAction = () => {
+        resetForms();
         emits('cancel');
     }
 
@@ -114,7 +135,7 @@ const saveStock = async () => {
         fetchProductsList();
         
         if(props.action == "update" && props.stock) {
-            stockInfo.value = props.stock;
+            stockForms.value = [props.stock];
         }
     });
 </script>
@@ -122,7 +143,7 @@ const saveStock = async () => {
 <template>
     <div class="grid grid-cols-1 gap-12 sm:grid-cols-1">
         <div class="flex flex-col gap-9">
-            <DefaultCard :cardTitle="`${getActionLabel(props.action)} Stock`">
+            <DefaultCard :cardTitle="`${getActionLabel(props.action)} Stock${stockForms.length > 1 ? 's' : ''}`">
                 <template v-slot:button>
                     <button class="flex items-center" @click="goBack">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
@@ -134,27 +155,53 @@ const saveStock = async () => {
                 
                 <form @submit.prevent="saveStock">
                     <div class="p-6.5">
-                        <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
-                            <select-group-one 
-                                label="Produit" 
-                                :options="productOptions" 
-                                placeholder="Sélectionnez un produit"
-                                class="w-full xl:w-1/2" 
-                                v-model="stockInfo.code" 
-                                required
-                            />
-                            <input-group 
-                                label="Quantité" 
-                                type="number" 
-                                min="0"
-                                step="1"
-                                placeholder="0"
-                                customClasses="w-full xl:w-1/2" 
-                                v-model="stockInfo.quantity" 
-                                required
-                            />
+                        <div v-for="(stockInfo, index) in stockForms" :key="index" class="mb-8 relative">
+                            <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
+                                <select-group-one 
+                                    label="Produit" 
+                                    :options="productOptions" 
+                                    placeholder="Sélectionnez un produit"
+                                    class="w-full xl:w-1/2" 
+                                    v-model="stockInfo.code" 
+                                    required
+                                />
+                                <input-group 
+                                    label="Quantité" 
+                                    type="number" 
+                                    min="0"
+                                    step="1"
+                                    placeholder="0"
+                                    customClasses="w-full xl:w-1/2" 
+                                    v-model="stockInfo.quantity" 
+                                    required
+                                />
+                            </div>
+                            
+                            <!-- Bouton pour supprimer le formulaire -->
+                            <button 
+                                v-if="stockForms.length > 1"
+                                @click="removeStockForm(index)"
+                                type="button"
+                                class="absolute -right-2 -top-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none"
+                                title="Supprimer ce stock"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                </svg>
+                            </button>
                         </div>
 
+                        <!-- Bouton pour ajouter un nouveau formulaire -->
+                        <button 
+                            @click="addStockForm"
+                            type="button"
+                            class="flex items-center text-blue-500 hover:text-blue-700 mb-6"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Ajouter un autre stock
+                        </button>
 
                         <div class="flex justify-end mt-10 gap-4">
                             <button-action 

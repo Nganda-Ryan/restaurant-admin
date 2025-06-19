@@ -356,12 +356,6 @@
                                     "QuantityOfConsumption": 0,
                                 });
                             }
-                            existingProducts.push({
-                                "Id": p1.Id, // Utilisez Id
-                                "ProductCode": p1.api,
-                                "PlateCode": plateInfo.value.Code,
-                                "QuantityOfConsumption": p1.quantity,
-                            });
                         } else {
                             // Ajouter le produit à la liste des nouveaux produits
                             newProducts.push({
@@ -376,22 +370,22 @@
                 }
             });
 
-            // Utiliser createConsistency pour les nouveaux produits
+    // Création des nouveaux produits seulement si nécessaire
             if (newProducts.length > 0) {
                 await createConsistency(newProducts);
             }
 
             // Utiliser UpdateConsistency pour les produits existants
-            if (existingProducts.length > 0) {
-                for (const product of existingProducts) {
-                await UpdateConsistency({
-                    Id: product.Id, // Assurez-vous que Id est présent
-                    ProductCode: product.ProductCode,
-                    PlateCode: product.PlateCode,
-                    QuantityOfConsumption: product.QuantityOfConsumption,
-                });
-    }
-            }
+                if (existingProducts.length > 0) {
+                    for (const product of existingProducts) {
+                        await UpdateConsistency({
+                            Id: product.Id,
+                            ProductCode: product.ProductCode,
+                            PlateCode: product.PlateCode,
+                            QuantityOfConsumption: product.QuantityOfConsumption,
+                        });
+                    }
+                }
 
             }
                 //Ingredient
@@ -448,7 +442,7 @@
                 "CategoryCode": '',
                 "BasePrice": 0,
                 Image: "",
-                RestaurantCode:""
+                RestaurantCode:'RESD4UjiMB1749635205603'
             };
             productListToadd.value = [];
             reloadView.value = true;
@@ -598,7 +592,10 @@
     await fetchPlate()
     if (props.action === "update") {
         if (props.plate) {
-            plateInfo.value = { ...props.plate };
+            plateInfo.value = {
+            ...props.plate,
+            RestaurantCode: props.plate.RestaurantCode || "RESD4UjiMB1749635205603"
+        };
             const plateCode = props.plate.Code
 
             // Utiliser getConsistency pour récupérer les produits associés au plat
@@ -709,7 +706,7 @@
                         </div>
                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
                             
-                            <SelectGroupSearchable customClasses="w-full xl:w-1/2" :items="productList" @item-selected="handleSelection" label="Select a plate" placeholder="Select a plate ..." :required="false" :resetTrigger="resetInput">
+                            <SelectGroupSearchable customClasses="w-full xl:w-1/2" :items="productList" @item-selected="handleSelection" label="Select a product" placeholder="Select a product ..." :required="false" :resetTrigger="resetInput">
                                 <template v-slot:action>
                                     <input min="1" type="number" v-model="producQuantity" required class="w-15 h-10 rounded border-[1.5px] text-black border-stroke bg-transparent ml-2 py-1.5 px-1 font-normal outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-slate-50 dark:disabled:bg-black  dark:text-white dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary" />
                                     <button-action @click='handdleAddProduct' type="button" custom-classes=" mx-2 h-10 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm mr-0 py-2.5 text-center">

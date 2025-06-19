@@ -30,8 +30,8 @@
           color="bg-purple-100 text-purple-600"
         />
         <StatCard 
-          title="Plats populaires" 
-          :value="popularplate.Title" 
+          title="Plat le plus populaire" 
+          :value="mostPopularDish?.Title" 
           icon="🍲" 
           color="bg-orange-100 text-orange-600"
         />
@@ -54,8 +54,10 @@
   
       <!-- Plats populaires -->
       <div class="mt-8 bg-white p-6 rounded-lg shadow">
-        <h2 class="text-xl font-semibold mb-4">Plats les plus populaires</h2>
-        <PopularDishes :dishes="popularDishes" />
+        <h2 class="text-xl font-semibold mb-4">Top 5 des plats populaires</h2>
+        <div class="mt-11">
+          <PopularDishes :dishes="topPopularDishes"/>
+        </div>
       </div>
     </div>
   </template>
@@ -66,75 +68,36 @@
   import SalesChart from '@/components/Dashboard/SalesChart.vue'
   import RecentOrders from '@/components/Dashboard/RecentOrders.vue'
   import PopularDishes from '@/components/Dashboard/PopularDishes.vue'
-  import { fetchTotalMenu, fetchDayCommande, fetchPopularplate, fetchRecentOrder,getUser} from '@/services/database.ts'
+  import { fetchTotalMenu, fetchDayCommande, fetchPopularplate, fetchRecentOrder, getUser } from '@/services/database.ts'
   import { useAuthStore } from '@/stores/auth';
   import { storeToRefs } from 'pinia';
 
-const authStore = useAuthStore();
-const { currentToken, decodedToken } = storeToRefs(authStore);
+  const authStore = useAuthStore();
+  const { currentToken, decodedToken } = storeToRefs(authStore);
 
-// Pour forcer l'affichage dans la console
-console.log('TOKEN COMPLET:', currentToken.value);
-console.log('TOKEN DÉCODÉ:', decodedToken.value);
-  
   // Données statistiques
   const stats = ref({
     revenue: '2,450 €',
   })
 
-  const TotalMenu= ref({})
+  const TotalMenu = ref({})
   const DayCommande = ref({})
-  const popularplate = ref({})
-  const recentOrders = ref({})
+  const popularplate = ref([])
+  const recentOrders = ref([])
 
-  const fetchtotalMenus = async () =>{
-  try{
-    const responsedata = await fetchTotalMenu()
-    TotalMenu.value = responsedata
-    console.log('totalMenu:', TotalMenu)
-  }catch(error){
-    console.log('fetchtotalmenu', error)
-  }
- }
+  // Récupère le plat le plus populaire
+  const mostPopularDish = computed(() => {
+    return popularplate.value[0] || null
+  })
 
- const fetchDayCommandes = async () =>{
-  try{
-    const responsedata = await fetchDayCommande()
-    DayCommande.value = responsedata
-    console.log('totalMenu:', TotalMenu)
-  }catch(error){
-    console.log('fetchtotalmenu', error)
-  }
- }
+  // Récupère le top 5 des plats populaires
+  const topPopularDishes = computed(() => {
+    return popularplate.value.slice(0, 5).map(dish => ({
+      name: dish.Title,
+      Likes:dish.Likes,
+    }))
+  })
 
-  const popularplates = async () =>{
-  try{
-    const responsedata = await fetchPopularplate()
-    popularplate.value = responsedata
-    console.log('popularplate:', popularplates)
-  }catch(error){
-    console.log('fetchpopularPlate', error)
-  }
- }
-  
-  const recentOder = async () =>{
-  try{
-    const responsedata = await fetchRecentOrder()
-    recentOrders.value = responsedata
-    console.log('recentOrders:', recentOrders)
-  }catch(error){
-    console.log('recentOrders', error)
-  }
- }
-  // Plats populaires
-  const popularDishes = ref([
-    { name: 'Poulet rôti', orders: 24, revenue: '288 €' },
-    { name: 'Pizza Margherita', orders: 18, revenue: '216 €' },
-    { name: 'Salade César', orders: 15, revenue: '120 €' },
-    { name: 'Pâtes Carbonara', orders: 12, revenue: '144 €' },
-    { name: 'Tiramisu', orders: 10, revenue: '60 €' }
-  ])
-  
   // Données pour le graphique
   const chartData = ref({
     labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
@@ -149,15 +112,6 @@ console.log('TOKEN DÉCODÉ:', decodedToken.value);
     ]
   })
 
-  const fetchuser = async () =>{
-    try{
-      const response = await getUser()
-      console.log('-->getuser:',response)
-    }catch(error){
-      console.log('getuser', error)
-    }
-  }
-  
   // Date actuelle formatée
   const currentDate = computed(() => {
     return new Date().toLocaleDateString('fr-FR', { 
@@ -168,13 +122,61 @@ console.log('TOKEN DÉCODÉ:', decodedToken.value);
     })
   })
 
-onMounted(() => {
-  fetchtotalMenus()
-  fetchDayCommandes()
-  popularplates()
-  recentOder()
-  fetchuser()
-})
+  // Fonctions de récupération des données
+  const fetchtotalMenus = async () => {
+    try {
+      const responsedata = await fetchTotalMenu()
+      TotalMenu.value = responsedata
+    } catch(error) {
+      console.error('Erreur fetchTotalMenu:', error)
+    }
+  }
+
+  const fetchDayCommandes = async () => {
+    try {
+      const responsedata = await fetchDayCommande()
+      DayCommande.value = responsedata
+    } catch(error) {
+      console.error('Erreur fetchDayCommande:', error)
+    }
+  }
+
+  const fetchPopularplates = async () => {
+    try {
+      const responseData = await fetchPopularplate()
+      console.log('Popular plates:', responseData)
+      // Trie les plats par nombre de commandes (ordre décroissant)
+      popularplate.value = responseData.results.sort((a, b) => b.orderCount - a.orderCount)
+    } catch(error) {
+      console.error('Erreur fetchPopularplate:', error)
+    }
+  }
+  
+  const fetchRecentOrders = async () => {
+    try {
+      const responsedata = await fetchRecentOrder()
+      recentOrders.value = responsedata.results || []
+    } catch(error) {
+      console.error('Erreur fetchRecentOrder:', error)
+    }
+  }
+
+  const fetchUser = async () => {
+    try {
+      const response = await getUser()
+      console.log('Utilisateur:', response)
+    } catch(error) {
+      console.error('Erreur getUser:', error)
+    }
+  }
+
+  onMounted(() => {
+    fetchtotalMenus()
+    fetchDayCommandes()
+    fetchPopularplates()
+    fetchRecentOrders()
+    fetchUser()
+  })
   </script>
   
   <style scoped>
