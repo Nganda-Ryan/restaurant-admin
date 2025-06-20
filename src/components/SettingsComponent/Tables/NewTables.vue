@@ -13,7 +13,6 @@ import type { Table } from '@/services/serviceInterface';
 const configStore = useConfigStore();
 const isSaving = ref<boolean>(false);
 const emits = defineEmits(['cancel', "save", "back", "created"]);
-cons
 
 const props = defineProps({
     action: {

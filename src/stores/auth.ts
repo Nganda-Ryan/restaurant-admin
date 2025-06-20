@@ -13,19 +13,19 @@ export const useAuthStore = defineStore('authentication', {
 
   actions: {
     async login(email: string, password: string) {
+      console.log('Tentative de connexion avec:', { email, password });
       this.isLoading = true;
       try {
         try {
+           this.user = await account.get();
+           if (this.user) 
           await account.deleteSession('current');
         } catch {
           // Ignorer si aucune session existante
         }
 
         await account.createEmailPasswordSession(email, password);
-        this.user = await account.get();
-        
-        const jwtResponse = await account.createJWT();
-        this.setJWT(jwtResponse.jwt);
+        await this.getToken();
         
         // Démarrer le système de renouvellement automatique
         this.startTokenAutoRefresh();
@@ -38,9 +38,22 @@ export const useAuthStore = defineStore('authentication', {
         this.isLoading = false;
       }
     },
+    async getToken() {
+      try {
+        this.user = await account.get();
+        const jwtResponse = await account.createJWT();
+        this.setJWT(jwtResponse.jwt);
+        
+      } catch (error) {
+        console.error('Erreur lors de la récupération du token:', error);
+        
+      }
+    },
 
     setJWT(token: string) {
       this.jwt = token;
+      this.RestaurantCode = 'RESD4UjiMB1749635205603';
+      sessionStorage.setItem('RestaurantCode', this.RestaurantCode);
       sessionStorage.setItem('jwt', token);
       this.lastTokenUpdate = new Date();
       console.debug('JWT mis à jour:', { 
@@ -49,14 +62,7 @@ export const useAuthStore = defineStore('authentication', {
         decoded: this.decodeToken(token) 
       });
     },
-      setRestaurantCode(value: string): void {
-    if (!value || typeof value !== "string") {
-      value = "RESD4UjiMB1749635205603"; // Valeur par défaut si vide/null/undefined
-    }
-    this.RestaurantCode = value;
-    sessionStorage.setItem("RestaurantCode", value);
-  },
-
+    
 
     decodeToken(token: string): any {
       try {
@@ -95,7 +101,8 @@ export const useAuthStore = defineStore('authentication', {
       
       // Rafraîchir le token toutes les 14 minutes (840000 ms)
       this.tokenRefreshInterval = setInterval(() => {
-        this.refreshToken();
+       // this.refreshToken();
+        this.getToken() 
       }, 14 * 60 * 1000); // 14 minutes
     },
 

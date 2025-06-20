@@ -286,7 +286,7 @@ const fetchTables = async () => {
                 <div class="bg-white rounded-lg shadow-xl w-full max-w-md sticky max-h-[90vh] flex flex-col">
                     <div class="flex justify-between items-center border-b p-4 sticky top-0 bg-white">
                         <h3 class="text-xl font-bold text-gray-800">
-                            QR Code - Table {{ selectedTable?.Title || 'Inconnue' }}
+                            QR Code - Table {{ selectedTable?.title || 'Inconnue' }}
                         </h3>
                         <button @click="showQRModal = false" class="text-gray-500 hover:text-red-500">
                             <i class="pi pi-times text-xl"></i>
