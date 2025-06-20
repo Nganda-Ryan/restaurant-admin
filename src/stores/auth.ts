@@ -5,9 +5,10 @@ export const useAuthStore = defineStore('authentication', {
   state: () => ({
     user: null as any,
     jwt: '' as string,
+    RestaurantCode: '' as string,
     isLoading: false,
-    // Ajout pour le debug
-    lastTokenUpdate: null as Date | null
+    lastTokenUpdate: null as Date | null,
+    tokenRefreshInterval: null as ReturnType<typeof setInterval> | null
   }),
 
   actions: {
@@ -23,9 +24,11 @@ export const useAuthStore = defineStore('authentication', {
         await account.createEmailPasswordSession(email, password);
         this.user = await account.get();
         
-        // Génération du JWT
         const jwtResponse = await account.createJWT();
         this.setJWT(jwtResponse.jwt);
+        
+        // Démarrer le système de renouvellement automatique
+        this.startTokenAutoRefresh();
         
         return true;
       } catch (error) {
@@ -36,10 +39,9 @@ export const useAuthStore = defineStore('authentication', {
       }
     },
 
-    // Nouvelle action dédiée
     setJWT(token: string) {
       this.jwt = token;
-      localStorage.setItem('jwt', token);
+      sessionStorage.setItem('jwt', token);
       this.lastTokenUpdate = new Date();
       console.debug('JWT mis à jour:', { 
         token, 
@@ -47,8 +49,15 @@ export const useAuthStore = defineStore('authentication', {
         decoded: this.decodeToken(token) 
       });
     },
+      setRestaurantCode(value: string): void {
+    if (!value || typeof value !== "string") {
+      value = "RESD4UjiMB1749635205603"; // Valeur par défaut si vide/null/undefined
+    }
+    this.RestaurantCode = value;
+    sessionStorage.setItem("RestaurantCode", value);
+  },
 
-    // Méthode pour décoder le token (à usage de debug)
+
     decodeToken(token: string): any {
       try {
         if (!token || token.split('.').length !== 3) return null;
@@ -64,9 +73,43 @@ export const useAuthStore = defineStore('authentication', {
       }
     },
 
+    async refreshToken() {
+      try {
+        if (!this.isAuthenticated) return;
+        
+        console.log('Rafraîchissement automatique du token...');
+        const jwtResponse = await account.createJWT();
+        this.setJWT(jwtResponse.jwt);
+      } catch (error) {
+        console.error('Erreur lors du rafraîchissement du token:', error);
+        // En cas d'erreur, on déconnecte l'utilisateur
+        await this.logout();
+      }
+    },
+
+    startTokenAutoRefresh() {
+      // Arrêter l'intervalle existant s'il y en a un
+      if (this.tokenRefreshInterval) {
+        clearInterval(this.tokenRefreshInterval);
+      }
+      
+      // Rafraîchir le token toutes les 14 minutes (840000 ms)
+      this.tokenRefreshInterval = setInterval(() => {
+        this.refreshToken();
+      }, 14 * 60 * 1000); // 14 minutes
+    },
+
+    stopTokenAutoRefresh() {
+      if (this.tokenRefreshInterval) {
+        clearInterval(this.tokenRefreshInterval);
+        this.tokenRefreshInterval = null;
+      }
+    },
+
     async logout() {
       try {
         await account.deleteSession('current');
+        this.stopTokenAutoRefresh();
         this.$reset();
       } catch (error) {
         console.error('Logout error:', error);
@@ -77,8 +120,10 @@ export const useAuthStore = defineStore('authentication', {
       try {
         this.user = await account.get();
         const jwtResponse = await account.createJWT();
-        this.setJWT(jwtResponse.jwt); // Utilisation de la nouvelle méthode
+        this.setJWT(jwtResponse.jwt);
+        this.startTokenAutoRefresh(); // Démarrer le rafraîchissement automatique
       } catch {
+        this.stopTokenAutoRefresh();
         this.$reset();
       }
     }
@@ -88,10 +133,8 @@ export const useAuthStore = defineStore('authentication', {
     isAuthenticated: (state) => !!state.user,
     currentToken: (state) => {
       console.debug('Current token from getter:', state.jwt);
-      console.log('currenttoken', state.jwt);
       return state.jwt;
     },
-    // Nouveau getter pour le token décodé
     decodedToken: (state) => {
       if (!state.jwt) return null;
       try {

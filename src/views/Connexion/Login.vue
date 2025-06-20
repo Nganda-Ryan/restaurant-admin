@@ -40,24 +40,24 @@
         <!-- Section Formulaire -->
         <div class="flex-1 p-8 md:p-10 md:w-3/5">
           <h2 class="text-red-500 text-3xl md:text-4xl font-pacifico mb-8 text-center relative">
-            Welcome Back!
+            Login!
 
           </h2>
           
           <form @submit.prevent="submitForm" class="space-y-6 w-full max-w-sm mx-auto">
             <div class="form-group">
-              <label class="block text-sm font-medium text-gray-700 mb-1 mt-8">Email Address</label>
+              <!-- <label class="block text-sm font-medium text-gray-700 mb-1 mt-8">Email Address</label> -->
               <input
                 type="email"
                 v-model="email"
-                placeholder="@email"
+                placeholder="Username"
                 class="border-b-2 border-gray-300 focus:border-red-500 outline-none p-2 w-full transition duration-300 bg-transparent"
                 required
               />
             </div>
 
             <div class="form-group">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <!-- <label class="block text-sm font-medium text-gray-700 mb-1">Password</label> -->
               <div class="relative">
                 <input
                   :type="showPassword ? 'text' : 'password'"

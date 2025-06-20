@@ -260,7 +260,7 @@
     console.log('handleCompleted ts', ts)
   }
 
-/*   const handleCanceled = async (ts: any) => {
+  const handleCanceled = async (ts: any) => {
     try {
       if(ts.event != 'canceled') {
         isloading.value = true;
@@ -277,7 +277,7 @@
       }
       
       const payload: ToastPayload = {
-          type: "info",
+          type: "success",
           message: `Order ${ts.code} canceled !`
       }
       EventBus.emit('showToast', payload);
@@ -292,7 +292,8 @@
     } finally {
       isloading.value = false;
     }
-  } */
+    console.log('handleCanceled ts', ts)
+  }
 
   onBeforeMount(async () => {
       await fetchTicket();

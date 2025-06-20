@@ -21,7 +21,7 @@
         </div>
 
         <!-- Bouton pour afficher/masquer les produits supplémentaires -->
-        <div v-if="filteredProducts.length > 7" class="flex justify-center mt-4">
+        <div v-if="filteredProducts.length > 7 && isViewing" class="flex justify-center mt-4">
             <button 
                 @click="toggleShowAllProducts"
                 class="text-sm text-blue-600 hover:text-blue-800 font-medium"

@@ -151,7 +151,11 @@ export interface ProductOption {
     "inputField"?:String
     "Id"?: number; 
 }
-
+export interface Table {
+    Code?: string,
+    Title: string;
+    Description: string;
+}
 export interface FormattedDates {
     startDate: string;
     endDate: string;
@@ -161,4 +165,31 @@ export interface NutritionalOption {
     name: string;
     api: string;
     unit: string;
+}
+
+// interfaces/user.interfaces.ts
+
+export interface IUserProfile {
+  id: number;
+  RestaurantCode: string;
+  RoleCode: string;
+  Status: string;
+  UserCode: string;
+}
+
+export interface IUser {
+  Code: string;
+  CreatedAt: string;
+  Email: string;
+  ExternalId: string;
+  FirstName: string;
+  LastName: string;
+  PhoneNumber: string;
+  Status: string;
+  UpdatedAt: string;
+}
+
+export interface IAuthResponse {
+  user: IUser;
+  profiles: IUserProfile[];
 }

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import HomeView from '../views/HomeView/HomeView.vue'
 // @ts-ignore
 import HomeSetting from '../views/SettingsView/HomeSetting.vue'
@@ -76,5 +77,23 @@ const router = createRouter({
     }
   ]
 })
+// Garde de navigation globale
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore();
+  
+  const publicRoutes = ['/login', '/register', '/forgot-password'];
+  
+  if (!publicRoutes.includes(to.path)) {
+    await authStore.checkAuth(); 
+  }
+
+  // 2. Logique de redirection
+  if (!publicRoutes.includes(to.path) && !authStore.isAuthenticated) {
+    return { path: '/login', query: { redirect: to.fullPath } };
+  }
+  if (publicRoutes.includes(to.path) && authStore.isAuthenticated) {
+    return { path: '/' }; 
+  }
+});
 
 export default router

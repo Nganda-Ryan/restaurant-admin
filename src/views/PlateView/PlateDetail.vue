@@ -72,30 +72,32 @@
 
 
 
-    async function getPlate() {
+ async function getPlate() {
         const params = router.currentRoute.value.params as unknown as Param;
         plateCode.value = params.platecode;
         
-        try{
-        const result = await fetchPlate();
-        
-        console.log('result', result)
-        plateInfo.value = result.filter((item: any) => item.Code == params.platecode)[0];
-        ingredients.value = plateInfo.value.content
-        .filter((item:any) => item.typex.Code == 'ING')
-        ?.map((item:any) => item.Body)[0]?.split(/[;]/);
+        try {
+            const result = await fetchPlate();
+            
+            console.log('result', result)
+            plateInfo.value = result.filter((item: any) => item.Code == params.platecode)[0];
+            ingredients.value = plateInfo.value.content
+                .filter((item:any) => item.typex.Code == 'ING')
+                ?.map((item:any) => item.Body)[0]
+                ?.split(/[;]/)
+                .map((item:any) => item.trim()) // Nettoyer les espaces
+                .filter((item:any) => item !== '') // Supprimer les éléments vides
+                .map((item:any) => item.replace(/:$/, '')); // Supprimer les deux points en fin de ligne
 
-        ingredients.value = ingredients.value?.filter((item:any) => item != '')
+            console.log('param', params);
+            console.log('ingredients.value', ingredients.value);
+            console.log("Plate", result.filter((item: any) => item.Code == params.platecode))
 
-
-        console.log('param', params);
-        console.log('ingredients.value', ingredients.value);
-        console.log("Plate", result.filter((item: any) => item.Code == params.platecode))
-
-        isLoading.value = false;
-    }catch(error){
-        console.error("Error fetching plate:", error);
-    }}
+            isLoading.value = false;
+        } catch(error) {
+            console.error("Error fetching plate:", error);
+        }
+    }
     onBeforeMount(async () => {
         try {
         await getPlate();

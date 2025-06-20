@@ -18,7 +18,7 @@
         />
         <StatCard 
           title="Commandes de la semaine" 
-          :value="DayCommande.count" 
+          :value="DayCommande.results" 
           icon="🛒" 
           color="bg-green-100 text-green-600"
         />
@@ -48,7 +48,7 @@
         <!-- Commandes récentes -->
         <div class="bg-white p-6 rounded-lg shadow">
           <h2 class="text-xl font-semibold mb-4">Commandes récentes</h2>
-          <RecentOrders :orders="recentOrders" />
+          <RecentOrders :orders="recentOrders.slice(0, 5)" />
         </div>
       </div>
   
@@ -70,10 +70,7 @@
   import PopularDishes from '@/components/Dashboard/PopularDishes.vue'
   import { fetchTotalMenu, fetchDayCommande, fetchPopularplate, fetchRecentOrder, getUser } from '@/services/database.ts'
   import { useAuthStore } from '@/stores/auth';
-  import { storeToRefs } from 'pinia';
 
-  const authStore = useAuthStore();
-  const { currentToken, decodedToken } = storeToRefs(authStore);
 
   // Données statistiques
   const stats = ref({
@@ -136,6 +133,7 @@
     try {
       const responsedata = await fetchDayCommande()
       DayCommande.value = responsedata
+      console.log('Commandes du jour:', DayCommande.value)
     } catch(error) {
       console.error('Erreur fetchDayCommande:', error)
     }
@@ -155,7 +153,9 @@
   const fetchRecentOrders = async () => {
     try {
       const responsedata = await fetchRecentOrder()
-      recentOrders.value = responsedata.results || []
+      console.log('Recent orders:', responsedata)
+      recentOrders.value = responsedata || []
+      console.log('Commandes récentes:', recentOrders.value)
     } catch(error) {
       console.error('Erreur fetchRecentOrder:', error)
     }

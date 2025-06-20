@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { PlateOption, Content, PlateContent, Compositions, composition, Categorieplat, Stocks } from "./serviceInterface";
+import type { PlateOption, Content, PlateContent, Compositions, composition, Categorieplat, Stocks, Table } from "./serviceInterface";
 import { createPinia } from "pinia";
 import { Client, Account} from 'appwrite'
 
@@ -7,7 +7,8 @@ import { useAuthStore } from '@/stores/auth';
 
 const pinia = createPinia();
 
-const token = localStorage.getItem('jwt') || '';
+const token = sessionStorage.getItem('jwt') || '';
+const CodeResto = sessionStorage.getItem('RestaurantCode');
 /* AUTHENTIFICATION*/
 
 const client = new Client()
@@ -45,7 +46,7 @@ export const getUser= async () => {
 
 /* MENU */
 export const fetchMenu = async () => {
-    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus?RestaurantCode=RESD4UjiMB1749635205603`;
+    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus?RestaurantCode=${CodeResto}`;
     
     try {
         const response = await axios (url, {
@@ -67,7 +68,7 @@ export const fetchMenu = async () => {
 };
 export const fetchSingleMenu = async (menuCode: string) => {
     console.log('fetchSingleMenu', menuCode)
-    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items?MenuCode=${menuCode}&RestaurantCode=RESD4UjiMB1749635205603`;
+    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items?MenuCode=${menuCode}&RestaurantCode=${CodeResto}`;
     try {
         const response = await axios (url, {
             headers: {
@@ -175,7 +176,7 @@ export const addMenuItem = async (payload: any) => {
     }
 }
 export const deleteMenu = async (codeList: any[]) => {
-    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus?RestaurantCode=RESD4UjiMB1749635205603`;
+    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus?RestaurantCode=${CodeResto}`;
     console.log('Database.deleteMenu.codeList', codeList)
     try {
         const response = await axios.delete(url,{
@@ -215,7 +216,7 @@ export const deleteMenuItem = async (codeList: any[]) => {
 
 /* PLATE */
 export const fetchPlate = async () => {
-    const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats?RestaurantCode=RESD4UjiMB1749635205603`;
+    const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats?RestaurantCode=${CodeResto}`;
     
     try {
         const response = await axios (url, {
@@ -350,7 +351,7 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
 /* ORDER */
 
     export const fetchOrder = async () => {
-        const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders?RestaurantCode=RESD4UjiMB1749635205603`;
+        const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders?RestaurantCode=${CodeResto}`;
         
         try {
             const response = await axios (url, {
@@ -368,7 +369,7 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
         }
     }
     export const fetchSingleOrder = async (orderCode:string) => {
-        const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders/items?OrderCode=${orderCode}`;
+        const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders/items?OrderCode=${orderCode}&RestaurantCode=${CodeResto}`;
         
         try {
             const response = await axios (url, {
@@ -426,7 +427,7 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
 
 /* PRODUCT */
 export const fetchProduct = async ( ) => {
-    const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products?RestaurantCode=RESD4UjiMB1749635205603`;
+    const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products?RestaurantCode=${CodeResto}`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -444,7 +445,7 @@ export const fetchProduct = async ( ) => {
     }
 }
 export const fetchSingleProduct = async (productCode:string) => {
-    const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products?RestaurantCode=RESD4UjiMB1749635205603&ProductCode=${productCode}`;
+    const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products?RestaurantCode=${CodeResto}&ProductCode=${productCode}`;
     const authStore = useAuthStore()
 
     try {
@@ -633,7 +634,7 @@ export const fetchConfig = async () => {
 /* CATEGORIE PLATE */
 
 export const fetchCategoriePlate = async () => {
-    const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories?RestaurantCode=RESD4UjiMB1749635205603`;
+    const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories?RestaurantCode=${CodeResto}`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -672,7 +673,7 @@ export const createCategoriePlate = async (payload:Categorieplat[]) => {
     
 }
 export const updateCategoriePlat = async (payload:Categorieplat) => {
-    const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories?`;
+    const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories`;
     const authStore = useAuthStore()
     console.log('Database.createConsistency.createContent.payload', payload)
     try {
@@ -715,7 +716,7 @@ export const deleteCategoriePlat = async (Code: any[]) => {
 //dashboard
 
 export const fetchPopularplate = async () => {
-    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/popular-plats?RestaurantCode=RESD4UjiMB1749635205603`;
+    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/popular-plats?RestaurantCode=${CodeResto}`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -734,7 +735,7 @@ export const fetchPopularplate = async () => {
 }
 
 export const fetchDayCommande = async () => {
-    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/orders?RestaurantCode=RESD4UjiMB1749635205603`;
+    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/orders?RestaurantCode=${CodeResto}`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -752,7 +753,7 @@ export const fetchDayCommande = async () => {
     }
 }
 export const fetchTotalMenu = async () => {
-    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/menus?RestaurantCode=RESD4UjiMB1749635205603`;
+    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/menus?RestaurantCode=${CodeResto}`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -770,7 +771,7 @@ export const fetchTotalMenu = async () => {
     }
 }
 export const fetchRecentOrder = async () => {
-    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/recent-orders?RestaurantCode=RESD4UjiMB1749635205603`;
+    const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/recent-orders?RestaurantCode=${CodeResto}`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -800,9 +801,6 @@ export const fetchinvoice = async (ordercode: string) => {
                 "Content-Type": "application/json",
                 "API_KEY": token
             },
-            validateStatus: function (status) {
-                return status < 500; // Accepter tous les codes < 500
-            }
         });
         
         if (response.data.exit !== "OK") {
@@ -819,7 +817,7 @@ export const fetchinvoice = async (ordercode: string) => {
 //stocks
 
 export const createstocks = async (payload:Stocks[]) => {
-    const url =  `${import.meta.env.VITE_APP_STOCKS_BASE_URL_V1}/Entries/Add?RestaurantCode=RESD4UjiMB1749635205603`;
+    const url =  `${import.meta.env.VITE_APP_STOCKS_BASE_URL_V1}/Entries/Add?RestaurantCode=${CodeResto}`;
     
     console.log('Database.createConsistency.createContent.payload', payload)
     try {
@@ -840,7 +838,7 @@ export const createstocks = async (payload:Stocks[]) => {
 }
 
 export const fetchStocks = async () => {
-    const url =  `${import.meta.env.VITE_APP_STOCKS_BASE_URL_V1}/Dashboard?RestaurantCode=RESD4UjiMB1749635205603&StartDate=2025-06-18 13:51:44&Limit=30&Offset=0&OrderBy=Quantity&OrderMode=DESC`;
+    const url =  `${import.meta.env.VITE_APP_STOCKS_BASE_URL_V1}/Dashboard?RestaurantCode=${CodeResto}&StartDate=2025-06-18 13:51:44&Limit=30&Offset=0&OrderBy=Quantity&OrderMode=DESC`;
     const authStore = useAuthStore()
     try {
         const response = await axios (url, {
@@ -854,6 +852,88 @@ export const fetchStocks = async () => {
         return response.data.body
     } catch (error) {
         console.error('Database.fetchstocks.error ::', error);
+        throw error;
+    }
+}
+
+//Table
+
+export const createTable= async (payload:Table) => {
+    const url =  `${import.meta.env.VITE_APP_RESTO_BASE_URL_V1}/restaurants/tables?RestaurantCode=${CodeResto}`;
+    const authStore = useAuthStore()
+    console.log('Database.createTable.payload', payload)
+    try {
+        const response = await axios.post(url, { 
+            table: payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                "API_KEY": token
+            }
+        });
+        console.error('database.createTable', response.data.body)
+        return response.data;
+    } catch (error) {
+        console.error('Database.Content.createTable.error ::', error);
+        throw error;
+    }
+    
+}
+export const    fetchTable = async () => {
+    const url =  `${import.meta.env.VITE_APP_RESTO_BASE_URL_V1}/restaurants/Detail?RestaurantCode=${CodeResto}`;
+    const authStore = useAuthStore()
+    try {
+        const response = await axios (url, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "API_KEY": token
+            },  
+            method: "GET",
+        });
+        return response.data.body
+    } catch (error) {
+        console.error('Database.totalMenu.error ::', error);
+        throw error;
+    }
+}
+export const updateTable = async (payload:Table) => {
+    const url =  `${import.meta.env.VITE_APP_RESTO_BASE_URL_V1}/restaurants/tables?RestaurantCode=${CodeResto}`;
+    const authStore = useAuthStore()
+    console.log('Database.createConsistency.createTable.payload', payload)
+    try {
+        const response = await axios.put(url, { 
+            PlatCategory: payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                "API_KEY": token
+            }
+        });
+        console.error('database.createTable', response.data.body)
+        return response.data;
+    } catch (error) {
+        console.error('Database.Content.updateTable.error ::', error);
+        throw error;
+    }
+    
+}
+export const deleteTable = async (Code: any[]) => {
+    const url =  `${import.meta.env.VITE_APP_RESTO_BASE_URL_V1}/restaurants/tables?RestaurantCode=${CodeResto}`;
+    const authStore = useAuthStore()
+    try {
+        const response = await axios.delete(url,{
+            data: { 
+                tables: Code
+            },
+            headers: {
+                'Content-Type': 'application/json',
+                "API_KEY": token
+            }
+        });
+        return response.data.body;
+    } catch (error) {
+        console.error('Database.createTable.error ::', error);
         throw error;
     }
 }
@@ -881,6 +961,10 @@ export const formatedDate = (date: Date): string => {
 
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
+
+// gestion du token
+// Dans votre fichier api.ts
+
 
 
 

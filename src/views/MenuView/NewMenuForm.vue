@@ -154,6 +154,7 @@
                         PlateCode: plate.api,
                         QuantityAvailable: plate.quantity,
                         MenuCode: code // Inclure le code du menu
+                        //RestaurantCode: menuInfo.value.RestaurantCode
                     });
                 }
             });

@@ -2,8 +2,12 @@
 import { computed } from 'vue';
 
   const props = defineProps(['createdDate', 'code', 'plates', 'status', 'styled']);
+  console.log(props.plates);
   const price = computed(() => {
-
+    if(!props.plates || props.plates.length === 0 || JSON.stringify(props.plates).replace("{}", "") == "") {
+      console.warn('No plates provided or plates array is empty');
+      return '0.00';
+    }
     return props.plates ? props.plates.reduce((sum: any, item: any) => (sum + (item.Price * item.Quantity)), 0).toFixed(2) : 0;
   })
 </script>
