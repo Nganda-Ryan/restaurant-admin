@@ -153,8 +153,9 @@ export interface ProductOption {
 }
 export interface Table {
     Code?: string,
-    Title: string;
-    Description: string;
+    Title?: string;
+    Description?: string;
+    IsActive?: boolean;
 }
 export interface FormattedDates {
     startDate: string;

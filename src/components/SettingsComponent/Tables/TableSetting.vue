@@ -47,6 +47,12 @@
             filterable: true
         },
         {
+            name: 'status',
+            label: 'Status',
+            type: 'boolean',
+            filterable: true
+        },
+        {
             name: 'actions',
             label: 'Actions',
             type: 'action',
@@ -108,8 +114,8 @@ const fetchTables = async () => {
             tables.value = response.tables.map((table:Table) => ({
                 Code: table.Code,
                 title: table.Title,
-                description: table.Description
-                // ... autres champs nécessaires à votre affichage
+                description: table.Description,
+                status: table.IsActive ? true : false
             }));
             console.log('statut', response.tables)
         } else {
