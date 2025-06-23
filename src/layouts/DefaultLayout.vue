@@ -7,12 +7,14 @@
   import EventBus from '@/EventBus';
   import type ToastPayload from '@/types/Toast'
   import { useConfigStore } from '@/stores/config';
+  import { useAuthStore } from '@/stores/auth';
 
   let toastVisible = ref(false);
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   let toast = ref<ToastPayload>({ type: 'info', message: '' });
 
   const configStore = useConfigStore();
+  const authStore = useAuthStore();
   const handleShowToast = (payload: unknown) => {
     toast.value = payload as ToastPayload;
     toastVisible.value = true;
@@ -51,6 +53,7 @@
   };
   onMounted(async () => {
     await init();
+    authStore.ws
   });
 </script>
 

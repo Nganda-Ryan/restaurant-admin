@@ -4,7 +4,6 @@ import { createPinia } from "pinia";
 import { Client, Account} from 'appwrite'
 
 import { useAuthStore } from '@/stores/auth';
-import { auth } from "@/firebase";
 
 const pinia = createPinia();
 
@@ -23,7 +22,7 @@ export const account = new Account(client);
 export const getUser= async () => {
     console.log("--> getUser")
     const url = `${import.meta.env.VITE_APP_GET_USER_BASE_URL_V1}/get-user`;
-    const authStore = useAuthStore()
+    const authStore = useAuthStore();
     try {
         const response = await axios (url, {
             params: {
@@ -396,8 +395,8 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
         }
     }
     export const updateOrder = async (payload: any) => {
+        const authStore = useAuthStore();
         const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders`;
-        const authStore = useAuthStore()
         try {
             const response = await axios.put(url, { 
                 Order: payload
@@ -407,6 +406,8 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
                     "API_KEY": token
                 }
             });
+            await authStore.wsconnect(payload.OrderCode,JSON.stringify(payload));
+            //await authStore.wssendMessage(JSON.stringify({ event: 'update', orderCode: payload.OrderCode }));
             return response.data.body;
         } catch (error) {
             console.error('Database.updateMenu.error ::', error);

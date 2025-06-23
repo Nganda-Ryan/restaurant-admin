@@ -225,7 +225,7 @@
                                 class="w-full xl:w-1/2" v-model="productInfo.CategoryCode" required/>
                         </div>
                         <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">
-                            <div v-if="props.action =='Update'" class="flex flex-col justify-between xl:w-1/2">
+                            <div v-if="props.action ==='add'" class="flex flex-col justify-between xl:w-1/2">
                                 <label for="quantity" class="mb-2.5">
                                     Quantity <span class="text-meta-1">*</span>
                                 </label>
