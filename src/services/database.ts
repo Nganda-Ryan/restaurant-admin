@@ -8,8 +8,8 @@ import { auth } from "@/firebase";
 
 const pinia = createPinia();
 
-const token = sessionStorage.getItem('jwt') || '';
-const CodeResto = sessionStorage.getItem('RestaurantCode');
+const token = localStorage.getItem('jwt') || '';
+const CodeResto = localStorage.getItem('RestaurantCode');
 /* AUTHENTIFICATION*/
 
 const client = new Client()
@@ -913,7 +913,7 @@ export const updateTable = async (payload:Table) => {
     console.log('Database.createConsistency.createTable.payload', payload)
     try {
         const response = await axios.put(url, { 
-            PlatCategory: payload
+            table: payload
         }, {
             headers: {
                 'Content-Type': 'application/json',

@@ -10,8 +10,6 @@ export const useAuthStore = defineStore('authentication', {
     lastTokenUpdate: null as Date | null,
     tokenRefreshInterval: null as ReturnType<typeof setInterval> | null
   }),
-
-  
   actions: {
     async login(email: string, password: string) {
       console.log('Tentative de connexion avec:', { email, password });
@@ -58,8 +56,8 @@ export const useAuthStore = defineStore('authentication', {
     setJWT(token: string) {
       this.jwt = token;
       this.RestaurantCode = 'RESD4UjiMB1749635205603';
-      sessionStorage.setItem('RestaurantCode', this.RestaurantCode);
-      sessionStorage.setItem('jwt', token);
+      localStorage.setItem('RestaurantCode', this.RestaurantCode);
+      localStorage.setItem('jwt', token);
       this.lastTokenUpdate = new Date();
       console.debug('JWT mis à jour:', { 
         token, 
@@ -156,4 +154,6 @@ export const useAuthStore = defineStore('authentication', {
       }
     }
   }
+  
+
 });

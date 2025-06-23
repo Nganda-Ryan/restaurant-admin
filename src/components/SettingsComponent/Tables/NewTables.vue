@@ -32,10 +32,10 @@
         Description: '',
     });
 
-    /* const status = ref([
+    const status = ref([
         { label: 'Inactive', value: false },
         { label: 'Active', value: true }
-    ]); */
+    ]);
 
     const getActionLabel = () => {
         return props.action === "add" ? "Enregistrer" : "Mettre à jour";
@@ -69,13 +69,15 @@
             const payload = {
                 Title: tableForm.value.Title,
                 Description: tableForm.value.Description,
-                Code: tableForm.value.Code
+                Code: tableForm.value.Code,
+                IsActive:true
             };
 
             if (props.action === "add") {
                 const result = await createTable(payload);
-                console.log('createdTable', result);
+                console.log('updateTable', result);
             } else if (props.action === "update") {
+                console.log('props.table', payload);
                 const result = await updateTable(payload);
                 console.log('updatedTable', result);
             }
@@ -145,7 +147,7 @@
                                     v-model="tableForm.Description" 
                                 />
 
-    <!--                             <div class="w-full">
+                                 <div class="w-full" v-if="props.action === 'update'">
                                     <label class="mb-2 block text-black dark:text-white">
                                         Statut <span class="text-meta-1">*</span>
                                     </label>
@@ -158,7 +160,7 @@
                                             {{ item.label }}
                                         </option>
                                     </select>
-                                </div> -->
+                                </div> 
                             </div>
 
                             <div class="flex justify-end mt-10 gap-4">
