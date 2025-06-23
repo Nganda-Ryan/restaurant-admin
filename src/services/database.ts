@@ -4,6 +4,7 @@ import { createPinia } from "pinia";
 import { Client, Account} from 'appwrite'
 
 import { useAuthStore } from '@/stores/auth';
+import { auth } from "@/firebase";
 
 const pinia = createPinia();
 
@@ -21,7 +22,8 @@ export const account = new Account(client);
 
 export const getUser= async () => {
     console.log("--> getUser")
-    const url =  `${import.meta.env.VITE_APP_GET_USER_BASE_URL_V1}/get-user`;
+    const url = `${import.meta.env.VITE_APP_GET_USER_BASE_URL_V1}/get-user`;
+    const authStore = useAuthStore()
     try {
         const response = await axios (url, {
             params: {
@@ -29,7 +31,7 @@ export const getUser= async () => {
             },
             headers: {
                 //"API_KEY":`${authStore.jwt}`
-                "API_KEY": token // Format spécifique visible dans Postman
+                "API_KEY": authStore.jwt // Format spécifique visible dans Postman
             },
             method: "GET",
         });
@@ -47,7 +49,9 @@ export const getUser= async () => {
 /* MENU */
 export const fetchMenu = async () => {
     const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus?RestaurantCode=${CodeResto}`;
-    
+    const authStore = useAuthStore()
+    console.log('fetchMenu', url)
+    console.log('authStore.jwt', authStore.jwt) 
     try {
         const response = await axios (url, {
             params: {
@@ -56,7 +60,7 @@ export const fetchMenu = async () => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -69,12 +73,13 @@ export const fetchMenu = async () => {
 export const fetchSingleMenu = async (menuCode: string) => {
     console.log('fetchSingleMenu', menuCode)
     const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items?MenuCode=${menuCode}&RestaurantCode=${CodeResto}`;
+    const authStore = useAuthStore()
     try {
         const response = await axios (url, {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -86,14 +91,14 @@ export const fetchSingleMenu = async (menuCode: string) => {
 };
 export const createMenu = async (payload: any) => {
     const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus`;
-    
+    const authStore = useAuthStore()
     try {
         const response = await axios.post(url, { 
             Menu: payload
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -104,14 +109,14 @@ export const createMenu = async (payload: any) => {
 };
 export const cloneMenu = async (payload: any, parentCode: string|undefined) => {
     const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/clone?MenuCode=${parentCode}&DeepClone=true`;
-    
+    const authStore = useAuthStore()
     try {
         const response = await axios.post(url, { 
             Menu: payload
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -122,14 +127,14 @@ export const cloneMenu = async (payload: any, parentCode: string|undefined) => {
 };
 export const updateMenu = async (payload: any) => {
     const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus`;
-    
+    const authStore = useAuthStore()
     try {
         const response = await axios.put(url, { 
             Menu: payload
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -140,14 +145,16 @@ export const updateMenu = async (payload: any) => {
 };
 export const updateMenuItem = async (payload: any) => {
     const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items`;
-    
+        
+    const authStore = useAuthStore()
+    console.log('Database.updateMenuItems.payload', payload)
     try {
         const response = await axios.put(url, { 
             Items: payload
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -159,14 +166,14 @@ export const updateMenuItem = async (payload: any) => {
 
 export const addMenuItem = async (payload: any) => {
     const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items`;  
-    
+    const authStore = useAuthStore()
     try {   
         const responce = await axios.post(url, {
             Items: payload
         }, {    
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return responce.data.body;
@@ -176,7 +183,8 @@ export const addMenuItem = async (payload: any) => {
     }
 }
 export const deleteMenu = async (codeList: any[]) => {
-    const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus?RestaurantCode=${CodeResto}`;
+    const url = `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus?RestaurantCode=${CodeResto}`;
+    const authStore = useAuthStore()
     console.log('Database.deleteMenu.codeList', codeList)
     try {
         const response = await axios.delete(url,{
@@ -185,7 +193,7 @@ export const deleteMenu = async (codeList: any[]) => {
             },
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -196,7 +204,7 @@ export const deleteMenu = async (codeList: any[]) => {
 }
 export const deleteMenuItem = async (codeList: any[]) => {
     const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items`;
-    
+    const authStore = useAuthStore()
     try {
         const response = await axios.delete(url,{
             data: { 
@@ -204,7 +212,7 @@ export const deleteMenuItem = async (codeList: any[]) => {
             },
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -217,13 +225,13 @@ export const deleteMenuItem = async (codeList: any[]) => {
 /* PLATE */
 export const fetchPlate = async () => {
     const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats?RestaurantCode=${CodeResto}`;
-    
+    const authStore = useAuthStore()
     try {
         const response = await axios (url, {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -235,14 +243,14 @@ export const fetchPlate = async () => {
 }
 export const createPlate = async (payload: PlateOption) => {
     const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats`;
-    
+    const authStore = useAuthStore()
     try {
         const response = await axios.post(url, { 
             plats: [payload]
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -253,7 +261,7 @@ export const createPlate = async (payload: PlateOption) => {
 }
 export const deletePlate = async (codeList: any[]) => {
     const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats`;
-    
+    const authStore = useAuthStore()
     try {
         const response = await axios.delete(url,{
             data: { 
@@ -261,7 +269,7 @@ export const deletePlate = async (codeList: any[]) => {
             },
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -273,14 +281,14 @@ export const deletePlate = async (codeList: any[]) => {
 
 export const updatePlate = async (payload: PlateOption) => {
     const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats`;
-    
+    const authStore = useAuthStore()
     try {
         const response = await axios.put(url, { 
             plat: payload
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -290,7 +298,8 @@ export const updatePlate = async (payload: PlateOption) => {
     }
 }
 export const createConsistency = async (payload: Compositions[]) => {
-    const url =  `${import.meta.env.VITE_APP_CONSISTENCY_BASE_URL_V1}/compositions`;
+    const url = `${import.meta.env.VITE_APP_CONSISTENCY_BASE_URL_V1}/compositions`;
+    const authStore = useAuthStore()
     
     console.log('Database.createConsistency.createPlate.payload', payload)
     try {
@@ -299,7 +308,7 @@ export const createConsistency = async (payload: Compositions[]) => {
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -310,7 +319,7 @@ export const createConsistency = async (payload: Compositions[]) => {
 }
 export const UpdateConsistency = async (payload: composition) => {
     const url =  `${import.meta.env.VITE_APP_CONSISTENCY_BASE_URL_V1}/compositions`;
-    
+    const authStore = useAuthStore()
     console.log('Database.createConsistency.createPlate.payload', payload)
     try {
         const response = await axios.put(url, { 
@@ -318,7 +327,7 @@ export const UpdateConsistency = async (payload: composition) => {
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -336,7 +345,7 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -352,13 +361,13 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
 
     export const fetchOrder = async () => {
         const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders?RestaurantCode=${CodeResto}`;
-        
+        const authStore = useAuthStore()
         try {
             const response = await axios (url, {
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json",
-                    "API_KEY": token
+                    "API_KEY": authStore.jwt
                 },
                 method: "GET",
             });
@@ -370,13 +379,13 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
     }
     export const fetchSingleOrder = async (orderCode:string) => {
         const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders/items?OrderCode=${orderCode}&RestaurantCode=${CodeResto}`;
-        
+        const authStore = useAuthStore()
         try {
             const response = await axios (url, {
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json",
-                    "API_KEY": token
+                    "API_KEY": authStore.jwt
                 },
                 method: "GET",
             });
@@ -388,14 +397,14 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
     }
     export const updateOrder = async (payload: any) => {
         const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders`;
-        
+        const authStore = useAuthStore()
         try {
             const response = await axios.put(url, { 
                 Order: payload
             }, {
                 headers: {
                     'Content-Type': 'application/json',
-                    "API_KEY": token
+                    "API_KEY": authStore.jwt
                 }
             });
             return response.data.body;
@@ -406,7 +415,7 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
     }
     export const deleteOrder = async (codeList: any[]) => {
         const url = `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders`;
-        
+        const authStore = useAuthStore()
         try {
             const response = await axios.delete(url, {
                 data: { 
@@ -414,7 +423,7 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
                 },
                 headers: {
                     'Content-Type': 'application/json',
-                    "API_KEY": token
+                    "API_KEY": authStore.jwt
                 }
             });
             return response.data.body;
@@ -434,7 +443,7 @@ export const fetchProduct = async ( ) => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -453,7 +462,7 @@ export const fetchSingleProduct = async (productCode:string) => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -466,7 +475,7 @@ export const fetchSingleProduct = async (productCode:string) => {
 
 export const deleteProduct = async (Code: any[]) => {
     const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products`;
-    
+    const authStore = useAuthStore()
     try {
         const response = await axios.delete(url,{
             data: { 
@@ -474,7 +483,7 @@ export const deleteProduct = async (Code: any[]) => {
             },
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -493,7 +502,7 @@ export const createProduct = async (payload: any) => {
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -511,7 +520,7 @@ export const updateProduct = async (payload: any) => {
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -533,7 +542,7 @@ export const createContent = async (payload: Content[] | PlateContent[]) => {
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         console.error('database.createContent', response.data.body)
@@ -554,7 +563,7 @@ export const updateContent = async (payload: Content [] | PlateContent[]) => {
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         console.error('database.createContent', response.data.body)
@@ -574,7 +583,7 @@ export const fetchContent = async (plateCode:String) => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -620,7 +629,7 @@ export const fetchConfig = async () => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -641,7 +650,7 @@ export const fetchCategoriePlate = async () => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -661,7 +670,7 @@ export const createCategoriePlate = async (payload:Categorieplat[]) => {
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         console.error('database.createContent', response.data.body)
@@ -682,7 +691,7 @@ export const updateCategoriePlat = async (payload:Categorieplat) => {
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         console.error('database.createContent', response.data.body)
@@ -703,7 +712,7 @@ export const deleteCategoriePlat = async (Code: any[]) => {
             },
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;
@@ -723,7 +732,7 @@ export const fetchPopularplate = async () => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -742,7 +751,7 @@ export const fetchDayCommande = async () => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -760,7 +769,7 @@ export const fetchTotalMenu = async () => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -778,7 +787,7 @@ export const fetchRecentOrder = async () => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -799,7 +808,7 @@ export const fetchinvoice = async (ordercode: string) => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
         });
         
@@ -818,7 +827,7 @@ export const fetchinvoice = async (ordercode: string) => {
 
 export const createstocks = async (payload:Stocks[]) => {
     const url =  `${import.meta.env.VITE_APP_STOCKS_BASE_URL_V1}/Entries/Add?RestaurantCode=${CodeResto}`;
-    
+    const authStore = useAuthStore()
     console.log('Database.createConsistency.createContent.payload', payload)
     try {
         const response = await axios.post(url, { 
@@ -826,7 +835,7 @@ export const createstocks = async (payload:Stocks[]) => {
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt    
             }
         });
         console.error('database.createStocks', response.data)
@@ -845,7 +854,7 @@ export const fetchStocks = async () => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },
             method: "GET",
         });
@@ -868,7 +877,7 @@ export const createTable= async (payload:Table) => {
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         console.error('database.createTable', response.data.body)
@@ -887,7 +896,7 @@ export const    fetchTable = async () => {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             },  
             method: "GET",
         });
@@ -907,7 +916,7 @@ export const updateTable = async (payload:Table) => {
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         console.error('database.createTable', response.data.body)
@@ -928,7 +937,7 @@ export const deleteTable = async (Code: any[]) => {
             },
             headers: {
                 'Content-Type': 'application/json',
-                "API_KEY": token
+                "API_KEY": authStore.jwt
             }
         });
         return response.data.body;

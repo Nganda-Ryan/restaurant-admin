@@ -11,6 +11,7 @@ export const useAuthStore = defineStore('authentication', {
     tokenRefreshInterval: null as ReturnType<typeof setInterval> | null
   }),
 
+  
   actions: {
     async login(email: string, password: string) {
       console.log('Tentative de connexion avec:', { email, password });
