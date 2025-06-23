@@ -89,7 +89,7 @@ router.beforeEach(async (to) => {
 
   // 2. Logique de redirection
   if (!publicRoutes.includes(to.path) && !authStore.isAuthenticated) {
-    return { path: '/login', query: { redirect: to.fullPath } };
+    return { path: '/login' };
   }
   if (publicRoutes.includes(to.path) && authStore.isAuthenticated) {
     return { path: '/' }; 

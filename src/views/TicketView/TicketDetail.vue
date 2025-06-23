@@ -185,7 +185,7 @@ const { handlePrint } = useVueToPrint({
     async function getTicket() {
         const params = router.currentRoute.value.params as unknown as Param;
         ticketCode.value = params.ticketcode;
-
+        console.log('*** params', ticketCode.value, params);
         const result = await fetchSingleOrder(params.ticketcode);
         
         console.log('*** result', result)
