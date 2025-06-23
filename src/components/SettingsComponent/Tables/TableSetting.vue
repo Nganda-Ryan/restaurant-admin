@@ -115,7 +115,7 @@ const fetchTables = async () => {
                 Code: table.Code,
                 title: table.Title,
                 description: table.Description,
-                status: table.IsActive ? true : false
+                status: table.IsActive ? true : false,
             }));
             console.log('statut', response.tables)
         } else {
@@ -131,7 +131,7 @@ const fetchTables = async () => {
     // Gestion des QR Codes
     const generateQR = async (table:any) => {
         try {
-            const clientUrl = `https://nwaar-restaurant-client.netlify.app/?c=${table.Code}&tt=${table.Title}&rc=${table.RestaurantCode}`;
+            const clientUrl = `https://nwaar-restaurant-client.netlify.app/?c=${table.Code}&tt=${table.title}&rc=RESD4UjiMB1749635205603`;
             const generaoUrlqrCode = await QRCode.toDataURL(clientUrl, { 
                 width: 300,
                 margin: 2,
