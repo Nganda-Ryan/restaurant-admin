@@ -20,7 +20,7 @@ export const useAuthStore = defineStore('authentication', {
         try {
            this.user = await account.get();
            if (this.user) 
-          await account.deleteSession('current');
+            return true; // Si l'utilisateur est déjà connecté, on retourne true
         } catch {
           // Ignorer si aucune session existante
         }
@@ -42,8 +42,12 @@ export const useAuthStore = defineStore('authentication', {
     async getToken() {
       try {
         this.user = await account.get();
-        const jwtResponse = await account.createJWT();
-        this.setJWT(jwtResponse.jwt);
+        if (this.user) {
+          const jwtResponse = await account.createJWT();
+          this.setJWT(jwtResponse.jwt);
+          return jwtResponse.jwt;
+        }
+        return null;
         
       } catch (error) {
         console.error('Erreur lors de la récupération du token:', error);

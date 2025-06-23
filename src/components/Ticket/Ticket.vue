@@ -16,6 +16,7 @@ const formatPrice = (price: number) => {
 const fetchInvoice = async () => {
   try {
     const response = await fetchinvoice(props.code);
+    console.log('code:', props.code);
     console.log('Invoice data:', response);
     invoiceData.value = response.data.body; // Accès aux données via data.body
   } catch (error) {

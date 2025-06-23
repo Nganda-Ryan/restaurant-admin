@@ -207,12 +207,9 @@ import EventBus from '@/EventBus';
                 let temp = {
                     ...item.Plat,
                     QuantityAvailable: item.QuantityAvailable,
-                    description: "",
+                    description: item.Plat.Description,
                     api: item.PlateCode
                 }
-                item.Plat.content.forEach((c: any) =>{
-                    if(c.Typex.Code = "DESC"){temp.description = c.Typex.Title}
-                })
                 return temp
             });
         } catch (er) {
