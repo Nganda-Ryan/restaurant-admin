@@ -208,6 +208,7 @@
     </nav>
     <!-- Sidebar Menu -->
   </aside>
+  
 </template>
 
 <style scoped>

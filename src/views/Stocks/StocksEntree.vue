@@ -377,6 +377,7 @@ const handleCreate = () => {
 }
 
 onMounted(async () => {
+    isloading.value = true;
     await fetchStockData()
 })
 </script>

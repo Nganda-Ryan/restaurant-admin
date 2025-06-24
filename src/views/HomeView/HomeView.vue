@@ -141,12 +141,17 @@
           code: ticket.Code,
           table: ticket.Code.split('_')[0],
           plate: `${ticket.items.length} ($${ticket.items.reduce((sum: any, item: any) => (sum + (item.Price * item.Quantity)), 0).toFixed(2)})`,
-          CreatedDate: ticket.CreatedDate,
+          CreatedDate: new Date(ticket.CreatedDate).toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',  hour: '2-digit',
+            minute: '2-digit'
+          }),
           class: color,
           event 
         }
       });
-      
+
       tickets.value = ticketList;
       rawTickets.value = result;
       console.log("result", result)
@@ -296,6 +301,7 @@
   }
 
   onBeforeMount(async () => {
+    isloading.value = true
       await fetchTicket();
   });
   

@@ -59,11 +59,12 @@
           <PopularDishes :dishes="topPopularDishes"/>
         </div>
       </div>
+      <SpinnerOverPage v-if="isloading" />
     </div>
   </template>
   
   <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted,  defineAsyncComponent } from 'vue'
   import StatCard from '@/components/Dashboard/statCards.vue'
   import SalesChart from '@/components/Dashboard/SalesChart.vue'
   import RecentOrders from '@/components/Dashboard/RecentOrders.vue'
@@ -72,11 +73,14 @@
   import { useAuthStore } from '@/stores/auth';
 
 
+  const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
+
+
   // Données statistiques
   const stats = ref({
     revenue: '2,450 €',
   })
-
+  const isloading = ref(false)
   const TotalMenu = ref({})
   const DayCommande = ref({})
   const popularplate = ref([])
@@ -122,42 +126,54 @@
   // Fonctions de récupération des données
   const fetchtotalMenus = async () => {
     try {
+      isloading.value = true
       const responsedata = await fetchTotalMenu()
       TotalMenu.value = responsedata
     } catch(error) {
       console.error('Erreur fetchTotalMenu:', error)
+    }finally{
+      isloading.value = false
     }
   }
 
   const fetchDayCommandes = async () => {
     try {
+      isloading.value = true
       const responsedata = await fetchDayCommande()
       DayCommande.value = responsedata
       console.log('Commandes du jour:', DayCommande.value)
     } catch(error) {
       console.error('Erreur fetchDayCommande:', error)
+    }finally{
+      isloading.value = false
     }
   }
 
   const fetchPopularplates = async () => {
     try {
+      isloading.value = true
       const responseData = await fetchPopularplate()
       console.log('Popular plates:', responseData)
       // Trie les plats par nombre de commandes (ordre décroissant)
       popularplate.value = responseData.results.sort((a, b) => b.orderCount - a.orderCount)
     } catch(error) {
       console.error('Erreur fetchPopularplate:', error)
+    }finally{
+      isloading.value = false
     }
   }
   
   const fetchRecentOrders = async () => {
     try {
+      isloading.value = true
       const responsedata = await fetchRecentOrder()
       console.log('Recent orders:', responsedata)
       recentOrders.value = responsedata || []
       console.log('Commandes récentes:', recentOrders.value)
     } catch(error) {
       console.error('Erreur fetchRecentOrder:', error)
+    }finally{
+      isloading.value = false
     }
   }
 
@@ -171,6 +187,7 @@
   }
 
   onMounted(() => {
+    isloading.value = true;
     fetchtotalMenus()
     fetchDayCommandes()
     fetchPopularplates()

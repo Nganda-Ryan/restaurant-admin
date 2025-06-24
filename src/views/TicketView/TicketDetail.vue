@@ -198,6 +198,7 @@ const { handlePrint } = useVueToPrint({
         isLoading.value = false;
     }
     onBeforeMount(async () => {
+        isLoading.value = true;
         await getTicket();
     })
 </script>

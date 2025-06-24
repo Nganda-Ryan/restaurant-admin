@@ -69,7 +69,7 @@ const handleItemClick = () => {
     <a
       v-else
       href="#"
-      class="group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-olive-900"
+      class="group relative flex items-center mt-end gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-olive-900"
       @click.prevent="handleItemClick"
     >
       <span v-html="item.icon"></span>
@@ -87,4 +87,5 @@ const handleItemClick = () => {
       <!-- Dropdown Menu End -->
     </div>
   </li>
+  
 </template>
