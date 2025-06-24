@@ -40,7 +40,8 @@ export interface Content {
     "Body"?: string,
     "DisplayOrder"?: number,
     "TypeCode"?: string,
-    "Id"?:number
+    "Id"?:number,
+    "Title"?: string,
 }
 
 export interface PlateContent {
@@ -148,7 +149,7 @@ export interface ProductOption {
     "name"?: string,
     "api": string,
     "quantity": number,
-    "inputField"?:String
+    "inputField"?:string
     "Id"?: number; 
 }
 export interface Table {

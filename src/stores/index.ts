@@ -22,8 +22,8 @@ const vuexLocalStorage = new VuexPersist({
 
 export default createStore<State>({
     state: {
-        user: null,
-        language: null,
+        user: undefined,
+        language: undefined,
         localUser: null
     },
     mutations: {

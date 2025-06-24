@@ -106,8 +106,8 @@
         if (props.action === "update" && props.table) {
             tableForm.value = {
                 Code: props.table.Code || '',
-                Title: props.table.title ,
-                Description: props.table.description || ''
+                Title: props.table.Title ,
+                Description: props.table.Description || ''
             }
             console.log('tableForm', tableForm.value);
         }

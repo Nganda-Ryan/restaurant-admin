@@ -70,7 +70,7 @@
 
     ]);
     const isloading = ref(false);
-    const Categories = ref([]);
+    const Categories = ref<any[]>([]);
     const rawCategories = ref([]);
     const configStore = useConfigStore();
     const categorieplateCode = ref(' ')

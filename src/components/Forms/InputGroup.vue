@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, type PropType } from 'vue';
+  import { computed, ref, type PropType } from 'vue';
 
   const props = defineProps({
     label: String,
@@ -15,13 +15,17 @@
       default: false
     },
     modelValue: {
-      type: [String, Number, File] as PropType<string | number | File>,
+      type: [String, Number, File] as PropType<string | number | File >,
     },
     max: Number
   });
 
   const emit = defineEmits(['update:modelValue']);
   const base64Data = ref<string | null>(null);
+
+  const isFile = computed(() => {
+      return props.modelValue instanceof File;
+  });
 
   // Cette fonction est appelée lorsque l'utilisateur sélectionne un fichier
   const updateValue = (event: Event) => {
@@ -63,8 +67,8 @@
     <template v-if="props.type === 'textarea'">
       <textarea 
         :placeholder="placeholder ?? ''" 
-        :disabled="disabled" 
-        :value="modelValue" 
+        :disabled="disabled"
+        :value="modelValue as string" 
         @input="updateValue" 
         :required="required" 
         :maxlength="max" 

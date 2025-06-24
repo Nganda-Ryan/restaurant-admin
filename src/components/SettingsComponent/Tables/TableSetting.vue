@@ -23,7 +23,7 @@
     const showQRModal = ref(false);
     
     // Données des tables
-    const tables = ref([]);
+    const tables = ref<any[]>([]);
     
     const selectedTable = ref<Table>({
         Code: '',
@@ -35,19 +35,19 @@
     // Configuration du tableau
     const titles = ref([
         {
-            name: 'title',
+            name: 'Title',
             label: 'Title',
             type: 'text',
             filterable: true
         },
         {
-            name: 'description',
+            name: 'Description',
             label: 'Description',
             type: 'text',
             filterable: true
         },
         {
-            name: 'status',
+            name: 'IsActive',
             label: 'Status',
             type: 'boolean',
             filterable: true
@@ -113,9 +113,9 @@ const fetchTables = async () => {
          if (response?.tables && Array.isArray(response.tables)) {
             tables.value = response.tables.map((table:Table) => ({
                 Code: table.Code,
-                title: table.Title,
-                description: table.Description,
-                status: table.IsActive ? true : false,
+                Title: table.Title,
+                Description: table.Description,
+                IsActive: table.IsActive ? true : false,
             }));
             console.log('statut', response.tables)
         } else {
@@ -131,7 +131,7 @@ const fetchTables = async () => {
     // Gestion des QR Codes
     const generateQR = async (table:any) => {
         try {
-            const clientUrl = `https://nwaar-restaurant-client.netlify.app/?c=${table.Code}&tt=${table.title}&rc=RESD4UjiMB1749635205603`;
+            const clientUrl = `https://nwaar-restaurant-client.netlify.app/?c=${table.Code}&tt=${table.Title}&rc=RESD4UjiMB1749635205603`;
             const generaoUrlqrCode = await QRCode.toDataURL(clientUrl, { 
                 width: 300,
                 margin: 2,
@@ -292,7 +292,7 @@ const fetchTables = async () => {
                 <div class="bg-white rounded-lg shadow-xl w-full max-w-md sticky max-h-[90vh] flex flex-col">
                     <div class="flex justify-between items-center border-b p-4 sticky top-0 bg-white">
                         <h3 class="text-xl font-bold text-gray-800">
-                            QR Code - Table {{ selectedTable?.title || 'Inconnue' }}
+                            QR Code - Table {{ selectedTable?.Title || 'Inconnue' }}
                         </h3>
                         <button @click="showQRModal = false" class="text-gray-500 hover:text-red-500">
                             <i class="pi pi-times text-xl"></i>

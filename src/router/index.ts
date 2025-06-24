@@ -1,21 +1,24 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import HomeView from '../views/HomeView/HomeView.vue'
+import Dashboard from '../views/HomeView/DashboardView.vue'
+import login from '../views/Connexion/authentificationView.vue'
 // @ts-ignore
 import HomeSetting from '../views/SettingsView/HomeSetting.vue'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
       name: 'home',
-
-      component: () => import('../views/HomeView/DashboardView.vue')
+      component: Dashboard,
+      
     },
     {
       path: '/login',
       name: 'login',
-      component: () => import('../views/Connexion/Login.vue')
+      component:login
     },
     {
       path: '/commande-list',

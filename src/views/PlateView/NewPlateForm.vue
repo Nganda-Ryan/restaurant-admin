@@ -18,6 +18,8 @@
     import EventBus from '@/EventBus';
     import TableOne from '@/components/Tables/TableOne.vue';
 
+    
+
     const configStore = useConfigStore();
     const isSaving = ref<Boolean>(false);
     const isProductList = ref<Boolean>(false);
@@ -407,7 +409,7 @@
             productList.value.push({
                 name: `${productToAddBack.Title} (${productToAddBack.QuantityUnitCode})`,
                 api: productToAddBack.Code,
-                price: productToAddBack.BasePrice
+                quantity: productToAddBack.quantity
             });
         }
 
@@ -438,12 +440,13 @@
         })
     }
 
-    const handleDecrement = (ts: any) => {
-        productListToadd.value = productListToadd.value.map(item => {
+const handleDecrement = (ts: any) => {
+    productListToadd.value = productListToadd.value
+        .map(item => {
             if (item.api == ts.api) {
                 const newQuantity = item.quantity - 1;
                 if (newQuantity <= 0) {
-                    return null;
+                    return null; 
                 }
                 return {
                     ...item,
@@ -451,13 +454,13 @@
                 }
             }
             return item;
-        }).filter(item => item !== null);
+        })
+        .filter((item): item is ProductOption => item !== null); 
 
-        if (ts.quantity <= 1) {
-            handleRemovePlace(ts);
-        }
+    if (ts.quantity <= 1) {
+        handleRemovePlace(ts);
     }
-
+}
     const getProduct = async () => {
         const result = await fetchProduct();
         rawProduct.value = result;
@@ -508,11 +511,11 @@
                         const uniqueIngredients = new Set();
 
                         productListToadd.value = results.flatMap(result =>
-                            result.composition.map((item: Composition) => {
-                                const productName = item.Product.Title;
-                                if (!uniqueIngredients.has(productName)) {
-                                    uniqueIngredients.add(productName);
-                                    const inputFieldValue = ingredientDict[productName] || '';
+                            result.composition
+                                .filter(item => !uniqueIngredients.has(item.Product.Title))
+                                .map((item: Composition) => {
+                                    uniqueIngredients.add(item.Product.Title);
+                                    const inputFieldValue = ingredientDict[item.Product.Title] || '';
                                     return {
                                         name: `${item.Product.Title} (${item.Product.QuantityUnitCode})`,
                                         api: item.Product.Code,
@@ -520,9 +523,7 @@
                                         Id: item.Id,
                                         inputField: inputFieldValue
                                     };
-                                }
-                                return null;
-                            }).filter(item => item !== null)
+                                })
                         );
                     }
                 }

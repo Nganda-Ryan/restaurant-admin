@@ -4,12 +4,31 @@
   import { onBeforeMount, onMounted, ref } from 'vue';
   import type Option from "../Utilities/interfaceModel";
   import Pagination from '../Pagination.vue'
+
+  interface TableColumn {
+    label: string;
+    name: string;
+    type?: 'text' | 'url' | 'percentage' | 'image' | 'action';
+    filterable?: boolean;
+    inputField?: {
+      type: string;
+      placeholder: string;
+    };
+    event?: string; // Event to emit on click
+    actions?: Array<{
+      name: string;
+      event: string;
+      icone: string;
+      colored?: boolean;
+      color?: string; // CSS class for color
+    }>;
+  }
   const props = defineProps({
     items: {
-      type: Array,
+      type: Array<any>,
     },
     datas: {
-      type: Array<Object>
+      type: Array<any>
     },
     options: {
       type: Array<Option>
@@ -86,9 +105,9 @@
           <tr v-for="(dt, key) in datas" :key="key" :class="`bg-white hover:bg-teal-50 dark:bg-slate-800`">
             <td :class="getCustomStyle(it)" v-for="(it, i) in items" :key="i">
              
-              <template v-if="dt[it.name] !== undefined">
+              <template v-if="dt[it.name as string] !== undefined">
                 <template v-if="it.type === 'url'">
-                  <a href="#" @click="emits(it.event, dt)">{{ dt[it.name] }}</a>
+                  <a href="#" v-if="it.event" @click="emits(it.event, dt)">{{ dt[it.name] }}</a>
 
                   <input v-if="it.inputField" 
                  :type="it.inputField.type" 
@@ -149,7 +168,7 @@
       </template>
       <template v-else>
         <tr>
-          <td :colspan="items.length" :class="`text-center py-5 font-bold w-full`" >No row to display 🍕</td>
+          <td v-if="items && items.length" :colspan="items.length" :class="`text-center py-5 font-bold w-full`" >No row to display 🍕</td>
         </tr>
       </template>
     </table>

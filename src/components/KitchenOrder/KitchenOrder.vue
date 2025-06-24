@@ -1,9 +1,9 @@
 <script setup lang="ts">
   const props = defineProps<{
-    tableId: number,
-    orderCode: string | null,
-    totalDishes: number,
-    state: string
+    tableId?: number,
+    orderCode?: string | null,
+    totalDishes?: number,
+    state?: string
   }>();
 </script>
 
