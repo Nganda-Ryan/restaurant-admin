@@ -166,6 +166,7 @@ export const useAuthStore = defineStore("authentication", {
     async logout() {
       try {
         await account.deleteSession("current");
+        localStorage.removeItem('jwt')
         this.stopTokenAutoRefresh();
         this.$reset();
       } catch (error) {

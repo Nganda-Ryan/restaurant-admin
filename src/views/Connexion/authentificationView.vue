@@ -93,9 +93,16 @@
 
             <button
               type="submit"
-              class="relative overflow-hidden bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-3 rounded-full hover:from-red-600 hover:to-red-700 transition-all w-full font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300 group"
+              class="relative overflow-hidden bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-3 rounded-full hover:from-red-600 hover:to-red-700 transition-all w-full font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300 group flex items-center justify-center"
+              :disabled="loading"
             >
-              <span class="relative z-10">Sign In</span>
+              <span v-if="!loading" class="relative z-10">Sign In</span>
+              <span v-else class="relative z-10 flex items-center">
+                Signing in
+                <span class="dot-flashing ml-2" style="display: flex; align-items: center;">
+                  <span></span>
+                </span>
+              </span>
               <span class="absolute inset-0 bg-gradient-to-r from-red-600 to-red-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
             </button>
 
@@ -137,8 +144,9 @@ import pile from '@/assets/images/logo/pile.jpg';
 const router = useRouter();
 const authStore = useAuthStore();
 
-const email = ref('aron-resto@yopmail.com');
-const password = ref('password1234');
+const email = ref('');
+const loading = ref(false);
+const password = ref('');
 const showPassword = ref(false);
 const currentImageIndex = ref(0);
 let slideInterval = null;
@@ -177,7 +185,7 @@ const submitForm = async() => {
     alert('Please fill in all fields');
     return;
   }
-  
+    loading.value = true;
   try {
     await authStore.login(email.value, password.value);
     router.push('/');
@@ -190,6 +198,8 @@ const submitForm = async() => {
     } else {
       console.error('Login error:', error);
     }
+  }finally {
+    loading.value = false;
   }
 };
 
@@ -246,6 +256,38 @@ onBeforeUnmount(() => {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.dot-flashing {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 1.2em;
+  height: 1em;
+}
+.dot-flashing span, .dot-flashing:before, .dot-flashing:after {
+  content: '';
+  display: inline-block;
+  width: 0.3em;
+  height: 0.3em;
+  margin: 0 0.1em;
+  background: white;
+  border-radius: 50%;
+  animation: dotFlashing 1s infinite linear alternate;
+  vertical-align: middle;
+}
+.dot-flashing:before {
+  animation-delay: 0s;
+}
+.dot-flashing span {
+  animation-delay: 0.3s;
+}
+.dot-flashing:after {
+  animation-delay: 0.6s;
+}
+@keyframes dotFlashing {
+  0% { opacity: 0.2; }
+  50%, 100% { opacity: 1; }
 }
 
 /* Animation pour le bouton */

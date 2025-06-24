@@ -2,8 +2,10 @@
 import { useSidebarStore } from '@/stores/sidebar'
 import { useRoute, useRouter } from 'vue-router'
 import SidebarDropdown from './SidebarDropdown.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const sidebarStore = useSidebarStore()
+const authStore = useAuthStore()
 
 const props = defineProps(['item', 'index'])
 const currentPage = useRoute().name;
@@ -11,10 +13,16 @@ const router = useRouter();
 
 interface SidebarItem {
   label: string
+  isLogout?: boolean
 }
 
 const handleItemClick = () => {
   const pageName = props.item.label
+
+  if (props.item.isLogout) {
+    authStore.logout()
+    router.push('/login') 
+  }
   sidebarStore.page = pageName
   // router.push(`${window.location.origin}${props.item.route}`);
 
@@ -27,6 +35,7 @@ const handleItemClick = () => {
 <template>
   <li class="">
     <router-link
+    v-if="!item.isLogout"
       :to="item.route"
       class="group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-olive-900"
       @click.prevent="handleItemClick"
@@ -56,6 +65,16 @@ const handleItemClick = () => {
         />
       </svg>
     </router-link>
+
+    <a
+      v-else
+      href="#"
+      class="group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-olive-900"
+      @click.prevent="handleItemClick"
+    >
+      <span v-html="item.icon"></span>
+      {{ item.label }}
+    </a>
 
     <!-- Dropdown Menu Start -->
     <div class="translate transform overflow-hidden" v-show="sidebarStore.page === item.label">
