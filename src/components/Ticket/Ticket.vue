@@ -15,6 +15,7 @@ const formatPrice = (price: number) => {
 // Récupération de la facture
 const fetchInvoice = async () => {
   try {
+    isLoading.value = true
     const response = await fetchinvoice(props.code);
     console.log('code:', props.code);
     console.log('Invoice data:', response);
@@ -26,12 +27,19 @@ const fetchInvoice = async () => {
   }
 };
 onMounted(() => {
+  isLoading.value = true;
   fetchInvoice();
 });
 </script>
 
 <template>
-  <div :class="styled  && 'bg-white border-7 border-slate-400 file:rounded-lg shadow-lg px-8 py-10 max-w-xl mx-auto'" >
+  <div
+    :class="[
+      styled && 'bg-white border border-slate-400 rounded-lg shadow-lg px-8 py-10 max-w-xl mx-auto',
+      'print:border print:border-slate-400 print:rounded print:shadow-none print:my-4 print:mx-auto print:px-6 print:py-8'
+    ]"
+  >
+    
     <!-- En-tête -->
     <div class="text-slate-700 flex flex-row w-full py-0.5">
       <h2 class="font-bold">Date:&nbsp;&nbsp;</h2>
