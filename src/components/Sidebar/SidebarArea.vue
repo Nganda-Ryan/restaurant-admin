@@ -7,14 +7,26 @@
   // import Ticket from '../Ticket/Ticket.vue';
   // import Button from '../Buttons/Button.vue';
   import SidebarItem from '../Sidebar/SidebarItem.vue';
+  import { useRoute, useRouter } from 'vue-router'
+  import { useAuthStore } from '@/stores/auth'
 
 
   const target = ref(null)
   const sidebarStore = useSidebarStore();
+  const authStore = useAuthStore();
+  const router = useRouter();
 
   onClickOutside(target, () => {
     sidebarStore.isSidebarOpen = false
   })
+
+
+  const handleLogout = () => {
+    authStore.logout()
+    router.push('/login') 
+    sidebarStore.isSidebarOpen = false;
+    // Add your logout logic here, e.g., clear user session, redirect to login page, etc.
+  }
 
   const menuGroups = ref([
     {
@@ -116,13 +128,6 @@
           label: 'Settings',
           route: '/settings',
         },
-        {
-          icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-</svg>`, // Icône de déconnexion
-          label: 'Déconnexion',
-          isLogout: true
-        }
         
       ]
     },
@@ -206,6 +211,20 @@
         </div>
       </template>
     </nav>
+
+      <!-- Bouton logout isolé -->
+    <div class="group absolute bottom-15 flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out">
+      <button
+        class="px-4 py-2 text-white bg-transparent rounded flex items-center gap-2 hover:underline transition"
+        @click="handleLogout"
+        title="Déconnexion"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+        </svg>
+        Déconnexion
+      </button>
+    </div>
     <!-- Sidebar Menu -->
   </aside>
   
