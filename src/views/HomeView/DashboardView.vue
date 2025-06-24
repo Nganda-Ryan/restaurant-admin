@@ -64,7 +64,7 @@
   
   <script setup>
   import { ref, computed, onMounted } from 'vue'
-  import StatCard from '@/components/Dashboard/StatCard.vue'
+  import StatCard from '@/components/Dashboard/statCards.vue'
   import SalesChart from '@/components/Dashboard/SalesChart.vue'
   import RecentOrders from '@/components/Dashboard/RecentOrders.vue'
   import PopularDishes from '@/components/Dashboard/PopularDishes.vue'
