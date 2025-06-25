@@ -143,7 +143,7 @@ onBeforeMount(() => {
         categoryForms.value = [{
             Code: props.plate.Code || '',
             Title: props.plate.Title || '',
-            IsActive: props.plate.IsActive || false,
+            IsActive: props.plate.IsActive? true : false,
             RestaurantCode: props.plate.RestaurantCode || 'RESD4UjiMB1749635205603'
         }];
     }

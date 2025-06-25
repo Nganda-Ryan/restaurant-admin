@@ -140,6 +140,7 @@ import { useRouter } from 'vue-router';
 import rotiBoeuf from '@/assets/images/logo/roti-boeuf.jpg';
 import gombo from '@/assets/images/logo/gombo.jpg';
 import pile from '@/assets/images/logo/pile.jpg';
+import EventBus from '@/EventBus'
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -182,14 +183,22 @@ const togglePasswordVisibility = () => {
 
 const submitForm = async() => {
   if(!email.value || !password.value) {
-    alert('Please fill in all fields');
+    EventBus.emit('login-error', { message: 'Please fill in all fields' });
     return;
   }
     loading.value = true;
   try {
     await authStore.login(email.value, password.value);
+      EventBus.emit('login-success', { 
+      user: authStore.user,
+      timestamp: new Date().toISOString() 
+    });
     router.push('/');
   } catch (error) {
+    EventBus.emit('login-error', { 
+      error: error.message,
+      timestamp: new Date().toISOString() 
+    });
     if (error.message.includes('session is active')) {
       if (confirm('A session is already active. Do you want to log out first?')) {
         await authStore.logout();

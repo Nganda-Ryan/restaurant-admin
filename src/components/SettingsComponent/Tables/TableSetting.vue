@@ -83,25 +83,21 @@
         }
     ]);
 
-/*     const filterOptions = ref([
+     const filterOptions = ref([
         {
             name: 'All',
             api: '',
         },
         {
-            name: 'Numéro',
-            api: 'numero',
+            name: 'Status',
+            api: 'status',
         },
-        {
-            name: 'Capacité',
-            api: 'capacite',
-        }
-    ]); */
+    ]);
 
     const TableInfo = ref<Table>({
         "Code": '',
         "Title": '',
-        "Description":"" 
+        "Description":""
     });
 
     // Chargement des données des tables
@@ -216,6 +212,8 @@ const fetchTables = async () => {
                 @generateQR="generateQR"
                 :filterable="true"
                 :pagination="true"
+                :options="filterOptions"
+
             >
                 <template v-slot:headerButton>
                     <button-action 

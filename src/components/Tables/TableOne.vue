@@ -31,7 +31,7 @@
       type: Array<any>
     },
     options: {
-      type: Array<Option>
+      type: Array<Option> 
     },
     filterable: {
       type: Boolean,

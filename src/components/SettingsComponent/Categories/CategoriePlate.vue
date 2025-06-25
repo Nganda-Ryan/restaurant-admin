@@ -60,14 +60,9 @@
             api: '',
         },
         {
-            name: 'Name',
-            api: 'name',
+            name: 'Status',
+            api: 'sttus',
         },
-        {
-            name: 'Category',
-            api: 'category',
-        }
-
     ]);
     const isloading = ref(false);
     const Categories = ref<any[]>([]);

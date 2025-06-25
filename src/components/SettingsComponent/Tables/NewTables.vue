@@ -107,7 +107,8 @@
             tableForm.value = {
                 Code: props.table.Code || '',
                 Title: props.table.Title ,
-                Description: props.table.Description || ''
+                Description: props.table.Description || '',
+                IsActive: props.table.IsActive ? true : false
             }
             console.log('tableForm', tableForm.value);
         }
