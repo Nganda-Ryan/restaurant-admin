@@ -5,7 +5,7 @@
     import type { Table } from '@/services/serviceInterface'
     import { deleteTable } from '@/services/database'
     import Spinner from '@/components/Utilities/Spinner.vue'
-    import { fetchTable } from '@/services/database';
+    import { fetchResto } from '@/services/database';
     import QRCode from 'qrcode'
     import router from '@/router';
     import { useRoute } from 'vue-router';
@@ -104,7 +104,7 @@
 const fetchTables = async () => {
     isloading.value = true;
     try {
-        const response = await fetchTable();
+        const response = await fetchResto();
         // Accéder directement au tableau des tables
          if (response?.tables && Array.isArray(response.tables)) {
             tables.value = response.tables.map((table:Table) => ({

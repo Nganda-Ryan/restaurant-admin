@@ -44,6 +44,7 @@
   const init = async () => {
     try {
       const config = await fetchConfig();
+      console.log (config);
       configStore.plateCategories = config.PlatCategories;
       configStore.productCategories = config.ProductCategories;
       configStore.quantityUnits = config.QuantityUnits;

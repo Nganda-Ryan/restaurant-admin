@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { PlateOption, Content, PlateContent, Compositions, composition, Categorieplat, Stocks, Table } from "./serviceInterface";
+import type { PlateOption, Content, PlateContent, Compositions, composition, Categorieplat, Stocks, Table, Team } from "./serviceInterface";
 import { createPinia } from "pinia";
 import { Client, Account} from 'appwrite'
 
@@ -890,7 +890,7 @@ export const createTable= async (payload:Table) => {
     }
     
 }
-export const    fetchTable = async () => {
+export const    fetchResto = async () => {
     const url =  `${import.meta.env.VITE_APP_RESTO_BASE_URL_V1}/restaurants/Detail?RestaurantCode=${CodeResto}`;
     const authStore = useAuthStore()
     try {
@@ -907,6 +907,27 @@ export const    fetchTable = async () => {
         console.error('Database.totalMenu.error ::', error);
         throw error;
     }
+}
+export const updateResto = async (payload: any) => {
+    const url =  `${import.meta.env.VITE_APP_RESTO_BASE_URL_V1}/restaurants`;
+    const authStore = useAuthStore()
+    console.log('Database.updateResto.payload', payload)
+    try {
+        const response = await axios.put(url, { 
+            restaurant: payload
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                "API_KEY": token
+            }
+        });
+        console.error('database.updateResto', response.data.body)
+        return response.data;
+    } catch (error) {
+        console.error('Database.updateResto.error ::', error);
+        throw error;
+    }
+    
 }
 export const updateTable = async (payload:Table) => {
     const url =  `${import.meta.env.VITE_APP_RESTO_BASE_URL_V1}/restaurants/tables?RestaurantCode=${CodeResto}`;
@@ -948,6 +969,31 @@ export const deleteTable = async (Code: any[]) => {
         throw error;
     }
 }
+
+// Team Resto
+
+export const createTeam= async (payload:Team) => {
+    const url =  `${import.meta.env.VITE_APP_ADD_USER_BASE_URL_V1}/User/Add`;
+    const authStore = useAuthStore()
+    console.log('Database.createTeam.payload', payload)
+    try {
+        const response = await axios.post(url,  
+            payload
+        , {
+            headers: {
+                'Content-Type': 'application/json',
+                "API_KEY": token
+            }
+        });
+        console.error('database.createTeam', response.data.body)
+        return response.data;
+    } catch (error) {
+        console.error('Database.Content.createTeam.error ::', error);
+        throw error;
+    }
+    
+}
+
 
 //generate code function
 
