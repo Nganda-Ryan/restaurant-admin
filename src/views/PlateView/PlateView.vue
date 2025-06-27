@@ -77,9 +77,9 @@ const getPlate = async () => {
         return {
             ...item,
             Image: img,
-            BasePrice: `€ ${item.BasePrice}`,
+            BasePrice: ` ${item.BasePrice}${item.Currency}`,
             Category: configStore.plateCategories?.find((cat: any) => cat.Code == item.CategoryCode)?.Title,
-        };
+        }
     });
 
     plateList.value.sort((a, b) => (a.Title || '').localeCompare(b.Title || ''));

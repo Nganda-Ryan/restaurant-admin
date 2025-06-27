@@ -27,7 +27,6 @@ export const useAuthStore = defineStore("authentication", {
             this.wssendMessage(defaultmessage)
           }
         };
-
         this.ws.onmessage = (event) => {
           console.log(event);
           const msg = JSON.parse(event.data);

@@ -158,6 +158,27 @@ export interface Table {
     Description?: string;
     IsActive?: boolean;
 }
+export interface Team{
+    external_id?: string,
+    first_name?: string,
+    last_name?: string,
+    phone_number?: string,
+    restaurantCode?: string,
+    email?: string,
+    password?: string,
+    roleCode?: string,
+    adress?: string,
+
+}
+
+export interface TeamMember {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  status: 'active' | 'inactive' | string;
+}
+
 export interface FormattedDates {
     startDate: string;
     endDate: string;

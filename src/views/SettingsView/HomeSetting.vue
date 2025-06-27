@@ -8,7 +8,7 @@
         <button 
           v-for="tab in tabs" 
           :key="tab.id"
-          @click="activeTab = tab.id"
+          @click="changeTab(tab.id)"
           :class="{
             'bg-olive-50 text-olive-700': activeTab === tab.id,
             'text-gray-700 hover:bg-gray-50': activeTab !== tab.id
@@ -23,107 +23,105 @@
 
     <!-- Contenu des paramètres -->
     <div class="w-full bg-white rounded-lg shadow p-6">
-      <!-- Informations du restaurant -->
-      <div v-if="activeTab === 'restaurant'" class="space-y-6">
-        <h2 class="text-xl font-semibold mb-4">Informations du Restaurant</h2>
-        <SettingsForm 
-          :fields="restaurantFields" 
-          :initial-data="restaurantInfo"
-          @submit="saveRestaurantInfo"
-        />
+      <!-- Spinner de chargement -->
+      <div v-if="isLoading" class="flex justify-center items-center py-12">
+        <Spinner />
       </div>
 
-      <!-- Préférences -->
-      <div v-if="activeTab === 'preferences'" class="space-y-6">
-        <h2 class="text-xl font-semibold mb-4">Préférences</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ToggleSetting 
-            v-for="pref in preferences"
-            :key="pref.id"
-            v-model="pref.value"
-            :label="pref.label"
-            :description="pref.description"
+      <!-- Contenu quand non chargement -->
+      <div v-else>
+        <!-- Informations du restaurant -->
+        <div v-if="activeTab === 'restaurant'" class="space-y-6">
+          <h2 class="text-xl font-semibold mb-4">Informations du Restaurant</h2>
+          <SettingsForm 
+            :initialData="restaurantInfo"
+            :restaurantData="{ content: [{ TypeCode: 'LOGO', Body: restaurantInfo.logoUrl }] }"
           />
         </div>
-        <button 
-          @click="savePreferences"
-          class="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
-        >
-          Enregistrer les modifications
-        </button>
-      </div>
-
-      <!-- Équipe -->
-      <div v-if="activeTab === 'team'" class="space-y-6">
-        <div class="flex justify-between items-center">
-          <h2 class="text-xl font-semibold">Gestion de l'équipe</h2>
+        
+        <!-- Préférences -->
+        <div v-if="activeTab === 'preferences'" class="space-y-6">
+          <h2 class="text-xl font-semibold mb-4">Préférences</h2>
+          <div class="w-full">
+            <ToggleSetting 
+            v-model:preferencesValue="userPreferences"
+            v-model:currencyValue="userCurrency"
+            v-model:languageValue="userLanguage"
+            />
+          </div>
           <button 
-            @click="showAddMemberModal = true"
+            @click="savePreferences"
             class="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
           >
-            <span>+</span> Ajouter un membre
+            Enregistrer les modifications
           </button>
         </div>
-        <TeamTable/>
-      </div>
 
-      <!-- Compte -->
-      <div v-if="activeTab === 'account'" class="space-y-6">
-        <h2 class="text-xl font-semibold mb-4">Paramètres du compte</h2>
-        <AccountSettings 
-          :user="currentUser"
-          @password-change="handlePasswordChange"
-          @email-change="handleEmailChange"
-        />
-      </div>
-        
-      <!-- Categorie des plats -->
-      <div v-if="activeTab === 'Categorie plat'" class="space-y-6">
-          <h2 class="text-xl font-semibold mb-4">Categories des plat</h2>
-        <Categorieplate/>
-      </div>
-        
-      <!-- Categorie des plats -->
-      <div v-if="activeTab === 'tables'" class="space-y-6">
-        <h2 class="text-xl font-semibold mb-4">Paremetres des tables</h2>
-        <TableSettings/>
-      </div>
-      <!-- langues -->
-      <div v-if="activeTab === 'langue'" class="space-y-6">
-          <h2 class="text-xl font-semibold mb-4">Parametre de la langue</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ToggleSetting 
-            v-for="lg in langues"
-            :key="lg.id"
-            v-model="lg.value"
-            :label="lg.label"
-            :description="lg.description"
+        <!-- Équipe -->
+        <div v-if="activeTab === 'team'" class="space-y-6">
+          <div class="flex justify-between items-center">
+            <h2 class="text-xl font-semibold">Gestion de l'équipe</h2>
+          </div>
+          <TeamTable
+            :team-members="teamMembers" 
+            :loading="isLoadingTeam"
+            @delete-member="handleDeleteMember"
+            :role="Role"
           />
         </div>
-        <button 
-          @click="savelangue"
-          class="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
-        >
-          Enregistrer les modifications
-        </button>
+
+        <!-- Compte -->
+        <div v-if="activeTab === 'account'" class="space-y-6">
+          <h2 class="text-xl font-semibold mb-4">Paramètres du compte</h2>
+          <AccountSettings 
+            :user="currentUser"
+            @password-change="handlePasswordChange"
+            @email-change="handleEmailChange"
+          />
+        </div>
+          
+        <!-- Categorie des plats -->
+        <div v-if="activeTab === 'Categorie plat'" class="space-y-6">
+            <h2 class="text-xl font-semibold mb-4">Categories des plat</h2>
+          <Categorieplate/>
+        </div>
+          
+        <!-- Paramètres des tables -->
+        <div v-if="activeTab === 'tables'" class="space-y-6">
+          <h2 class="text-xl font-semibold mb-4">Paramètres des tables</h2>
+          <TableSettings/>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onBeforeMount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SettingsForm from '@/components/SettingsComponent/SettingsForm.vue'
 import ToggleSetting from '@/components/SettingsComponent/ToggleSetting.vue'
-import TeamTable from '@/components/SettingsComponent/TeamTable.vue'
+import TeamTable from '@/components/SettingsComponent/TeamTables/TeamTable.vue'
 import AccountSettings from '@/components/SettingsComponent/AccountSettings.vue'
 import TableSettings from '@/components/SettingsComponent/Tables/TableSetting.vue'
 import Categorieplate from '@/components/SettingsComponent/Categories/CategoriePlate.vue'
+import Spinner from '@/components/Utilities/Spinner.vue'
+import { fetchResto } from '@/services/database'
 
-// Initialisation du routeur
 const route = useRoute()
 const router = useRouter()
+
+// États de chargement
+const isLoading = ref(false)
+const isLoadingTeam = ref(false)
+const initialLoad = ref(true)
+
+// Données
+const teamMembers = ref([])
+const restaurantInfo = ref({})
+const Role = ref([])
+const userCurrency = ref('XOF') // Franc CFA par défaut
+const userLanguage = ref('fr')  // Français par défaut
 
 // Onglets de navigation
 const tabs = ref([
@@ -155,7 +153,6 @@ const tabs = ref([
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
           </svg>`
   },    
-    
   {
     id: 'tables',
     label: 'Table',
@@ -172,113 +169,56 @@ const tabs = ref([
         <path stroke-linecap="round" stroke-linejoin="round" d="M15.5 12h.01M12 12h.01M8.5 12h.01" />
       </svg>`
   },
-  {
+/*   {
     id: 'langue',
     label: 'Langue',
     icon:`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 01-3.827-5.802" />
       </svg>`
-  }
+  } */
 ])
 
-// Active tab - initialisé en fonction de la query parameter
-const activeTab = ref(route.query.parametre || 'restaurant')
+// Active tab - initialisé en fonction de la query parameter ou du premier onglet
+const activeTab = ref(route.query.parametre || tabs.value[0].id)
 
-// Watch pour détecter les changements d'onglet et mettre à jour l'URL
-watch(activeTab, (newTab) => {
+// Changement d'onglet avec gestion du chargement
+const changeTab = (tabId) => {
+  isLoading.value = true
+  activeTab.value = tabId
   router.push({
     query: { 
-      ...route.query, // conserve les autres query parameters existants
-      parametre: newTab 
+      ...route.query,
+      parametre: tabId 
     }
   })
-})
+  
+  // Simuler un chargement (à adapter selon vos besoins réels)
+  setTimeout(() => {
+    isLoading.value = false
+  }, 300)
+}
 
-// Watch pour synchroniser l'onglet actif si l'URL est modifiée manuellement
+// Synchronisation avec l'URL
 watch(
   () => route.query.parametre,
   (newParam) => {
     if (newParam && tabs.value.some(tab => tab.id === newParam)) {
+      isLoading.value = true
       activeTab.value = newParam
+      setTimeout(() => {
+        isLoading.value = false
+      }, 300)
     }
   },
   { immediate: true }
 )
 
-// Données du restaurant
-const restaurantInfo = ref({
-  name: 'Le Petit Bistro',
-  address: '12 Rue de la Paix, Paris',
-  phone: '01 23 45 67 89',
-  email: 'contact@lepetitbistro.fr',
-  openingHours: 'Lun-Sam: 11h-23h, Dim: 11h-17h',
-  description: 'Un restaurant convivial proposant une cuisine française traditionnelle avec des ingrédients locaux.'
-})
-
-const restaurantFields = ref([
-  { id: 'name', label: 'Nom du restaurant', type: 'text', required: true },
-  { id: 'address', label: 'Adresse', type: 'text', required: true },
-  { id: 'phone', label: 'Téléphone', type: 'tel', required: true },
-  { id: 'email', label: 'Email', type: 'email', required: true },
-  { id: 'openingHours', label: 'Heures d\'ouverture', type: 'text', required: true },
-  { id: 'description', label: 'Description', type: 'textarea', required: false }
-])
-
-function saveRestaurantInfo(data) {
-  restaurantInfo.value = data
-  console.log('Restaurant info saved:', data)
-}
-
-// Préférences
-const preferences = ref([
-  { id: 'notifications', label: 'Notifications', description: 'Activer les notifications par email', value: true },
-  { id: 'darkMode', label: 'Mode sombre', description: 'Activer l\'apparence sombre', value: false },
-  { id: 'analytics', label: 'Analytics', description: 'Partager les données d\'analyse', value: true },
-  { id: 'autoPrint', label: 'Impression auto', description: 'Imprimer automatiquement les commandes', value: false }
-])
-
 function savePreferences() {
   console.log('Preferences saved:', preferences.value)
 }
 
-// langue
-const langues= ref([
-  { id: 'francais', label: 'Francais', description: 'langue par defaut', value: true },
-  { id: 'anglais', label: 'Angalais', description: 'Activer la langue Anglaise', value: false },
-  { id: 'italien', label: 'Italien', description: 'Activer la langue Italienne', value: false },
-  { id: 'allemand', label: 'Allemand', description: 'Activer la langue Allemande', value: false }
-])
-
 function savelangue() {
   console.log('Preferences saved:', langues.value)
-}
-
-// Gestion de l'équipe
-const teamMembers = ref([
-  { id: 1, name: 'Jean Dupont', email: 'jean@resto.fr', role: 'Gérant', status: 'active' },
-  { id: 2, name: 'Marie Martin', email: 'marie@resto.fr', role: 'Serveur', status: 'active' },
-  { id: 3, name: 'Pierre Lambert', email: 'pierre@resto.fr', role: 'Cuisinier', status: 'inactive' }
-])
-
-const showAddMemberModal = ref(false)
-const memberToRemove = ref(null)
-
-function addTeamMember(member) {
-  teamMembers.value.push({ ...member, id: Math.max(...teamMembers.value.map(m => m.id)) + 1 })
-  showAddMemberModal.value = false
-}
-
-function editTeamMember(memberId) {
-  console.log('Edit member:', memberId)
-}
-
-function confirmRemoveMember(memberId) {
-  memberToRemove.value = memberId
-}
-
-function removeTeamMember() {
-  teamMembers.value = teamMembers.value.filter(m => m.id !== memberToRemove.value)
-  memberToRemove.value = null
 }
 
 // Paramètres du compte
@@ -288,13 +228,71 @@ const currentUser = ref({
   avatar: 'https://randomuser.me/api/portraits/men/1.jpg'
 })
 
-function handlePasswordChange(newPassword) {
-  console.log('Password changed')
+const fetchRestaurant = async () => {
+  try {
+    isLoading.value = true
+    initialLoad.value = true
+
+    const response = await fetchResto()
+   
+    // Infos sur le restaurant
+    restaurantInfo.value = {
+      Name: response.Restaurant.Name,
+      Address: response.Restaurant.Address,
+      Description: response.Restaurant.Description,
+      Email: response.Restaurant.Email,
+      PhoneNumber: response.Restaurant.PhoneNumber,
+      Website: response.Restaurant.Website,
+      Capacity: response.Restaurant.Capacity,
+      PaymentMethods: response.Restaurant.PaymentMethods,
+      Policies: response.Restaurant.Policies,
+      Status: response.Restaurant.Status,
+      OpeningDays: response.Restaurant.OpeningDays,
+      logoUrl: response.Restaurant.content.find(item => item.TypeCode === 'LOGO')?.Body || '',
+      images: response.Restaurant.content
+        .filter(item => item.TypeCode === 'IMG')
+        .map(img => img.Body)
+    }
+    
+    // Info sur la team du restaurant
+    teamMembers.value = response.users.map(item => ({
+      name: item.user.FirstName + ' ' + item.user.LastName,
+      email: item.user.Email,
+      role: item.RoleCode,
+      status: item.Status
+    }));
+
+    // Info sur les roles
+    Role.value = response.roles.map(item => ({
+      name: item.Label,
+      api: item.Code
+    }))
+    
+  } catch (e) {
+    console.log('error:', e)
+  } finally {
+    isLoading.value = false
+    initialLoad.value = false
+  }
 }
 
-function handleEmailChange(newEmail) {
-  console.log('Email changed to:', newEmail)
+const handleDeleteMember = async (UserCode) => {
+  try {
+    isLoadingTeam.value = true
+    console.log('Suppression du membre:', UserCode)
+    // await deleteTeamMember(UserCode)
+    // Recharger les données après suppression
+    await fetchRestaurant()
+  } catch (error) {
+    console.error('Erreur lors de la suppression:', error)
+  } finally {
+    isLoadingTeam.value = false
+  }
 }
+
+onBeforeMount(() => {
+  fetchRestaurant()
+})
 </script>
 
 <style scoped>
