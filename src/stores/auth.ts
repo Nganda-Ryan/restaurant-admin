@@ -5,8 +5,10 @@ import type { User, Profile } from "@/services/serviceInterface";
 export const useAuthStore = defineStore("authentication", {
   state: () => ({
     user: null as any,
-    users: null as any,
-    profile: null as any,
+    users: [] as User[],
+    profiles: [] as Profile[],
+    restaurantCode: "" as string,
+    userEmail: "" as string,
     jwt: "" as string,
     ws: null as WebSocket | null,
     isLoading: false,
@@ -64,7 +66,56 @@ export const useAuthStore = defineStore("authentication", {
                 messageInput = '';
             }
     },
-    async login(email: string, password: string) {
+    async fetchUserData() {
+      try {
+        const response = await getUser();
+        const userData = response.user || {};
+        const profileData = response.profiles || [];
+        
+        // Mise à jour du state sans toucher à this.user
+        this.users = userData;
+        this.profiles = profileData;
+        this.restaurantCode = profileData[0]?.RestaurantCode || '';
+        this.userEmail = userData.Email;
+
+        // Persistance dans le localStorage
+        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("profiles", JSON.stringify(profileData));
+        localStorage.setItem('restaurantCode', this.restaurantCode);
+        localStorage.setItem('euser', this.userEmail);
+
+        console.debug('Données utilisateur mises à jour:', {
+          users: this.users,
+          profiles: this.profiles,
+          restaurantCode: this.restaurantCode,
+          email: this.userEmail
+        });
+
+        return response;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des données utilisateur:', error);
+        throw error;
+      }
+    },
+/*     async login(email: string, password: string) {
+      this.isLoading = true;
+      try {
+        await account.createEmailPasswordSession(email, password);
+        await this.getToken();
+        await account.get(); // Récupère l'utilisateur connecté
+        this.initializeFromLocalStorage(); // Charge les données persistées
+        await this.fetchUserData();
+        // Récupère les données supplémentaires
+        this.startTokenAutoRefresh();
+        return true;
+      } catch (error) {
+        console.error("Login error:", error);
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
+    }, */
+     async login(email: string, password: string) {
       console.log("Tentative de connexion avec:", { email, password });
       this.isLoading = true;
       try {
@@ -77,17 +128,12 @@ export const useAuthStore = defineStore("authentication", {
 
         await account.createEmailPasswordSession(email, password);
         await this.getToken();
+         await account.get(); // Récupère l'utilisateur connecté
+        this.initializeFromLocalStorage(); // Charge les données persistées
+        await this.fetchUserData();
 
         // Démarrer le système de renouvellement automatique
         this.startTokenAutoRefresh();
-/*         if (this.isAuthenticated) {
-          console.log("Utilisateur authentifié, récupération des données...");
-          await this.fetchUserdata();
-          console.log("Données après fetchUserdata:", {
-            localStorageUser: localStorage.getItem("newUser"),
-            localStorageProfiles: localStorage.getItem("newProfiles")
-          });
-        } */
 
         return true;
       } catch (error) {
@@ -97,6 +143,8 @@ export const useAuthStore = defineStore("authentication", {
         this.isLoading = false;
       }
     },
+
+
     async getToken() {
       try {
         this.user = await account.get();
@@ -121,31 +169,6 @@ export const useAuthStore = defineStore("authentication", {
         decoded: this.decodeToken(token),
       });
     },
-  
-/*     async fetchUserdata() {
-      try { 
-        const response = await getUser(); // Récupérer la réponse complète
-        // const userData = response.user;
-        // const profilesData = response.profiles;
-
-        this.users = response.user || {};
-        this.profile = response.profiles || [];
-
-        console.debug("Données utilisateur récupérées:", {
-          user: this.users,
-          profiles: this.profile,
-        });
-
-        // Persistance locale
-        localStorage.setItem("user", JSON.stringify(this.users));
-        localStorage.setItem("profiles", JSON.stringify(this.profile));
-        
-      } catch (error) {
-        console.error("Erreur lors de la récupération des données utilisateur:", error);
-        throw new Error("Échec de la récupération des données utilisateur.");    
-      }
-    }, */
-
 
     decodeToken(token: string): any {
       try {
@@ -196,25 +219,38 @@ export const useAuthStore = defineStore("authentication", {
       }
     },
 
+// Modifiez logout pour nettoyer les nouvelles données
     async logout() {
       try {
         await account.deleteSession("current");
-        // Supprimer toutes les données du localStorage
-        localStorage.removeItem('jwt');
-        localStorage.removeItem('user');
-        localStorage.removeItem('profiles');
-        localStorage.removeItem('RestaurantCode');
-        
-        // Arrêter le rafraîchissement automatique
+        this.clearLocalStorage();
         this.stopTokenAutoRefresh();
-        
-        // Réinitialiser complètement le store
         this.$reset();
       } catch (error) {
         console.error("Logout error:", error);
       }
     },
 
+    clearLocalStorage() {
+      // Liste complète des clés à supprimer
+      const keys = [
+        'jwt', 'user', 'profiles', 'restaurantCode', 'euser', 'logoresto', 'logoresto_id',
+        'newUser', 'newProfiles', 'preferences', 'restoname'
+      ];
+      
+      keys.forEach(key => localStorage.removeItem(key));
+    },
+
+    // Ajoutez une méthode pour initialiser depuis le localStorage
+    initializeFromLocalStorage() {
+      if (typeof window !== 'undefined') {
+        this.jwt = localStorage.getItem('jwt') || '';
+        this.users = JSON.parse(localStorage.getItem('user') || 'null');
+        this.profiles = JSON.parse(localStorage.getItem('profiles') || '[]');
+        this.restaurantCode = localStorage.getItem('restaurantCode') || '';
+        this.userEmail = localStorage.getItem('euser') || '';
+      }
+    },
     async checkAuth() {
       try {
         this.user = await account.get();
@@ -235,13 +271,15 @@ export const useAuthStore = defineStore("authentication", {
       }
     }
   },
-
   getters: {
     isAuthenticated: (state) => !!state.user,
     currentToken: (state) => {
       console.debug("Current token from getter:", state.jwt);
       return state.jwt;
     },
+    currentUserData: (state) => state.users,
+    userProfiles: (state) => state.profiles,
+    mainRestaurantCode: (state) => state.restaurantCode,
     decodedToken: (state) => {
       if (!state.jwt) return null;
       try {

@@ -104,6 +104,9 @@ const fetchRestaurant = async () => {
       console.log("DefaultLayout.fetchMenu.error: " + err)
     } 
   };
+  onBeforeMount(() => {
+  authStore.initializeFromLocalStorage(); // Charge les données persistées AVANT le rendu
+});
   onMounted(async () => {
     await init();
     await fetchUser()

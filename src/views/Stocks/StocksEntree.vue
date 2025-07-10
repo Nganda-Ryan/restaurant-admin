@@ -44,6 +44,11 @@
                                 + New Entry
                             </button-action>
                         </div>
+                        <div>
+                            <ul>
+                                <li> Consulter les sorties</li>
+                            </ul>
+                        </div>
                         <div class="w-full sm:w-auto">
                             <select 
                                 v-model="selectedFilter"

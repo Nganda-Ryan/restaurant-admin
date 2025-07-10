@@ -17,18 +17,22 @@
     import type ToastPayload from '@/types/Toast';
     import EventBus from '@/EventBus';
     import TableOne from '@/components/Tables/TableOne.vue';
+    import { QuillEditor } from '@vueup/vue-quill';
+    import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
-    
 
     const storedData = localStorage.getItem('profiles');
 
     const dataArray = storedData ? JSON.parse(storedData) : [];
 
     const restaurantCode = dataArray[0]?.RestaurantCode ?? '';
+    const fileInput = ref<HTMLInputElement | null>(null)
     const currency = localStorage.getItem('currency');
     const configStore = useConfigStore();
     const isSaving = ref<Boolean>(false);
     const isProductList = ref<Boolean>(false);
+    const content = ref<string>("<p>Éditez-moi !</p>");
+    const existingContents = ref<Content[]>([]);
     const emits = defineEmits(['cancel', "save", "back", "created"]);
     const props = defineProps({
         action: {
@@ -39,6 +43,12 @@
             default: () => ({})
         }
     });
+    const imagePreviews = ref<Array<{ 
+    file: File; 
+    url: string; 
+    name: string;
+    type: 'image' | 'video'
+    }>>([]);
 
     const plateInfo = ref<PlateOption>({
         "Code": '',
@@ -120,7 +130,27 @@
     const stopAction = () => {
         emits('cancel', reloadView.value);
     }
-
+    const saveContent = ( event: Event) => {
+        console.log(content.value);
+        event.stopPropagation();
+        event.preventDefault();
+    };
+    const toolbarOptions = [
+    ['bold', 'italic', 'underline', 'strike'],        // Styles de texte
+    ['blockquote', 'code-block'],                     // Blocs
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],       // En-têtes
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],     // Listes
+    [{ 'script': 'sub' }, { 'script': 'super' }],      // Exposant/indice
+    [{ 'indent': '-1' }, { 'indent': '+1' }],         // Indentation
+    [{ 'direction': 'rtl' }],                         // Sens d'écriture
+    [{ 'size': ['small', false, 'large', 'huge'] }],  // Taille police
+    [{ 'header': 1 }, { 'header': 2 }],               // En-têtes alternatifs
+    [{ 'color': [] }, { 'background': [] }],          // Couleurs
+    [{ 'font': [] }],                                 // Polices
+    [{ 'align': [] }],                                // Alignement
+    ['link'],                                         // Liens (conservé)
+    ['clean']                           
+    ];
     const getAction = (act: string | undefined) => {
         switch (act) {
             case "edit":
@@ -146,234 +176,273 @@
 
         return result;
     })
+    const errorMessage = ref<string>('');
+
+    function handleFiles(event: Event) {
+        const target = event.target as HTMLInputElement;
+        const files = Array.from(target.files ?? []);
+        
+        files.forEach((file) => {
+            // Vérifie si c'est une image ou une vidéo
+            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+                EventBus.emit('showToast', {
+                    type: 'danger',
+                    message: `Le fichier ${file.name} n'est pas une image ou vidéo valide.`
+                });
+                return;
+            }
+
+            if (file.size > 50 * 1024 * 1024) { // Augmentez la limite à 50MB pour les vidéos
+                EventBus.emit('showToast', {
+                    type: 'danger',
+                    message: `Le fichier ${file.name} ne peut pas dépasser 50MB.`
+                });
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreviews.value.push({
+                    file,
+                    url: e.target?.result as string,
+                    name: file.name,
+                    type: file.type.startsWith('video/') ? 'video' : 'image'
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+
+        errorMessage.value = '';
+    }
+
+    const removeImage = (index: number, event: Event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        imagePreviews.value.splice(index, 1);
+    }
 
     const savePlate = async () => {
-        try {
-            isSaving.value = true;
+            try {
+                isSaving.value = true;
 
-            if (props.action === "update") {
-                plateInfo.value.Code = props.plate.Code;
-            } else if (props.action == "add" && plateInfo.value.Title) {
-                plateInfo.value.Code = generateCode(plateInfo.value.Title);
-            }
+                // Génération ou récupération du code de plat
+                if (props.action === "update") {
+                    plateInfo.value.Code = props.plate.Code;
+                } else if (props.action == "add" && plateInfo.value.Title) {
+                    plateInfo.value.Code = generateCode(plateInfo.value.Title);
+                }
 
-            const payload = {
-                ...plateInfo.value,
-                Currency: currency ?? ''
-            }
-            let result;
-            let createdCtn = '';
-            let createdCtn2 = '';
+                const payload = {
+                    ...plateInfo.value,
+                    Currency: currency ?? ''
+                };
 
-            if (props.action == "add") {
-                console.log('data.plate', payload)
-                result = await createPlate(payload);
-                if (result && result[0].success) {
-                    if (plateInfo.value.Code != undefined) {
-                        const ctnList1: Compositions[] = [];
-                        productListToadd.value.forEach(p1 => {
-                            rawProduct.value.forEach(p2 => {
-                                if (p1.api === p2.Code) {
-                                    if (plateInfo.value.Code) {
-                                        ctnList1.push({
-                                            "ProductCode": p1.api,
-                                            "PlateCode": plateInfo.value.Code,
-                                            "QuantityOfConsumption": p1.quantity,
-                                        });
-                                    }
-                                }
-                            });
-                        });
+                if (props.action == "add") {
+                    // Création d'un nouveau plat
+                    const result = await createPlate(payload);
+                    if (result && result[0].success && plateInfo.value.Code) {
+                        // Création des compositions de produits
+                        const compositions = productListToadd.value
+                            .filter(p1 => rawProduct.value.some(p2 => p1.api === p2.Code))
+                            .map(p1 => ({
+                                "ProductCode": p1.api,
+                                "PlateCode": plateInfo.value.Code ?? '',
+                                "QuantityOfConsumption": p1.quantity
+                            }));
+                        
+                        if (compositions.length) await createConsistency(compositions);
 
-                        createdCtn = await createConsistency(ctnList1);
+                        // Création du contenu INGREDIENTS
+                        const ingredients = productListToadd.value
+                            .map(p1 => {
+                                const product = rawProduct.value.find(p2 => p1.api == p2.Code);
+                                return product ? `${product.Title} : ${p1.inputField || ''}` : '';
+                            })
+                            .filter(Boolean)
+                            .join('; ');
 
-                        const CtnList2: Content[] = [];
-                        let ingredients = '';
-                        productListToadd.value.forEach(p1 => {
-                            rawProduct.value.forEach(p2 => {
-                                if (p1.api == p2.Code) {
-                                    const inputFieldValue = p1.inputField || '';
-                                    ingredients += (ingredients ? '; ' : '') + `${p2.Title} : ${inputFieldValue}`;
-                                }
-                            });
-                        });
-                        CtnList2.push({
+                        await createContent([{
                             "PlatCode": plateInfo.value.Code,
                             "Body": ingredients,
                             "DisplayOrder": 1,
                             "TypeCode": "ING"
-                        });
-                        createdCtn = await createContent(CtnList2);
+                        }]);
 
+                        // Upload de l'image de couverture si fournie
                         if (plateInfo.value.Image) {
-                            const uploadedCtn = await uploadContent(plateInfo.value.Image)
+                            const uploadedCtn = await uploadContent(plateInfo.value.Image);
                             if (uploadedCtn) {
-                                const ctnList: Content[] = [{
+                                await createContent([{
                                     "PlatCode": plateInfo.value.Code,
                                     "Body": uploadedCtn,
                                     "DisplayOrder": 1,
                                     "TypeCode": 'COVER'
-                                }]
-                                createdCtn2 = await createContent(ctnList);
+                                }]);
+                            }
+                        }
+                        router.push({ path: '/plates' });
+                    }
+                } else if (props.action === "update") {
+                    // UPDATE LOGIC
+
+                    // 1. Mise à jour des infos de base si modifiées
+                    if (plateInfo.value.Title !== props.plate.Title ||
+                        plateInfo.value.Description !== props.plate.Description ||
+                        plateInfo.value.CategoryCode !== props.plate.CategoryCode ||
+                        plateInfo.value.BasePrice !== props.plate.BasePrice) {
+                        await updatePlate(plateInfo.value);
+                    }
+
+                    // 2. Gestion des produits/compositions
+                    if (plateInfo.value.Code) {
+                        const updates = {
+                            new: [] as Compositions[],
+                            existing: [] as composition[],
+                            remove: [] as composition[]
+                        };
+
+                        productListToadd.value.forEach(p1 => {
+                            const match = rawProduct.value.find(p2 => p1.api === p2.Code);
+                            if (!match) return;
+
+                            let item: composition;
+                            if (p1.Id !== undefined) {
+                                item = {
+                                    ProductCode: p1.api,
+                                    PlateCode: plateInfo.value.Code ?? '',
+                                    QuantityOfConsumption: p1.quantity,
+                                    Id: p1.Id
+                                };
+                                if (p1.quantity > 0) updates.existing.push(item);
+                                else updates.remove.push(item);
+                            } else {
+                                item = {
+                                    ProductCode: p1.api,
+                                    PlateCode: plateInfo.value.Code,
+                                    QuantityOfConsumption: p1.quantity
+                                } as composition;
+                                updates.new.push(item);
+                            }
+                        });
+
+                        // Exécution en parallèle des opérations
+                        await Promise.all([
+                            updates.new.length && createConsistency(updates.new),
+                            ...updates.existing.map(p => UpdateConsistency(p)),
+                            ...updates.remove.map(p => UpdateConsistency({ ...p, QuantityOfConsumption: 0 }))
+                        ]);
+
+                        // Nettoyage des produits supprimés
+                        productListToadd.value = productListToadd.value.filter(p => 
+                            !updates.remove.some(r => r.Id === p.Id)
+                        );
+                    }
+
+                    // 3. Récupération des contenus existants
+                    const existingContent = await fetchContent(plateInfo.value.Code || '');
+                    const allContents = existingContent.body.results.flatMap((r: any) => r.content);
+                    
+                    // 4. Gestion des ingrédients
+                    const ingContent = allContents.find((c: any) => c.TypeCode === "ING");
+                    const ingredients = productListToadd.value
+                        .filter(p => p.quantity > 0)
+                        .map(p1 => {
+                            const product = rawProduct.value.find(p2 => p1.api == p2.Code);
+                            return product ? `${product.Title} : ${p1.inputField || ''}` : '';
+                        })
+                        .filter(Boolean)
+                        .join('; ');
+
+                    if (ingContent) {
+                        await updateContent({ ...ingContent, Body: ingredients });
+                    } else if (ingredients) {
+                        await createContent([{
+                            "PlatCode": plateInfo.value.Code,
+                            "Body": ingredients,
+                            "DisplayOrder": 1,
+                            "TypeCode": "ING"
+                        }]);
+                    }
+
+                    // 5. Gestion des médias (images/vidéos)
+                    if (imagePreviews.value.length > 0) {
+                        const mediaContent = allContents.find((c: any) => 
+                            c.TypeCode === "IMG" || c.TypeCode === "VIDEO_DESC"
+                        );
+
+                        const mediaUrls = (await Promise.all(
+                            imagePreviews.value.map(preview => uploadContent(preview.file))
+                        )).filter(Boolean) as string[];
+
+                        if (mediaUrls.length) {
+                            const mediaUpdate = {
+                                PlatCode: plateInfo.value.Code,
+                                Body: mediaUrls.join(','),
+                                DisplayOrder: 2,
+                                TypeCode: "IMG"
+                            };
+
+                            if (mediaContent) {
+                                await updateContent({ ...mediaContent, ...mediaUpdate });
+                            } else {
+                                await createContent([mediaUpdate]);
                             }
                         }
                     }
-                    router.push({ path: '/plates' })
-                }
-            } else if (props.action === "update") {
-                if (plateInfo.value.Title !== props.plate.Title ||
-                    plateInfo.value.Description !== props.plate.Description ||
-                    plateInfo.value.CategoryCode !== props.plate.CategoryCode ||
-                    plateInfo.value.BasePrice !== props.plate.BasePrice) {
-                    result = await updatePlate(plateInfo.value);
-                }
 
-                if (plateInfo.value.Code !== undefined) {
-                    const newProducts: Compositions[] = [];
-                    const existingProducts: composition[] = [];
-                    const productsToRemove: composition[] = [];
+                    // 6. Gestion de l'image de couverture
+                    if (plateInfo.value.Image && plateInfo.value.Image !== props.plate.Image) {
+                        const coverContent = allContents.find((c: any) => c.TypeCode === "COVER");
+                        const uploadedCtn = await uploadContent(plateInfo.value.Image);
 
-                    productListToadd.value.forEach(p1 => {
-                        const matchingProduct = rawProduct.value.find(p2 => p1.api === p2.Code);
-                        if (matchingProduct) {
-                            if (plateInfo.value.Code) {
-                                if (p1.Id) {
-                                    if (p1.quantity > 0) {
-                                        existingProducts.push({
-                                            "Id": p1.Id,
-                                            "ProductCode": p1.api,
-                                            "PlateCode": plateInfo.value.Code,
-                                            "QuantityOfConsumption": p1.quantity,
-                                        });
-                                    } else {
-                                        productsToRemove.push({
-                                            "Id": p1.Id,
-                                            "ProductCode": p1.api,
-                                            "PlateCode": plateInfo.value.Code,
-                                            "QuantityOfConsumption": 0,
-                                        });
-                                    }
-                                } else {
-                                    newProducts.push({
-                                        ProductCode: p1.api,
-                                        PlateCode: plateInfo.value.Code,
-                                        QuantityOfConsumption: p1.quantity,
-                                    });
-                                }
+                        if (uploadedCtn) {
+                            const coverUpdate = {
+                                PlatCode: plateInfo.value.Code,
+                                Body: uploadedCtn,
+                                DisplayOrder: 1,
+                                TypeCode: "COVER"
+                            };
+
+                            if (coverContent) {
+                                await updateContent({ ...coverContent, ...coverUpdate });
+                            } else {
+                                await createContent([coverUpdate]);
                             }
                         }
-                    });
-
-                    if (newProducts.length > 0) {
-                        await createConsistency(newProducts);
-                    }
-
-                    if (existingProducts.length > 0) {
-                        for (const product of existingProducts) {
-                            await UpdateConsistency({
-                                Id: product.Id,
-                                ProductCode: product.ProductCode,
-                                PlateCode: product.PlateCode,
-                                QuantityOfConsumption: product.QuantityOfConsumption,
-                            });
-                        }
-                    }
-
-                    if (productsToRemove.length > 0) {
-                        for (const product of productsToRemove) {
-                            await UpdateConsistency({
-                                Id: product.Id,
-                                ProductCode: product.ProductCode,
-                                PlateCode: product.PlateCode,
-                                QuantityOfConsumption: 0,
-                            });
-                            productListToadd.value = productListToadd.value.filter(p => p.Id !== product.Id);
-                        }
                     }
                 }
 
-                // Récupérer le contenu ING existant
-                const existingContent = await fetchContent(plateInfo.value.Code || '');
-                let ingContent = existingContent.body.results.flatMap((r: any) =>
-                    r.content.filter((c: any) => c.TypeCode === "ING")
-                )[0];
-
-                let ingredients = '';
-                const validProducts = productListToadd.value.filter(p => p.quantity > 0);
-                
-                validProducts.forEach(p1 => {
-                    rawProduct.value.forEach(p2 => {
-                        if (p1.api == p2.Code) {
-                            const inputFieldValue = p1.inputField || '';
-                            ingredients += (ingredients ? '; ' : '') + `${p2.Title} : ${inputFieldValue}`;
-                        }
-                    });
+                // Succès
+                EventBus.emit('showToast', {
+                    type: "success",
+                    message: `Plate ${props.action == "update" ? "Updated" : "Created"} successfully`
                 });
 
-                if (ingContent) {
-                    // Mettre à jour le contenu existant
-                    await updateContent({
-                        ...ingContent,
-                        Body: ingredients
-                    });
-                } else if (ingredients) {
-                    // Créer un nouveau contenu seulement si nécessaire
-                    const ctnList2: Content[] = [{
-                        "PlatCode": plateInfo.value.Code || '',
-                        "Body": ingredients,
-                        "DisplayOrder": 1,
-                        "TypeCode": "ING",
-                    }];
-                    await createContent(ctnList2);
+                // Réinitialisation si ajout
+                if (props.action === "add") {
+                    plateInfo.value = {
+                        "Code": '',
+                        "Title": '',
+                        "Description": '',
+                        "Currency": '',
+                        "CategoryCode": '',
+                        "BasePrice": 0,
+                        Image: "",
+                        RestaurantCode: restaurantCode
+                    };
+                    productListToadd.value = [];
+                    reloadView.value = true;
                 }
 
-                if (plateInfo.value.Image) {
-                    const uploadDedImage = await uploadContent(plateInfo.value.Image);
-                    if (uploadDedImage) {
-                        const uploadedCtn = await uploadContent(plateInfo.value.Image)
-                        if (uploadedCtn) {
-                            const ctnList: Content[] = [{
-                                "PlatCode": plateInfo.value.Code,
-                                "Body": uploadedCtn,
-                                "DisplayOrder": 2,
-                                "TypeCode": 'COVER'
-                            }]
-                            await createContent(ctnList);
-                        }
-                    }
-                }
+            } catch (error: any) {
+                console.error('Save plate error:', error);
+                EventBus.emit('showToast', {
+                    type: "danger",
+                    message: error?.message || "An error occurred while saving the plate"
+                });
+            } finally {
+                isSaving.value = false;
             }
-
-            const toastPayload: ToastPayload = {
-                type: "success",
-                message: `Plate ${props.action == "update" ? "Updated" : "Created"} successfully. Happy meal ;P`
-            }
-            plateInfo.value = {
-                "Code": '',
-                "Title": '',
-                "Description": '',
-                "Currency": '',
-                "CategoryCode": '',
-                "BasePrice": 0,
-                Image: "",
-                RestaurantCode: restaurantCode
-            };
-            productListToadd.value = [];
-            reloadView.value = true;
-            EventBus.emit('showToast', toastPayload);
-
-        } catch (error: any) {
-            console.log('error: ', error);
-            console.log('Trace', error.stack)
-            const errMsg = error ? error : "Oups, something went wrong during the processing";
-            const payload: ToastPayload = {
-                type: "danger",
-                message: errMsg
-            }
-            EventBus.emit('showToast', payload);
-        } finally {
-            isSaving.value = false;
-        }
     }
 
     const handleSelection = (item: string) => {
@@ -431,7 +500,7 @@
             const nameB = b.name ?? '';
             return nameA.localeCompare(nameB);
         });
-
+    
         productList.value.sort((a, b) => {
             const nameA = a.name ?? '';
             const nameB = b.name ?? '';
@@ -451,27 +520,28 @@
         })
     }
 
-const handleDecrement = (ts: any) => {
-    productListToadd.value = productListToadd.value
-        .map(item => {
-            if (item.api == ts.api) {
-                const newQuantity = item.quantity - 1;
-                if (newQuantity <= 0) {
-                    return null; 
+    const handleDecrement = (ts: any) => {
+        productListToadd.value = productListToadd.value
+            .map(item => {
+                if (item.api == ts.api) {
+                    const newQuantity = item.quantity - 1;
+                    if (newQuantity <= 0) {
+                        return null; 
+                    }
+                    return {
+                        ...item,
+                        quantity: newQuantity
+                    }
                 }
-                return {
-                    ...item,
-                    quantity: newQuantity
-                }
-            }
-            return item;
-        })
-        .filter((item): item is ProductOption => item !== null); 
+                return item;
+            })
+            .filter((item): item is ProductOption => item !== null); 
 
-    if (ts.quantity <= 1) {
-        handleRemovePlace(ts);
+        if (ts.quantity <= 1) {
+            handleRemovePlace(ts);
+        }
     }
-}
+
     const getProduct = async () => {
         const result = await fetchProduct();
         rawProduct.value = result;
@@ -603,6 +673,90 @@ const handleDecrement = (ts: any) => {
                         <div v-else class="text-center py-4"> 
                             Please add a plate;
                         </div>
+                        <div v-if = "props.action === 'update'" >
+                            <div class="w-full px-6 font-bold gap-2.5 py-2  mb-10 mt-8 hover:bg-opacity-90 lg:px-6 xl:px-6 text-white bg-gradient-to-r from-olive-800 to-olive-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 text-sm me-2">
+                                HISTORIQUE
+                            </div>
+                            <div>
+                                <QuillEditor
+                                    v-model:content="content"
+                                    contentType="html"
+                                    theme="snow"
+                                    :toolbar="toolbarOptions"
+                                     style="height:150px;"  
+                                    />
+                                <button @click.stop="saveContent($event)">Enregistrer</button>   
+                            </div>
+                            <div class="w-full px-6 font-bold gap-2.5 py-2  mb-10 mt-8 hover:bg-opacity-90 lg:px-6 xl:px-6 text-white bg-gradient-to-r from-olive-800 to-olive-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 text-sm me-2">
+                                MULTIMEDIA
+                            </div>
+                            <div class="mb-8">
+                                <div
+                                class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors"
+                                >
+                                <input
+                                    type="file"
+                                    accept="image/*,video/*"
+                                    multiple
+                                    @change="handleFiles"
+                                    class="hidden"
+                                    ref="fileInput"
+                                    id="images-upload"
+                                />
+                                <div @click="fileInput?.click()" class="cursor-pointer">
+                                    <svg
+                                    class="mx-auto h-12 w-12 text-gray-400"
+                                    stroke="currentColor"
+                                    fill="none"
+                                    viewBox="0 0 48 48"
+                                    >
+                                    <path
+                                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    />
+                                    </svg>
+                                    <p class="mt-2 text-sm text-gray-600">click_to_select</p>
+                                    <p class="text-xs text-gray-500">multiple_selection - PNG, JPG, GIF, .mp4, .mkv</p>
+                                </div>
+                                </div>
+
+                                <!-- Prévisualisation des images -->
+                                <div v-if="imagePreviews.length > 0" class="mt-6">
+                                <h4 class="text-md font-medium text-gray-700 mb-3">
+                                    Images sélectionnées ({{ imagePreviews.length }})
+                                </h4>
+                                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                <div v-for="(preview, index) in imagePreviews" :key="index" class="relative group">
+                                    <!-- Affiche une image ou une vidéo selon le type -->
+                                    <img v-if="preview.type === 'image'" 
+                                        :src="preview.url"
+                                        :alt="`Preview ${index + 1}`"
+                                        class="w-full h-32 object-cover rounded-lg border-2 border-gray-200" />
+                                        
+                                    <video v-else
+                                        controls
+                                        class="w-full h-32 object-cover rounded-lg border-2 border-gray-200">
+                                        <source :src="preview.url" :type="preview.file.type">
+                                    </video>
+                                    
+                                    <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                        <button
+                                            @click.stop="removeImage(index, $event)"
+                                            class="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1 truncate">{{ preview.name }}</p>
+                                </div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="flex justify-end mt-10">
                             <button @click="stopAction" type="button" class="text-white bg-gradient-to-r from-rose-400 via-rose-500 to-rose-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-rose-300 dark:focus:ring-rose-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
@@ -612,6 +766,7 @@ const handleDecrement = (ts: any) => {
                                 <spinner v-if="isSaving" /> {{ getAction(props.action)}}
                             </button>
                         </div>
+                        
                     </div>
                 </form>
             </DefaultCard>
