@@ -63,7 +63,7 @@
     </div>
   </template>
   
-  <script setup>
+<script setup>
   import { ref, computed, onMounted,  defineAsyncComponent } from 'vue'
   import StatCard from '@/components/Dashboard/statCards.vue'
   import SalesChart from '@/components/Dashboard/SalesChart.vue'
@@ -72,9 +72,7 @@
   import { fetchTotalMenu, fetchDayCommande, fetchPopularplate, fetchRecentOrder, getUser } from '@/services/database.ts'
   import { useAuthStore } from '@/stores/auth';
 
-
   const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
-
 
   // Données statistiques
   const stats = ref({
@@ -210,4 +208,4 @@
     background-color: #f8fafc;
     min-height: 100vh;
   }
-  </style>
+</style>

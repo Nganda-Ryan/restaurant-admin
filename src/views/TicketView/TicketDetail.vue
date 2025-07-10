@@ -218,6 +218,8 @@ const { handlePrint } = useVueToPrint({
                 <template v-slot:header>
                     <div class="flex items-center justify-center">
                         <button-action @click='handlePrint' custom-classes="text-white bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-200 dark:focus:ring-blue-700 font-medium rounded-lg text-sm py-2.5 text-center me-2 mb-2">🖨️ Print Invoice</button-action>
+                        <button-action @click="handleDeleteTicket" custom-classes="text-white bg-gradient-to-r from-rose-400 via-rose-500 to-rose-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-rose-300 dark:focus:ring-rose-800 font-medium rounded-lg text-sm py-2.5 text-center me-2 mb-2">Delete</button-action>
+
                     </div>
                 </template>
             <div class="py-4.5 px-15" ref="printRef">

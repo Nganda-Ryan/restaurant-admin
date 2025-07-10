@@ -20,7 +20,7 @@
   })
 
   const nameResto = localStorage.getItem('restoname') || 'Broccoli Admin';
-  const email = localStorage.getItem('euser')
+  const email = authStore.userEmail
   const logoresto = localStorage.getItem('logoresto') || 'https://cdn-icons-png.flaticon.com/512/107/107831.png';
   const handleLogout = () => {
     authStore.logout()
