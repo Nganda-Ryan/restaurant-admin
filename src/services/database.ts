@@ -397,7 +397,7 @@ export const getConsistency = async  (plateCode: string): Promise<{body: { resul
     }
     export const updateOrder = async (payload: any) => {
         const authStore = useAuthStore();
-        const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders`;
+        const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders?RestaurantCode=${restaurantCode}`;
         try {
             const response = await axios.put(url, { 
                 Order: payload

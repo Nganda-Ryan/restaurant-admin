@@ -46,7 +46,11 @@
                         </div>
                         <div>
                             <ul>
-                                <li> Consulter les sorties</li>
+                                <li class="w-full mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium text-center transition-colors duration-200 cursor-pointer">
+                                    <RouterLink to="/Stocks-exit" class="w-full block">
+                                    Consulter les sorties
+                                    </RouterLink>
+                                </li>
                             </ul>
                         </div>
                         <div class="w-full sm:w-auto">
@@ -171,7 +175,7 @@ import { fetchStocks } from '@/services/database'
 import { useConfigStore } from '@/stores/config'
 
 const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'))
-const NewProductForm = defineAsyncComponent(() => import('@/views/Stocks/NewsStocks.vue'))
+const NewProductForm = defineAsyncComponent(() => import('@/views/Stocks/NewStocksExit.vue'))
 
 // Store et état
 const configStore = useConfigStore()

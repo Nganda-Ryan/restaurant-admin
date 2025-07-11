@@ -70,6 +70,7 @@ const refreshData = async () => {
   try {
     const result = await fetchOrder()
     orders.value = result
+    console.log('Orders fetched:', orders.value)
   } catch (error) {
     console.error('Error fetching orders:', error)
     EventBus.emit('showToast', {
@@ -176,7 +177,7 @@ onUnmounted(() => {
 })
 </script>
 
-<template>
+<template>²
   <div class="container mx-auto px-2 sm:px-4 py-2 h-full min-h-screen">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <StatCard 

@@ -205,7 +205,9 @@
                     result = await cloneMenu(payload, menuInfo.value.Code)
                     console.log('resultclone', result)
                 } else {
+                     console.log('payloadcreate', payload)
                     result = await createMenu(payload)
+
                 }
                 
                 const toastPayload: ToastPayload = {

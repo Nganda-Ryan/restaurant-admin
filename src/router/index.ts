@@ -43,6 +43,11 @@ const router = createRouter({
       component: () => import('../views/Stocks/StocksEntree.vue')
     },
     {
+      path: '/Stocks-exit',
+      name: 'ExitStocks',
+      component: () => import('../views/Stocks/StocksExit.vue')
+    },
+    {
       path: '/menus',
       name: 'menu',
       component: () => import('../views/MenuView/MenuView.vue')
