@@ -137,7 +137,7 @@ const images = [
   gombo, 
   pile,
   // Ajoutez d'autres images si nécessaire
-];
+];  
 
 
 const nextImage = () => {

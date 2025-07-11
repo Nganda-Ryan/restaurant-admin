@@ -35,7 +35,7 @@
           label: 'Date',
           filterable: false,
       },
-      {
+/*       {
           name: 'Actions',
           type: 'action',
           label: 'Actions',
@@ -84,7 +84,7 @@
                 color: GREEN,
               }
           ]
-      }
+      } */
   ]);
   const filterOptions = ref([
       {
