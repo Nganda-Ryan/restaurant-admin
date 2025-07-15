@@ -6,19 +6,18 @@
     import InputGroup from '@/components/Forms/InputGroup.vue';
     import type { Content, Product, Stocks} from '@/services/serviceInterface';
     import { useConfigStore } from '@/stores/config';
+    import { useAuthStore } from '@/stores/auth';
     import type Option from '../../../src/components/Utilities/interfaceModel';
     import { createstocks, fetchProduct } from '@/services/database';
     import EventBus from '@/EventBus';
     import type ToastPayload from '@/types/Toast';
-    import { useAuthStore } from '@/stores/auth';
 
     const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
-
     const configStore = useConfigStore();
-    const isSaving = ref<Boolean>(false);
     const authStore = useAuthStore();
-    const _token = authStore.jwt;
+    const isSaving = ref<Boolean>(false);
     const products = ref<Product[]>([]);
+    const _token = authStore.jwt;
     const stockForms = ref<Stocks[]>([{
         "code": "",
         "quantity": 0,
@@ -126,7 +125,7 @@
         switch (act) {
             case "edit": return "Mettre à jour";
             case "clone": return "Cloner";
-            case "add": return "Enregistrer";
+            case "add": return "Save ";
             default: return "Mettre à jour";
         }
     }
@@ -147,7 +146,7 @@
 <template>
     <div class="grid grid-cols-1 gap-12 sm:grid-cols-1">
         <div class="flex flex-col gap-9">
-            <DefaultCard :cardTitle="`${getActionLabel(props.action)} Stock${stockForms.length > 1 ? 's' : ''}`">
+            <DefaultCard :cardTitle="`${getActionLabel(props.action)} Exit${stockForms.length > 1 ? 's' : ''}`">
                 <template v-slot:button>
                     <button class="flex items-center" @click="goBack">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
@@ -204,7 +203,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                            Ajouter un autre stock
+                             New Exit
                         </button>
 
                         <div class="flex justify-end mt-10 gap-4">

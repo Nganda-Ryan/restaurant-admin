@@ -120,7 +120,8 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const configStore = useConfigStore()
-
+const _token = authStore.jwt
+console.log('Token utilisé:', _token);
 // États de chargement
 const isLoading = ref(false)
 const isLoadingTeam = ref(false)
@@ -249,7 +250,7 @@ const fetchRestaurant = async () => {
   try {
     isLoading.value = true
     initialLoad.value = true
-    const response = await fetchResto()
+    const response = await fetchResto(_token)
     console.log('infos', configStore.restaurantInfo)
 
      const logoItems = response.Restaurant.content?.filter(item => 

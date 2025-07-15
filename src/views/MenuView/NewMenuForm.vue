@@ -4,18 +4,16 @@
     import { createMenu, fetchPlate, formatedDate, generateCode, updateMenu, cloneMenu, updateMenuItem,addMenuItem } from '@/services/database';
     import { defineAsyncComponent, onBeforeMount, ref } from 'vue';
     import InputGroup from '@/components/Forms/InputGroup.vue';
-
-    const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
-    const Spinner = defineAsyncComponent(() => import('@/components/Utilities/Spinner.vue'));
-    
-    
     import ButtonAction from '@/components/Buttons/ButtonAction.vue';
     import TableOne from '@/components/Tables/TableOne.vue';
     import EventBus from '@/EventBus';
     import type PlateOption from '../../components/Utilities/interfaceModel';
     import type { MenuRequest, FormattedDates } from '../../services/serviceInterface';
     import type ToastPayload from '@/types/Toast';
+    import { useAuthStore } from '@/stores/auth';
 
+    const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
+    const Spinner = defineAsyncComponent(() => import('@/components/Utilities/Spinner.vue'));
 
 
     const storedData = localStorage.getItem('profiles');
@@ -37,6 +35,8 @@
         }
     });
     
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
     const reloadView = ref(false);
     const plateList = ref<Array<PlateOption>>([])
     const plateListToadd = ref<Array<any>>([])
@@ -192,20 +192,22 @@
                 let result: any = "";
                 let itemResult: any = "";
                 if(props.action == "update"){
-                    result = await updateMenu(payload)
+                    result = await updateMenu(payload, _token);
                     if (existingPlates.length > 0) {
-                    itemResult = await updateMenuItem(existingPlates);
+                    itemResult = await updateMenuItem(existingPlates, _token);
                     }
 
                     // Ajouter les nouveaux plats
                     if (newPlates.length > 0) {
-                        itemResult = await addMenuItem(newPlates);
+                        itemResult = await addMenuItem(newPlates, _token);
                     }
                 } else if(props.action == "clone"){
-                    result = await cloneMenu(payload, menuInfo.value.Code)
+                    result = await cloneMenu(payload, menuInfo.value.Code, _token);
                     console.log('resultclone', result)
                 } else {
-                    result = await createMenu(payload)
+                     console.log('payloadcreate', payload)
+                    result = await createMenu(payload, _token);
+
                 }
                 
                 const toastPayload: ToastPayload = {
@@ -243,7 +245,7 @@
         }
     }
     const getPlate = async () => {
-        const result = await fetchPlate();
+        const result = await fetchPlate(_token);
         plateList.value = result.map((item:any) => {
             return {
                 name: item.Title,

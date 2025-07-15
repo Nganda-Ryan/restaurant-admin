@@ -137,7 +137,7 @@ const images = [
   gombo, 
   pile,
   // Ajoutez d'autres images si nécessaire
-];
+];  
 
 
 const nextImage = () => {
@@ -166,12 +166,10 @@ const submitForm = async() => {
   }
     loading.value = true;
   try {
-    await authStore.login(email.value, password.value);
-      EventBus.emit('login-success', { 
-      user: authStore.user,
-      timestamp: new Date().toISOString() 
-    });
-    router.push('/');
+    const result = await authStore.login(email.value, password.value);
+    if(result){
+      router.push('/');
+    }
   } catch (error) {
     EventBus.emit('login-error', { 
       error: error.message,

@@ -12,12 +12,15 @@
     import EventBus from '@/EventBus';
     import type ToastPayload from '@/types/Toast';
     import { useVueToPrint } from 'vue-to-print';
+    import { useAuthStore } from '@/stores/auth';
     const baseBtnStyle = "text-slate-900 bg-white border border-slate-300 focus:outline-none hover:bg-slate-100 focus:ring-4 focus:ring-slate-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:hover:bg-slate-700 dark:hover:border-slate-600 dark:focus:ring-slate-700"
     const printRef = ref<HTMLElement | null>(null);
     interface Param {
         action: string,
         ticketcode: string
     }
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
     const ticketCode = ref('');
     const ticketInfo = ref<any>({});
     const plateInfo = ref<any>({});
@@ -39,7 +42,7 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"DRAFT"
-                });
+                }, _token);
                 ticketInfo.value.StatusCode = 'DRAFT';
                 const payload: ToastPayload = {
                     type: "info",
@@ -66,7 +69,7 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"IN PROGRESS"
-                });
+                }, _token);
                 ticketInfo.value.StatusCode = 'IN PROGRESS'
                 const payload: ToastPayload = {
                     type: "info",
@@ -93,7 +96,7 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"COMPLETED"
-                });
+                }, _token);
                 ticketInfo.value.StatusCode = 'COMPLETED';
                 const payload: ToastPayload = {
                     type: "success",
@@ -120,7 +123,7 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"CANCELED"
-                });
+                }, _token);
                 ticketInfo.value.StatusCode = 'CANCELED';
                 const payload: ToastPayload = {
                     type: "success",
@@ -153,7 +156,7 @@ const { handlePrint } = useVueToPrint({
                     {
                         Code: ticketInfo.value.Code
                     }
-                ])
+                ], _token);
                 
                 const payload: ToastPayload = {
                     type: "success",
@@ -186,7 +189,7 @@ const { handlePrint } = useVueToPrint({
         const params = router.currentRoute.value.params as unknown as Param;
         ticketCode.value = params.ticketcode;
         console.log('*** params', ticketCode.value, params);
-        const result = await fetchSingleOrder(params.ticketcode);
+        const result = await fetchSingleOrder(params.ticketcode, _token);
         
         console.log('*** result', result)
         
@@ -218,6 +221,8 @@ const { handlePrint } = useVueToPrint({
                 <template v-slot:header>
                     <div class="flex items-center justify-center">
                         <button-action @click='handlePrint' custom-classes="text-white bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-200 dark:focus:ring-blue-700 font-medium rounded-lg text-sm py-2.5 text-center me-2 mb-2">🖨️ Print Invoice</button-action>
+                        <button-action @click="handleDeleteTicket" custom-classes="text-white bg-gradient-to-r from-rose-400 via-rose-500 to-rose-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-rose-300 dark:focus:ring-rose-800 font-medium rounded-lg text-sm py-2.5 text-center me-2 mb-2">Delete</button-action>
+
                     </div>
                 </template>
             <div class="py-4.5 px-15" ref="printRef">
@@ -227,12 +232,12 @@ const { handlePrint } = useVueToPrint({
                     </template>
                 </Ticket>
             </div>
-             <div class="flex justify-end mt-10 border-t-2 border-slate-300 pt-5">
+<!--              <div class="flex justify-end mt-10 border-t-2 border-slate-300 pt-5">
                             <button-action @click='handleKitchen' :custom-classes="ticketInfo.StatusCode == 'DRAFT' ? 'text-white bg-gradient-to-r from-orange-300 via-orange-400 to-orange-500 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-orange-100 dark:focus:ring-orange-600 font-medium rounded-lg text-sm py-2.5 text-center me-2 mb-2' : baseBtnStyle">IN KITCHEN</button-action>
                             <button-action @click='handleProgress' :custom-classes="ticketInfo.StatusCode == 'IN PROGRESS' ? 'text-white bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-200 dark:focus:ring-blue-700 font-medium rounded-lg text-sm py-2.5 text-center me-2 mb-2' : baseBtnStyle">IN PROGRESS</button-action>
                             <button-action @click='handleCompleted' :custom-classes="ticketInfo.StatusCode == 'COMPLETED' ? 'text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-700 font-medium rounded-lg text-sm py-2.5 text-center me-2 mb-2' : baseBtnStyle">COMPLETED</button-action>
                             <button-action @click='handleCanceled' :custom-classes="ticketInfo.StatusCode == 'CANCELED' ? 'text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-700 font-medium rounded-lg text-sm py-2.5 text-center me-2 mb-2' : baseBtnStyle">CANCELED</button-action>
-                        </div>
+                        </div> -->
 
         </DefaultCard>
 

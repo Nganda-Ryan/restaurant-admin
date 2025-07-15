@@ -5,6 +5,7 @@
     import { fetchConfig, fetchProduct } from '@/services/database';
     import router from '@/router';
     import { useConfigStore } from '@/stores/config';
+    import { useAuthStore } from '@/stores/auth';
 
     const pageTitle = 'Product';
     const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
@@ -60,12 +61,14 @@
     const products = ref([]);
     const rawProducts = ref([]);
     const configStore = useConfigStore();
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
 
     const fetProduct = async () => {
         isloading.value = true;
         try {
             
-            const result = await fetchProduct();
+            const result = await fetchProduct(_token);
             console.log("** result", result);
             const productList = result.map((product: any) => {
                 let img = "";

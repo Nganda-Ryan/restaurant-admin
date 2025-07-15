@@ -12,6 +12,7 @@
     const PopupModal = defineAsyncComponent(() => import('@/components/Modals/PopupModal.vue'));
     const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
     import ButtonAction from '@/components/Buttons/ButtonAction.vue';
+    import { useAuthStore } from '@/stores/auth';
     const InputGroup = defineAsyncComponent(() => import('@/components/Forms/InputGroup.vue'));
 
     interface Param {
@@ -34,6 +35,8 @@
     const isModalOpen = ref(false);
     const isDeleting = ref(false);
     const ingredients = ref<any []>([]);
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
 
     const handleEditPlate = (e: any) => {
         console.log("handleEditPlate", plateInfo.value);
@@ -51,7 +54,7 @@
         try {
             console.log('deleteAction')
              isDeleting.value = true;
-            await deletePlate([{Code: plateInfo.value.Code}])
+            await deletePlate([{Code: plateInfo.value.Code}], _token);
             router.push({path: '/plates'})
         } catch (e) {
             console.log("PlateDetails.handleDeletePlate.error", e)
@@ -77,7 +80,7 @@
         plateCode.value = params.platecode;
         
         try {
-            const result = await fetchPlate();
+            const result = await fetchPlate(_token);
             
             console.log('result', result)
             plateInfo.value = result.filter((item: any) => item.Code == params.platecode)[0];
