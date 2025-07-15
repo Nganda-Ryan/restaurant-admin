@@ -10,10 +10,14 @@
     import { createstocks, fetchProduct } from '@/services/database';
     import EventBus from '@/EventBus';
     import type ToastPayload from '@/types/Toast';
+    import { useAuthStore } from '@/stores/auth';
 
     const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
+
     const configStore = useConfigStore();
     const isSaving = ref<Boolean>(false);
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
     const products = ref<Product[]>([]);
     const stockForms = ref<Stocks[]>([{
         "code": "",
@@ -33,7 +37,7 @@
     // Récupérer la liste des produits pour le select
     const fetchProductsList = async() => {
         try {
-            const result = await fetchProduct();
+            const result = await fetchProduct(_token);
             products.value = Array.isArray(result) ? result : [result];
         } catch(error) {
             console.error('error.fetchProducts', error);
@@ -90,7 +94,7 @@
             }));
 
             if(props.action == "add") {
-                result = await createstocks(payload);
+                result = await createstocks(payload, _token);
                 console.log('data.create', result)
             } else if(props.action == "update") {
                 // result = await updateStock(payload);

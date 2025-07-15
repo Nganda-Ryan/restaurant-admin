@@ -4,6 +4,7 @@
     import Spinner from '@/components/Utilities/Spinner.vue';
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import { useConfigStore } from '@/stores/config';
+    import { useAuthStore } from '@/stores/auth';
     import type { PlateOption, Content, Composition, Compositions, ProductOption, ResultItem, ApiResponse, composition, NutritionalOption } from '@/services/serviceInterface';
     import { Cloudinary } from "@cloudinary/url-gen";
     import { AdvancedImage, placeholder } from "@cloudinary/vue";
@@ -27,6 +28,8 @@
 
     const restaurantCode = dataArray[0]?.RestaurantCode ?? '';
     const fileInput = ref<HTMLInputElement | null>(null)
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
     const currency = localStorage.getItem('currency');
     const configStore = useConfigStore();
     const isSaving = ref<Boolean>(false);
@@ -239,7 +242,7 @@
 
                 if (props.action == "add") {
                     // Création d'un nouveau plat
-                    const result = await createPlate(payload);
+                    const result = await createPlate(payload, _token);
                     if (result && result[0].success && plateInfo.value.Code) {
                         // Création des compositions de produits
                         const compositions = productListToadd.value
@@ -250,7 +253,7 @@
                                 "QuantityOfConsumption": p1.quantity
                             }));
                         
-                        if (compositions.length) await createConsistency(compositions);
+                        if (compositions.length) await createConsistency(compositions, _token);
 
                         // Création du contenu INGREDIENTS
                         const ingredients = productListToadd.value
@@ -266,7 +269,7 @@
                             "Body": ingredients,
                             "DisplayOrder": 1,
                             "TypeCode": "ING"
-                        }]);
+                        }], _token);
 
                         // Upload de l'image de couverture si fournie
                         if (plateInfo.value.Image) {
@@ -277,7 +280,7 @@
                                     "Body": uploadedCtn,
                                     "DisplayOrder": 1,
                                     "TypeCode": 'COVER'
-                                }]);
+                                }], _token);
                             }
                         }
                         router.push({ path: '/plates' });
@@ -290,7 +293,7 @@
                         plateInfo.value.Description !== props.plate.Description ||
                         plateInfo.value.CategoryCode !== props.plate.CategoryCode ||
                         plateInfo.value.BasePrice !== props.plate.BasePrice) {
-                        await updatePlate(plateInfo.value);
+                        await updatePlate(plateInfo.value, _token);
                     }
 
                     // 2. Gestion des produits/compositions
@@ -327,9 +330,9 @@
 
                         // Exécution en parallèle des opérations
                         await Promise.all([
-                            updates.new.length && createConsistency(updates.new),
-                            ...updates.existing.map(p => UpdateConsistency(p)),
-                            ...updates.remove.map(p => UpdateConsistency({ ...p, QuantityOfConsumption: 0 }))
+                            updates.new.length && createConsistency(updates.new, _token),
+                            ...updates.existing.map(p => UpdateConsistency(p, _token)),
+                            ...updates.remove.map(p => UpdateConsistency({ ...p, QuantityOfConsumption: 0 }, _token))
                         ]);
 
                         // Nettoyage des produits supprimés
@@ -339,7 +342,7 @@
                     }
 
                     // 3. Récupération des contenus existants
-                    const existingContent = await fetchContent(plateInfo.value.Code || '');
+                    const existingContent = await fetchContent(plateInfo.value.Code || '', _token);
                     const allContents = existingContent.body.results.flatMap((r: any) => r.content);
                     
                     // 4. Gestion des ingrédients
@@ -354,14 +357,14 @@
                         .join('; ');
 
                     if (ingContent) {
-                        await updateContent({ ...ingContent, Body: ingredients });
+                        await updateContent({ ...ingContent, Body: ingredients }, _token);
                     } else if (ingredients) {
                         await createContent([{
                             "PlatCode": plateInfo.value.Code,
                             "Body": ingredients,
                             "DisplayOrder": 1,
                             "TypeCode": "ING"
-                        }]);
+                        }], _token);
                     }
 
                     // 5. Gestion des médias (images/vidéos)
@@ -383,9 +386,9 @@
                             };
 
                             if (mediaContent) {
-                                await updateContent({ ...mediaContent, ...mediaUpdate });
+                                await updateContent({ ...mediaContent, ...mediaUpdate }, _token);
                             } else {
-                                await createContent([mediaUpdate]);
+                                await createContent([mediaUpdate], _token);
                             }
                         }
                     }
@@ -404,9 +407,9 @@
                             };
 
                             if (coverContent) {
-                                await updateContent({ ...coverContent, ...coverUpdate });
+                                await updateContent({ ...coverContent, ...coverUpdate }, _token);
                             } else {
-                                await createContent([coverUpdate]);
+                                await createContent([coverUpdate], _token);
                             }
                         }
                     }
@@ -543,7 +546,7 @@
     }
 
     const getProduct = async () => {
-        const result = await fetchProduct();
+        const result = await fetchProduct(_token);
         rawProduct.value = result;
         productList.value = result.map((item: any) => {
             return {
@@ -560,7 +563,7 @@
 
     onBeforeMount(async () => {
         await getProduct();
-        await fetchPlate()
+        await fetchPlate(_token)
         if (props.action === "update") {
             if (props.plate) {
                 plateInfo.value = {
@@ -569,8 +572,8 @@
                 };
                 const plateCode = props.plate.Code
 
-                const contentResponse = await fetchContent(plateCode);
-                const consistencyResponse: ApiResponse = await getConsistency(plateCode);
+                const contentResponse = await fetchContent(plateCode, _token);
+                const consistencyResponse: ApiResponse = await getConsistency(plateCode, _token);
 
                 const ingredientMap = contentResponse.body.results.flatMap((result: any) =>
                     result.content

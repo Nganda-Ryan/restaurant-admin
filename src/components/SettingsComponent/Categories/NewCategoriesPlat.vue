@@ -4,6 +4,7 @@ import router from '@/router';
 import Spinner from '@/components/Utilities/Spinner.vue';
 import DefaultCard from '@/components/Forms/DefaultCard.vue';
 import { useConfigStore } from '@/stores/config';
+import { useAuthStore } from '@/stores/auth';
 import type { PlateOption, Content, Composition, Compositions, ProductOption, ResultItem, ApiResponse, composition, Categorieplat } from '@/services/serviceInterface';
 import ButtonAction from '@/components/Buttons/ButtonAction.vue';
 import InputGroup from '@/components/Forms/InputGroup.vue';
@@ -17,6 +18,8 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const configStore = useConfigStore();
+const authStore = useAuthStore();
+const _token = authStore.jwt;   
 const isSaving = ref<boolean>(false);
 const emits = defineEmits(['cancel', "save", "back", "created"]);
 const storedData = localStorage.getItem('profiles');
@@ -118,11 +121,11 @@ const saveCategories = async () => {
         console.log('payload.categorieplate', payload);
         if (props.action === "add") {
             console.log('payload', payload);
-            const result = await createCategoriePlate(payload);
+            const result = await createCategoriePlate(payload, _token);
             console.log('createdCategories', result);
         } else if (props.action === "update") {
             // Pour l'update, on suppose qu'on ne gère qu'un seul formulaire
-            const result = await updateCategoriePlat(payload[0]);
+            const result = await updateCategoriePlat(payload[0], _token);
             console.log('updateCategorieplate', result);
         }
 

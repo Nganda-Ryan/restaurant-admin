@@ -41,7 +41,8 @@
 
 const fetchRestaurant = async () => {
   try {
-    const response = await fetchResto();
+    const _token = authStore.jwt;
+    const response = await fetchResto(_token);
     configStore.restaurantInfo = response;
     console.log('data.inforestaurant:', configStore.restaurantInfo);
     
@@ -69,7 +70,7 @@ const fetchRestaurant = async () => {
   }
 }
 
-  const fetchUser = async () => {
+/*   const fetchUser = async () => {
     try {
       const response = await getUser()
       const userData = response.user || {}
@@ -77,6 +78,7 @@ const fetchRestaurant = async () => {
       configStore.users = response.user
       configStore.profiles = response.profiles
       const restaurantCode = profileData[0]?.RestaurantCode || ''
+      const userRole = profileData[0]?.RoleCode || 'CASHIER';
       const email = userData.Email
       console.log('data.user', configStore.users)
       console.log('data.profiles', configStore.profiles)
@@ -87,15 +89,17 @@ const fetchRestaurant = async () => {
       localStorage.setItem("profiles", JSON.stringify(configStore.profiles))
       localStorage.setItem('restaurantCode', restaurantCode)
       localStorage.setItem('euser', email)
+      localStorage.setItem('userRole', userRole)
       console.log('Données utilisateur récupérées:', userData, profileData)
       console.log('Utilisateur:', response)
     } catch(error) {
       console.error('Erreur getUser:', error)
     }
-  }
+  } */
   const init = async () => {
     try {
-      const config = await fetchConfig();
+      const _token = authStore.jwt;
+      const config = await fetchConfig(_token);
       console.log ("data.config",config);
       configStore.plateCategories = config.PlatCategories;
       configStore.productCategories = config.ProductCategories;
@@ -104,16 +108,16 @@ const fetchRestaurant = async () => {
       console.log("DefaultLayout.fetchMenu.error: " + err)
     } 
   };
+  const role = authStore.RoleCode;
+  const email = authStore.userEmail;
   onBeforeMount(() => {
   authStore.initializeFromLocalStorage(); // Charge les données persistées AVANT le rendu
 });
   onMounted(async () => {
     await init();
-    await fetchUser()
+    //await fetchUser()
     await fetchRestaurant()
-    localStorage.getItem("user")
-    localStorage.getItem("profiles")
-    authStore.ws
+    console.log('Configuration récupérée@@@@@@@@@', configStore.plateCategories, configStore.productCategories, configStore.quantityUnits);
   });
 </script>
 

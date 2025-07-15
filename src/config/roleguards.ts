@@ -1,5 +1,5 @@
 // Types de base
-type Role = 'OWNER' |'ADMIN'| 'MANAGER' | 'HEAD_CHEF' | 'CASHIER' | 'INVENTORY_MGR';
+export type Role = 'OWNER' |'ADMIN'| 'MANAGER' | 'HEAD_CHEF' | 'CASHIER' | 'INVENTORY_MGR';
 /* type Permission = 
   | 'view_all'
   | 'manage_all'
@@ -44,33 +44,31 @@ export const ROLE_MENU_ACCESS: Record<Role, MenuAccess> = {
   'OWNER': {
     allowedMenus: [
       'Dashboard',
-      'Menu',
-      'Orders',
-      'Reservations',
-      'Inventory',
-      'Staff',
-      'Reports',
-      'Finances',
+      'Commandes',
+      'Menus',
+      'Ardoise',
+      'Plates',
+      'Produits',
+      'Stocks',
       'Settings'
     ],
   },
     'ADMIN': {
     allowedMenus: [
       'Dashboard',
-      'Menu',
-      'Orders',
-      'Reservations',
-      'Inventory',
-      'Staff',
-      'Reports',
-      'Finances',
+      'Commandes',
+      'Menus',
+      'Ardoise',
+      'Plates',
+      'Produits',
+      'Stocks',
       'Settings'
     ],
   },
   'MANAGER': {
     allowedMenus: [
       'Dashboard',
-      'Menu',
+      'Menus',
       'Plates',
       'Produits',
       'Stocks',
@@ -102,4 +100,9 @@ export const ROLE_MENU_ACCESS: Record<Role, MenuAccess> = {
 // Fonction pour vérifier si un rôle peut accéder à un menu
 export function canAccessMenu(role: Role, menu: string): boolean {
   return ROLE_MENU_ACCESS[role].allowedMenus.includes(menu);
+}
+
+// Fonction utilitaire pour comparer les rôles
+export function hasHigherRole(userRole: Role, requiredRole: Role): boolean {
+  return ROLE_HIERARCHY[userRole] <= ROLE_HIERARCHY[requiredRole];
 }

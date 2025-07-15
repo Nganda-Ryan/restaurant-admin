@@ -6,6 +6,7 @@
     import InputGroup from '@/components/Forms/InputGroup.vue';
     import type { Content, Product, Stocks} from '@/services/serviceInterface';
     import { useConfigStore } from '@/stores/config';
+    import { useAuthStore } from '@/stores/auth';
     import type Option from '../../../src/components/Utilities/interfaceModel';
     import { createstocks, fetchProduct } from '@/services/database';
     import EventBus from '@/EventBus';
@@ -13,8 +14,10 @@
 
     const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
     const configStore = useConfigStore();
+    const authStore = useAuthStore();
     const isSaving = ref<Boolean>(false);
     const products = ref<Product[]>([]);
+    const _token = authStore.jwt;
     const stockForms = ref<Stocks[]>([{
         "code": "",
         "quantity": 0,
@@ -33,7 +36,7 @@
     // Récupérer la liste des produits pour le select
     const fetchProductsList = async() => {
         try {
-            const result = await fetchProduct();
+            const result = await fetchProduct(_token);
             products.value = Array.isArray(result) ? result : [result];
         } catch(error) {
             console.error('error.fetchProducts', error);
@@ -90,7 +93,7 @@
             }));
 
             if(props.action == "add") {
-                result = await createstocks(payload);
+                result = await createstocks(payload, _token);
                 console.log('data.create', result)
             } else if(props.action == "update") {
                 // result = await updateStock(payload);

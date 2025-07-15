@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { account, getUser } from "@/services/database";
 import type { User, Profile } from "@/services/serviceInterface";
+import { AppwriteException } from "appwrite";
 
 export const useAuthStore = defineStore("authentication", {
   state: () => ({
@@ -13,6 +14,7 @@ export const useAuthStore = defineStore("authentication", {
     ws: null as WebSocket | null,
     isLoading: false,
     restoname: "" as string,
+    RoleCode: "" as string,
     lastTokenUpdate: null as Date | null,
     tokenRefreshInterval: null as ReturnType<typeof setInterval> | null,
   }),
@@ -66,79 +68,78 @@ export const useAuthStore = defineStore("authentication", {
                 messageInput = '';
             }
     },
-    async fetchUserData() {
+    async fetchUserData(token: string) {
       try {
-        const response = await getUser();
-        const userData = response.user || {};
-        const profileData = response.profiles || [];
+        if(token){
+          const response = await getUser(token);
+          const userData = response.user || {};
+          const profileData = response.profiles || [];
+          
+          // Mise à jour du state sans toucher à this.user
+          this.users = userData;
+          this.profiles = profileData;
+          this.restaurantCode = profileData[0]?.RestaurantCode || '';
+          this.userEmail = userData.Email;
+          this.RoleCode = profileData[0]?.RoleCode;
+
+          // Persistance dans le localStorage
+          localStorage.setItem("user", JSON.stringify(userData));
+          localStorage.setItem("profiles", JSON.stringify(profileData));
+          localStorage.setItem('restaurantCode', this.restaurantCode);
+          localStorage.setItem('euser', this.userEmail);
+          localStorage.setItem('userRole',this.RoleCode);
+          console.log('User role stored:', this.RoleCode); // Ajouté pour débogage
+          
+          console.log('Données utilisateur mises à jour:', {
+            users: this.users,
+            profiles: this.profiles,
+            restaurantCode: this.restaurantCode,
+            email: this.userEmail,
+            role: this.RoleCode
+          });
+
+          return response;
+          
+        } else {
+          console.warn("Aucun token trouvé dans le localStorage.");
+          throw new Error("Token not found");
+        }
         
-        // Mise à jour du state sans toucher à this.user
-        this.users = userData;
-        this.profiles = profileData;
-        this.restaurantCode = profileData[0]?.RestaurantCode || '';
-        this.userEmail = userData.Email;
-
-        // Persistance dans le localStorage
-        localStorage.setItem("user", JSON.stringify(userData));
-        localStorage.setItem("profiles", JSON.stringify(profileData));
-        localStorage.setItem('restaurantCode', this.restaurantCode);
-        localStorage.setItem('euser', this.userEmail);
-
-        console.debug('Données utilisateur mises à jour:', {
-          users: this.users,
-          profiles: this.profiles,
-          restaurantCode: this.restaurantCode,
-          email: this.userEmail
-        });
-
-        return response;
       } catch (error) {
         console.error('Erreur lors de la récupération des données utilisateur:', error);
         throw error;
       }
     },
-/*     async login(email: string, password: string) {
-      this.isLoading = true;
-      try {
-        await account.createEmailPasswordSession(email, password);
-        await this.getToken();
-        await account.get(); // Récupère l'utilisateur connecté
-        this.initializeFromLocalStorage(); // Charge les données persistées
-        await this.fetchUserData();
-        // Récupère les données supplémentaires
-        this.startTokenAutoRefresh();
-        return true;
-      } catch (error) {
-        console.error("Login error:", error);
-        throw error;
-      } finally {
-        this.isLoading = false;
-      }
-    }, */
-     async login(email: string, password: string) {
+    async login(email: string, password: string) {
       console.log("Tentative de connexion avec:", { email, password });
-      this.isLoading = true;
       try {
-        try {
-          this.user = await account.get();
-          if (this.user) return true; // Si l'utilisateur est déjà connecté, on retourne true
-        } catch {
-          // Ignorer si aucune session existante
+        console.log('inside the try block of login');
+        const _userSession = await account.createEmailPasswordSession(email, password);
+        if(_userSession){
+          console.log('@@@@@before the getToken');
+          const userToken = await this.getToken();
+          if(userToken) {
+            this.setJWT(userToken);
+            console.log('@@@@@after the getToken');
+            await this.fetchUserData(userToken);
+            console.log('@@@@@after the fetchData');
+            this.startTokenAutoRefresh();
+            return true;
+          } else {
+            console.error("Échec de la récupération du token après la connexion.");
+            throw new Error("Failed to retrieve token after login");
+          }
+        } else {
+          console.error("Échec de la création de la session utilisateur.");
+          throw new Error("Failed to create user session");
         }
-
-        await account.createEmailPasswordSession(email, password);
-        await this.getToken();
-         await account.get(); // Récupère l'utilisateur connecté
-        this.initializeFromLocalStorage(); // Charge les données persistées
-        await this.fetchUserData();
-
-        // Démarrer le système de renouvellement automatique
-        this.startTokenAutoRefresh();
-
-        return true;
+        
       } catch (error) {
-        console.error("Login error:", error);
-        throw error;
+        if (error instanceof AppwriteException && error.type == "user_session_already_exists") {
+          return true;
+        }
+        console.error("Login error:", AppwriteException || error);
+        return false;
       } finally {
         this.isLoading = false;
       }
@@ -160,6 +161,7 @@ export const useAuthStore = defineStore("authentication", {
     },
 
     setJWT(token: string) {
+      
       this.jwt = token;
       localStorage.setItem("jwt", token);
       this.lastTokenUpdate = new Date();
@@ -187,30 +189,37 @@ export const useAuthStore = defineStore("authentication", {
 
     async refreshToken() {
       try {
-        if (!this.isAuthenticated) return;
+        if (!this.isAuthenticated) {
+          console.warn("Refresh token tenté sans utilisateur authentifié");
+          return false;
+        }
 
         console.log("Rafraîchissement automatique du token...");
         const jwtResponse = await account.createJWT();
+        
+        if (!jwtResponse?.jwt) {
+          throw new Error("Réponse JWT invalide");
+        }
+        
         this.setJWT(jwtResponse.jwt);
+        return true;
+        
       } catch (error) {
         console.error("Erreur lors du rafraîchissement du token:", error);
-        // En cas d'erreur, on déconnecte l'utilisateur
         await this.logout();
+        return false;
       }
     },
-
     startTokenAutoRefresh() {
-      // Arrêter l'intervalle existant s'il y en a un
-      if (this.tokenRefreshInterval) {
-        clearInterval(this.tokenRefreshInterval);
-      }
+  this.stopTokenAutoRefresh(); // Nettoyage préalable
 
-      // Rafraîchir le token toutes les 14 minutes (840000 ms)
-      this.tokenRefreshInterval = setInterval(() => {
-        // this.refreshToken();
-        this.getToken();
-      }, 14 * 60 * 1000); // 14 minutes
-    },
+    // Rafraîchir immédiatement puis toutes les 14 minutes
+    this.refreshToken().catch(console.error);
+    
+    this.tokenRefreshInterval = setInterval(() => {
+      this.refreshToken().catch(console.error);
+    }, 14 * 60 * 1000); // 14 minutes
+  },
 
     stopTokenAutoRefresh() {
       if (this.tokenRefreshInterval) {
@@ -249,6 +258,7 @@ export const useAuthStore = defineStore("authentication", {
         this.profiles = JSON.parse(localStorage.getItem('profiles') || '[]');
         this.restaurantCode = localStorage.getItem('restaurantCode') || '';
         this.userEmail = localStorage.getItem('euser') || '';
+        this.RoleCode = localStorage.getItem('RoleCode') || '';
       }
     },
     async checkAuth() {
@@ -265,6 +275,7 @@ export const useAuthStore = defineStore("authentication", {
         localStorage.removeItem('jwt');
         localStorage.removeItem('user');
         localStorage.removeItem('profiles');
+        localStorage.removeItem('userRole');
         this.stopTokenAutoRefresh();
         this.$reset();
         return false;
@@ -289,5 +300,5 @@ export const useAuthStore = defineStore("authentication", {
       }
     },
   },
-  // persist: true,
+  persist: true,
 });

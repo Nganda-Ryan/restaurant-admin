@@ -15,7 +15,13 @@
     import { isExpiry } from '@/components/Utilities/UtilitiesFunction';
     import type ToastPayload from '@/types/Toast';
     import EventBus from '@/EventBus';
+    import { useAuthStore } from '@/stores/auth';
 
+
+
+
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
 
 
     const storedData = localStorage.getItem('profiles');
@@ -140,7 +146,7 @@
             await deleteMenuItem([{
                 "PlateCode": ts.Code,
                 "MenuCode": menuInfo.value.Code
-            }])
+            }], _token);
 
             const toastPayload: ToastPayload = {
                 type: "success",
@@ -181,7 +187,7 @@
         try {
             isDeleting.value = true;
             console.log('menuifa.code', menuInfo.value.Code)
-            await deleteMenu([{Code: menuInfo.value.Code}])
+            await deleteMenu([{Code: menuInfo.value.Code}], _token);
     
             router.push({path: '/menus'})
         } catch (e) {
@@ -207,7 +213,7 @@
             action.value = params.action;
             menuCode.value = params.menucode;
 
-            const result = await fetchSingleMenu(menuCode.value);
+            const result = await fetchSingleMenu(menuCode.value, _token);
             console.log('result', result)
             menuInfo.value = result[0].Menu;
             console.log('result[0].Menu', result[0].Menu)

@@ -12,12 +12,15 @@
     import EventBus from '@/EventBus';
     import type ToastPayload from '@/types/Toast';
     import { useVueToPrint } from 'vue-to-print';
+    import { useAuthStore } from '@/stores/auth';
     const baseBtnStyle = "text-slate-900 bg-white border border-slate-300 focus:outline-none hover:bg-slate-100 focus:ring-4 focus:ring-slate-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:hover:bg-slate-700 dark:hover:border-slate-600 dark:focus:ring-slate-700"
     const printRef = ref<HTMLElement | null>(null);
     interface Param {
         action: string,
         ticketcode: string
     }
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
     const ticketCode = ref('');
     const ticketInfo = ref<any>({});
     const plateInfo = ref<any>({});
@@ -39,7 +42,7 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"DRAFT"
-                });
+                }, _token);
                 ticketInfo.value.StatusCode = 'DRAFT';
                 const payload: ToastPayload = {
                     type: "info",
@@ -66,7 +69,7 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"IN PROGRESS"
-                });
+                }, _token);
                 ticketInfo.value.StatusCode = 'IN PROGRESS'
                 const payload: ToastPayload = {
                     type: "info",
@@ -93,7 +96,7 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"COMPLETED"
-                });
+                }, _token);
                 ticketInfo.value.StatusCode = 'COMPLETED';
                 const payload: ToastPayload = {
                     type: "success",
@@ -120,7 +123,7 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"CANCELED"
-                });
+                }, _token);
                 ticketInfo.value.StatusCode = 'CANCELED';
                 const payload: ToastPayload = {
                     type: "success",
@@ -153,7 +156,7 @@ const { handlePrint } = useVueToPrint({
                     {
                         Code: ticketInfo.value.Code
                     }
-                ])
+                ], _token);
                 
                 const payload: ToastPayload = {
                     type: "success",
@@ -186,7 +189,7 @@ const { handlePrint } = useVueToPrint({
         const params = router.currentRoute.value.params as unknown as Param;
         ticketCode.value = params.ticketcode;
         console.log('*** params', ticketCode.value, params);
-        const result = await fetchSingleOrder(params.ticketcode);
+        const result = await fetchSingleOrder(params.ticketcode, _token);
         
         console.log('*** result', result)
         

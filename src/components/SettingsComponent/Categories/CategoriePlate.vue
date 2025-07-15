@@ -6,6 +6,7 @@
     import type { Categorieplat } from '@/services/serviceInterface';
     import router from '@/router';
     import { useConfigStore } from '@/stores/config';
+    import { useAuthStore } from '@/stores/auth';
     import { useRoute, useRouter } from 'vue-router';
     import Spinner from '@/components/Utilities/Spinner.vue';
     import { useI18n } from 'vue-i18n'
@@ -17,6 +18,8 @@
     const NewCategorieForm = defineAsyncComponent(() => import('@/components/SettingsComponent/Categories/NewCategoriesPlat.vue'));
     const { t } = useI18n()
 
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
     const isEditing = ref<Boolean>(false);
     const isModalOpen = ref(false);
     const isDeleting = ref(false);
@@ -110,7 +113,7 @@
         categorieplateCode.value = params.categorieplateCode;
         try {
             
-            const result = await fetchCategoriePlate();
+            const result = await fetchCategoriePlate(_token);
             rawCategories.value = result; // Stocke les données brutes
         Categories.value = result.map((categorie: Categorieplat) => ({
             ...categorie, // Inclut TOUS les champs (dont Code)
@@ -141,7 +144,7 @@
         try {
             console.log('deleteAction')
              isDeleting.value = true;
-            await deleteCategoriePlat([{Code: CategorieplateInfo.value.Code}])
+            await deleteCategoriePlat([{Code: CategorieplateInfo.value.Code}], _token)
             router.push({path: '/settings'})
         } catch (e) {
             console.log("PlateDetails.handleDeletePlate.error", e)

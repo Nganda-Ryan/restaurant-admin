@@ -10,11 +10,14 @@
     import router from '@/router';
     import { useRoute } from 'vue-router';
     import { useI18n } from 'vue-i18n';
+    import { useAuthStore } from '@/stores/auth';
 
     const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
     const PopupModal = defineAsyncComponent(() => import('@/components/Modals/PopupModal.vue'));
     const NewTableForm = defineAsyncComponent(() => import('@/components/SettingsComponent/Tables/NewTables.vue'));
-    
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
+
     // États du composant
     const isEditing = ref<Boolean>(false);
     const isModalOpen = ref(false);
@@ -125,7 +128,7 @@ console.log('RestaurantCode:', restaurantCode);
 const fetchTables = async () => {
     isloading.value = true;
     try {
-        const response = await fetchResto();
+        const response = await fetchResto(_token);
         // Accéder directement au tableau des tables
          if (response?.tables && Array.isArray(response.tables)) {
             tables.value = response.tables.map((table:Table) => ({
@@ -184,9 +187,10 @@ const fetchTables = async () => {
     };
 
     const deleteAction = async () => {
+
         try {
             isDeleting.value = true;
-            const response = await deleteTable([{Code: TableInfo.value.Code}]);
+            const response = await deleteTable([{Code: TableInfo.value.Code}], _token);
             console.log('delete.response', TableInfo.value.Code)
             router.push({path: '/settings'});
         } catch (e) {

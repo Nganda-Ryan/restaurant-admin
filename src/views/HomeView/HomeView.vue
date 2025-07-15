@@ -5,8 +5,12 @@
   import { fetchOrder, updateOrder } from '@/services/database';
   import EventBus from '@/EventBus';
   import type ToastPayload from '@/types/Toast';  
+  import { useAuthStore } from '@/stores/auth';
 
   const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
+
+  const authStore = useAuthStore();
+  const _token = authStore.jwt;
 
   const isloading = ref(false);
   const ORANGE = 'bg-orange-300 rounded';
@@ -119,7 +123,7 @@
   const fetchTicket = async () => {
     isloading.value = true;
     try {
-      const result = await fetchOrder();
+      const result = await fetchOrder(_token);
       const ticketList = result.map((ticket: any) => {
         let color = '';
         let event = 'kitchen';
@@ -171,7 +175,7 @@
         const result  = await updateOrder({
           "Code": ts.code,
           "StatusCode":"DRAFT"
-        });
+        }, _token);
         tickets.value.forEach((ticket: any) => {
           if (ticket.code === ts.code) {
             ticket.class = ORANGE;
@@ -204,7 +208,7 @@
         const result  = await updateOrder({
           "Code": ts.code,
           "StatusCode":"IN PROGRESS"
-        });
+        }, _token);
         tickets.value.forEach((ticket: any) => {
           if (ticket.code === ts.code) {
             ticket.class = BLUE;
@@ -237,7 +241,7 @@
         const result  = await updateOrder({
           "Code": ts.code,
           "StatusCode":"COMPLETED"
-        });
+        }, _token);
         tickets.value.forEach((ticket: any) => {
           if (ticket.code === ts.code) {
             ticket.class = GREEN;
@@ -272,7 +276,7 @@
         const result  = await updateOrder({
           "Code": ts.code,
           "StatusCode":"CANCELED"
-        });
+        }, _token);
         tickets.value.forEach((ticket: any) => {
           if (ticket.code === ts.code) {
             ticket.class = RED;
