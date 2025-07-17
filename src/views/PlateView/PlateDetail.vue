@@ -5,6 +5,7 @@
     import { fetchPlate } from '@/services/database';
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import DefaultCardSkeleton from '@/components/Forms/DefaultCardSkeleton.vue';
+    import { QuillEditor } from '@vueup/vue-quill';
     const Spinner = defineAsyncComponent(() => import('@/components/Utilities/Spinner.vue'));
     const NewPlateForm = defineAsyncComponent(() => import('./NewPlateForm.vue'));
     import { defineAsyncComponent } from 'vue';
@@ -13,11 +14,19 @@
     const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
     import ButtonAction from '@/components/Buttons/ButtonAction.vue';
     const InputGroup = defineAsyncComponent(() => import('@/components/Forms/InputGroup.vue'));
+     const content = ref<string>('');
+
 
     interface Param {
         action: string,
         platecode: string
     }
+    const imagePreviews = ref<Array<{ 
+    file: File; 
+    url: string; 
+    name: string;
+    type: 'image' | 'video'
+    }>>([]);
     const plateCode = ref('');
     const plateInfo = ref<PlateInfo>({
         "Code": "",
@@ -29,11 +38,39 @@
         "Likes": 0,
         "content": []
     });
+    const toolbarOptions = [
+        ['bold', 'italic', 'underline', 'strike'],        // Styles de texte
+        ['blockquote', 'code-block'],                     // Blocs
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],       // En-têtes
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],     // Listes
+        [{ 'script': 'sub' }, { 'script': 'super' }],      // Exposant/indice
+        [{ 'indent': '-1' }, { 'indent': '+1' }],         // Indentation
+        [{ 'direction': 'rtl' }],                         // Sens d'écriture
+        [{ 'size': ['small', false, 'large', 'huge'] }],  // Taille police
+        [{ 'header': 1 }, { 'header': 2 }],               // En-têtes alternatifs
+        [{ 'color': [] }, { 'background': [] }],          // Couleurs
+        [{ 'font': [] }],                                 // Polices
+        [{ 'align': [] }],                                // Alignement
+        ['link'],                                         // Liens (conservé)
+        ['clean']                           
+    ];
     const isLoading = ref(true);
     const isEditing = ref<Boolean>(false);
     const isModalOpen = ref(false);
     const isDeleting = ref(false);
     const ingredients = ref<any []>([]);
+
+    const fullscreenImage = ref({
+    visible: false,
+    url: ''
+    });
+
+    const showFullscreenImage = (url: string) => {
+        fullscreenImage.value = {
+            visible: true,
+            url: url
+        };
+    };
 
     const handleEditPlate = (e: any) => {
         console.log("handleEditPlate", plateInfo.value);
@@ -79,7 +116,7 @@
         try {
             const result = await fetchPlate();
             
-            console.log('result', result)
+            console.log('resultinfoplate', result)
             plateInfo.value = result.filter((item: any) => item.Code == params.platecode)[0];
             ingredients.value = plateInfo.value.content
                 .filter((item:any) => item.typex.Code == 'ING')
@@ -88,6 +125,27 @@
                 .map((item:any) => item.trim()) // Nettoyer les espaces
                 .filter((item:any) => item !== '') // Supprimer les éléments vides
                 .map((item:any) => item.replace(/:$/, '')); // Supprimer les deux points en fin de ligne
+           imagePreviews.value = plateInfo.value.content
+            .filter((item: any) => item.typex?.Code === 'IMG' || item.typex?.Code === 'VIDEO_DESC')
+            .flatMap((item: any) => {
+                if (!item.Body) return [];
+                return item.Body.split(',')
+                    .filter((url: string) => url.trim() !== '')
+                    .map((url: string) => ({
+                        file: null,
+                        url: url.trim(),
+                        name: item.typex?.Code === 'IMG' ? 'Image' : 'Video',
+                        type: item.typex?.Code === 'IMG' ? 'image' : 'video'
+                    }));
+            });
+
+             // Récupération du contenu historique
+            const histItem = plateInfo.value.content
+                .find((item: any) => item.typex?.Code === 'HIST');
+            
+            if (histItem && histItem.Body) {
+                content.value = histItem.Body;
+            }
 
             console.log('param', params);
             console.log('ingredients.value', ingredients.value);
@@ -144,9 +202,9 @@
                         </div>
                     </form>
 
-                        <div v-if="ingredients" class="w-full px-6 font-bold gap-2.5 py-2 hover:bg-opacity-90 lg:px-6 xl:px-6 text-white bg-gradient-to-r from-olive-800 to-olive-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 text-sm me-2 mb-2">
-                            INGREDIENT(S)
-                        </div> 
+                    <div v-if="ingredients" class="w-full px-6 font-bold gap-2.5 py-2 hover:bg-opacity-90 lg:px-6 xl:px-6 text-white bg-gradient-to-r from-olive-800 to-olive-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 text-sm me-2 mb-2">
+                        INGREDIENT(S)
+                    </div> 
                     <div class="px-6.5 py-2">
                         <ul>
                             <li v-for="item in ingredients" :key="item" class="flex items-center">
@@ -156,6 +214,36 @@
                                 {{ item }}
                             </li>
                         </ul>
+                    </div>
+                    <div v-if="content" class="w-full px-6 font-bold gap-2.5 py-2 mb-10 mt-8 hover:bg-opacity-90 lg:px-6 xl:px-6 text-white bg-gradient-to-r from-olive-800 to-olive-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 text-sm me-2">
+                        HISTORIQUE
+                    </div>
+                    <div v-if="content" class="ql-editor-style" v-html="content"></div>
+                    <div v-if="imagePreviews && imagePreviews.length > 0" class="w-full px-6 font-bold gap-2.5 py-2 mb-10 mt-8 hover:bg-opacity-90 lg:px-6 xl:px-6 text-white bg-gradient-to-r from-olive-800 to-olive-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 text-sm me-2">
+                        MULTIMEDIA
+                    </div>
+                    <div v-if="imagePreviews && imagePreviews.length > 0" class="mb-8">
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div v-for="(preview, index) in imagePreviews" :key="index" class="relative group">
+                                <!-- Image avec ouverture dans un nouvel onglet -->
+                                <template v-if="preview.type === 'image'">
+                                    <a :href="preview.url" target="_blank" rel="noopener noreferrer">
+                                        <img 
+                                            :src="preview.url"
+                                            :alt="`Preview ${index + 1}`"
+                                            class="w-full h-32 object-cover rounded-lg border-2 border-gray-200 hover:opacity-90" />
+                                    </a>
+                                </template>
+                                <!-- Vidéo -->
+                                <template v-else>
+                                    <video
+                                        controls
+                                        class="w-full h-32 object-cover rounded-lg border-2 border-gray-200">
+                                        <source :src="preview.url" :type="preview.file?.type || 'video/mp4'">
+                                    </video>
+                                </template>
+                            </div>
+                        </div>
                     </div>
                 </DefaultCard>
             </template>
@@ -185,3 +273,24 @@
     </div>
     </div>
 </template>
+<style scoped>
+    .ql-editor-style {
+    padding: 16px;
+    height: 150px;
+    overflow-y: auto;
+    text-align: left; /* Pour le centrage */
+    font-size: 0.875rem; /* Taille de texte similaire */
+    color: #000; /* Texte noir */
+    }
+
+    .ql-editor-style >>> p {
+        margin-bottom: 0.5rem; /* Espacement entre paragraphes */
+        line-height: 1.5; /* Interligne */
+    }
+
+    .ql-editor-style >>> img {
+        max-width: 100%; /* Pour les images éventuelles */
+        height: auto;
+        display: inline-block; /* Pour le centrage */
+    }
+</style>

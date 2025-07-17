@@ -19,6 +19,7 @@
     import TableOne from '@/components/Tables/TableOne.vue';
     import { QuillEditor } from '@vueup/vue-quill';
     import '@vueup/vue-quill/dist/vue-quill.snow.css';
+    import { image } from '@cloudinary/url-gen/qualifiers/source';
 
 
     const storedData = localStorage.getItem('profiles');
@@ -130,26 +131,24 @@
     const stopAction = () => {
         emits('cancel', reloadView.value);
     }
-    const saveContent = ( event: Event) => {
+    const saveContent = () => {
         console.log(content.value);
-        event.stopPropagation();
-        event.preventDefault();
     };
     const toolbarOptions = [
-    ['bold', 'italic', 'underline', 'strike'],        // Styles de texte
-    ['blockquote', 'code-block'],                     // Blocs
-    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],       // En-têtes
-    [{ 'list': 'ordered' }, { 'list': 'bullet' }],     // Listes
-    [{ 'script': 'sub' }, { 'script': 'super' }],      // Exposant/indice
-    [{ 'indent': '-1' }, { 'indent': '+1' }],         // Indentation
-    [{ 'direction': 'rtl' }],                         // Sens d'écriture
-    [{ 'size': ['small', false, 'large', 'huge'] }],  // Taille police
-    [{ 'header': 1 }, { 'header': 2 }],               // En-têtes alternatifs
-    [{ 'color': [] }, { 'background': [] }],          // Couleurs
-    [{ 'font': [] }],                                 // Polices
-    [{ 'align': [] }],                                // Alignement
-    ['link'],                                         // Liens (conservé)
-    ['clean']                           
+        ['bold', 'italic', 'underline', 'strike'],        // Styles de texte
+        ['blockquote', 'code-block'],                     // Blocs
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],       // En-têtes
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],     // Listes
+        [{ 'script': 'sub' }, { 'script': 'super' }],      // Exposant/indice
+        [{ 'indent': '-1' }, { 'indent': '+1' }],         // Indentation
+        [{ 'direction': 'rtl' }],                         // Sens d'écriture
+        [{ 'size': ['small', false, 'large', 'huge'] }],  // Taille police
+        [{ 'header': 1 }, { 'header': 2 }],               // En-têtes alternatifs
+        [{ 'color': [] }, { 'background': [] }],          // Couleurs
+        [{ 'font': [] }],                                 // Polices
+        [{ 'align': [] }],                                // Alignement
+        ['link'],                                         // Liens (conservé)
+        ['clean']                           
     ];
     const getAction = (act: string | undefined) => {
         switch (act) {
@@ -182,8 +181,14 @@
         const target = event.target as HTMLInputElement;
         const files = Array.from(target.files ?? []);
         
+        const newPreviews: Array<{ 
+            file: File; 
+            url: string; 
+            name: string;
+            type: 'image' | 'video'
+        }> = [];
+
         files.forEach((file) => {
-            // Vérifie si c'est une image ou une vidéo
             if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
                 EventBus.emit('showToast', {
                     type: 'danger',
@@ -192,7 +197,7 @@
                 return;
             }
 
-            if (file.size > 50 * 1024 * 1024) { // Augmentez la limite à 50MB pour les vidéos
+            if (file.size > 50 * 1024 * 1024) {
                 EventBus.emit('showToast', {
                     type: 'danger',
                     message: `Le fichier ${file.name} ne peut pas dépasser 50MB.`
@@ -202,12 +207,17 @@
 
             const reader = new FileReader();
             reader.onload = (e) => {
-                imagePreviews.value.push({
+                newPreviews.push({
                     file,
                     url: e.target?.result as string,
                     name: file.name,
                     type: file.type.startsWith('video/') ? 'video' : 'image'
                 });
+                
+                // Une fois tous les fichiers traités, fusionnez avec les existants
+                if (newPreviews.length === files.length) {
+                    imagePreviews.value = [...imagePreviews.value, ...newPreviews];
+                }
             };
             reader.readAsDataURL(file);
         });
@@ -366,30 +376,94 @@
 
                     // 5. Gestion des médias (images/vidéos)
                     if (imagePreviews.value.length > 0) {
-                        const mediaContent = allContents.find((c: any) => 
-                            c.TypeCode === "IMG" || c.TypeCode === "VIDEO_DESC"
-                        );
+                        // Séparer les images et vidéos
+                        //const images = imagePreviews.value.filter(p => p.type === 'image');
+                        const videos = imagePreviews.value.filter(p => p.type === 'video');
 
-                        const mediaUrls = (await Promise.all(
-                            imagePreviews.value.map(preview => uploadContent(preview.file))
-                        )).filter(Boolean) as string[];
+                        const existingMedia = imagePreviews.value.filter(p => p.file === null);
+                        const newMedia = imagePreviews.value.filter(p => p.file !== null);
 
-                        if (mediaUrls.length) {
-                            const mediaUpdate = {
+                        // Traitement des images
+                        const newImages = newMedia.filter(p => p.type === 'image');
+                        if (newImages.length > 0) {
+                            const imgUrls = (await Promise.all(
+                                newImages.map(preview => uploadContent(preview.file!))
+                            )).filter(Boolean) as string[];
+
+                            // Fusionner avec les URLs existantes
+                            const existingImgUrls = existingMedia
+                                .filter(p => p.type === 'image')
+                                .map(p => p.url);
+                                
+                            const allImgUrls = [...existingImgUrls, ...imgUrls];
+                            
+                            if (allImgUrls.length) {
+                                const imgContent = allContents.find((c: any) => c.TypeCode === "IMG");
+                                const imgUpdate = {
+                                    PlatCode: plateInfo.value.Code,
+                                    Body: allImgUrls.join(','), // Fusion des URLs anciennes et nouvelles
+                                    DisplayOrder: 2,
+                                    TypeCode: "IMG"
+                                };
+
+                                if (imgContent) {
+                                    // Mise à jour du contenu existant
+                                    await updateContent({ 
+                                        ...imgContent, 
+                                        ...imgUpdate,
+                                        Id: imgContent.Id // Conserver l'ID existant
+                                    });
+                                } else {
+                                    // Création d'un nouveau contenu
+                                    await createContent([imgUpdate]);
+                                }
+                            }   
+                        }
+
+                        // Traitement des vidéos
+/*                         if (videos.length > 0) {
+                            const videoContent = allContents.find((c: any) => c.TypeCode === "VIDEO_DESC");
+                            const videoUrls = (await Promise.all(
+                                videos.map(preview => uploadContent(preview.file))
+                            )).filter(Boolean) as string[];
+
+                            if (videoUrls.length) {
+                                const videoUpdate = {
+                                    PlatCode: plateInfo.value.Code,
+                                    Body: videoUrls.join(','),
+                                    DisplayOrder: 2,
+                                    TypeCode: "VIDEO_DESC"
+                                };
+
+                                if (videoContent) {
+                                    await updateContent({ ...videoContent, ...videoUpdate });
+                                } else {
+                                    await createContent([videoUpdate]);
+                                }
+                            }
+                        } */
+                    }
+                    //gestion de l'hitorique
+                    const histContent = allContents.find((c: any) => c.TypeCode === "HIST");
+    
+                        if (content.value && content.value !== "<p>Éditez-moi !</p>") {
+                            const histUpdate = {
                                 PlatCode: plateInfo.value.Code,
-                                Body: mediaUrls.join(','),
-                                DisplayOrder: 2,
-                                TypeCode: "IMG"
+                                Body: content.value,
+                                DisplayOrder: 3, // Ajustez selon l'ordre d'affichage souhaité
+                                TypeCode: "HIST"
                             };
 
-                            if (mediaContent) {
-                                await updateContent({ ...mediaContent, ...mediaUpdate });
+                            if (histContent) {
+                                await updateContent({ 
+                                    ...histContent, 
+                                    ...histUpdate,
+                                    Id: histContent.Id // Conserver l'ID existant
+                                });
                             } else {
-                                await createContent([mediaUpdate]);
+                                await createContent([histUpdate]);
                             }
-                        }
                     }
-
                     // 6. Gestion de l'image de couverture
                     if (plateInfo.value.Image && plateInfo.value.Image !== props.plate.Image) {
                         const coverContent = allContents.find((c: any) => c.TypeCode === "COVER");
@@ -416,7 +490,7 @@
                 EventBus.emit('showToast', {
                     type: "success",
                     message: `Plate ${props.action == "update" ? "Updated" : "Created"} successfully`
-                });
+                });0
 
                 // Réinitialisation si ajout
                 if (props.action === "add") {
@@ -571,7 +645,24 @@
 
                 const contentResponse = await fetchContent(plateCode);
                 const consistencyResponse: ApiResponse = await getConsistency(plateCode);
-
+                //media
+                const existingMedia = contentResponse.body.results.flatMap((result: any) =>
+                    result.content
+                        .filter((item: any) => item.TypeCode === "IMG" || item.TypeCode === "VIDEO_DESC")
+                        .flatMap((item: any) => {
+                            if (!item.Body) return []; // Skip if Body is empty
+                            const bodyParts = item.Body.split(',').filter((url:any) => url.trim() !== '');
+                            return bodyParts.map((url: string) => ({
+                                file: null, // Vous pouvez laisser null ou créer un File si nécessaire
+                                url: url.trim(),
+                                name: item.TypeCode === "IMG" ? "Image" : "Video",
+                                type: item.TypeCode === "IMG" ? 'image' : 'video'
+                            }));
+                        })
+                );
+                imagePreviews.value.push(...existingMedia);
+                console.log('Existing media:', existingMedia);
+                
                 const ingredientMap = contentResponse.body.results.flatMap((result: any) =>
                     result.content
                         .filter((item: any) => item.TypeCode === "ING")
@@ -583,7 +674,16 @@
                             });
                         })
                 ).flat();
+                //historique
+                const histContent = contentResponse.body.results
+                .flatMap((result: any) => result.content)
+                .find((item: any) => item.TypeCode === "HIST");
+                console.log('History content:', histContent);
 
+                if (histContent && histContent.Body) {  
+                    content.value = histContent.Body;
+                }
+                //ingredients
                 const ingredientDict = Object.fromEntries(ingredientMap.map((ing: any) => [ing.name, ing.value]));
 
                 if (consistencyResponse.body && consistencyResponse.body.results) {
@@ -684,8 +784,7 @@
                                     theme="snow"
                                     :toolbar="toolbarOptions"
                                      style="height:150px;"  
-                                    />
-                                <button @click.stop="saveContent($event)">Enregistrer</button>   
+                                    />  
                             </div>
                             <div class="w-full px-6 font-bold gap-2.5 py-2  mb-10 mt-8 hover:bg-opacity-90 lg:px-6 xl:px-6 text-white bg-gradient-to-r from-olive-800 to-olive-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-teal-300 dark:focus:ring-teal-800 text-sm me-2">
                                 MULTIMEDIA
@@ -696,7 +795,7 @@
                                 >
                                 <input
                                     type="file"
-                                    accept="image/*,video/*"
+                                    accept="image/*"
                                     multiple
                                     @change="handleFiles"
                                     class="hidden"
@@ -718,7 +817,7 @@
                                     />
                                     </svg>
                                     <p class="mt-2 text-sm text-gray-600">click_to_select</p>
-                                    <p class="text-xs text-gray-500">multiple_selection - PNG, JPG, GIF, .mp4, .mkv</p>
+                                    <p class="text-xs text-gray-500">multiple_selection - PNG, JPG, GIF</p>
                                 </div>
                                 </div>
 
