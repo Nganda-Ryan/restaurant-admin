@@ -1,20 +1,20 @@
 <template>
     <div class="mt-8">
         <!-- Cartes des produits avec quantités -->
-        <div v-if="isViewing" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
+        <div v-if="isViewing" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-4">
             <div 
                 v-for="(product) in visibleProducts" 
                 :key="product.name"
-                class="rounded-lg shadow py-2 px-3 max-w-40 border-l-4"
+                class="rounded-lg shadow py-2 px-3 max-w-full border-l-4"
                 :class="{
                     'bg-red-100 text-red-600': product.quantity <= 10,
                     'bg-orange-100 text-orange-600': product.quantity > 10 && product.quantity <= 30
                 }"
             >
                 <div class="flex items-center justify-between">
-                    <h4 class="font-medium">{{ product.name }}</h4>
+                    <h4 class="font-medium text-sm sm:text-base truncate">{{ product.name }}</h4>
                 </div>
-                <div class="text-sm text-gray-600">
+                <div class="text-xs sm:text-sm text-gray-600">
                     <p>Quantité: {{ product.quantity }}</p>
                 </div>
             </div>
@@ -26,37 +26,21 @@
                 @click="toggleShowAllProducts"
                 class="text-sm text-blue-600 hover:text-blue-800 font-medium"
             >
-                {{ showAllProducts ? 'Show more' : `Show All` }}
+                {{ showAllProducts ? 'Afficher moins' : `Tout afficher` }}
             </button>
         </div>
 
         <!-- Carte des mouvements de stock -->
         <div class="mt-8" v-if="isViewing">
-            <h3 class="text-xl font-semibold mb-4">Mouvements Récents</h3>
-            <div class="bg-white rounded-lg shadow p-4">
+            <h3 class="text-lg sm:text-xl font-semibold mb-4">Mouvements Récents</h3>
+            <div class="bg-white rounded-lg shadow p-2 sm:p-4">
                 <div class="space-y-2">
-                    <div class="flex flex-col w-full sm:w-auto sm:flex-row justify-between items-start sm:items-center gap-4 mt-2 my-4 text-black">
-                        <div class="w-full sm:w-auto">
-                            <button-action 
-                                @click="handleAddProduct" 
-                                custom-classes="teal-btn"
-                            >
-                                + New Entry
-                            </button-action>
-                        </div>
-                        <div>
-                            <ul>
-                                <li class="w-full mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium text-center transition-colors duration-200 cursor-pointer">
-                                    <RouterLink to="/Stocks-exit" class="w-full block">
-                                    Consulter les sorties
-                                    </RouterLink>
-                                </li>
-                            </ul>
-                        </div>
+                    <div class="flex flex-col-reverse sm:flex-row justify-between items-start sm:items-center gap-3 mt-2 my-4 text-black">
+                        <!-- Select Filter - maintenant en premier dans l'ordre mobile -->
                         <div class="w-full sm:w-auto">
                             <select 
                                 v-model="selectedFilter"
-                                class="w-full sm:w-auto border border-gray-100 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-1 appearance-none focus:ring-blue-500"
+                                class="w-full border appearance-none border-gray-200 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm sm:text-base"
                             >
                                 <option 
                                     v-for="filt in filter" 
@@ -66,6 +50,60 @@
                                     {{ filt.name }}
                                 </option>
                             </select>
+                        </div>
+
+                        <!-- Menu Actions - maintenant en second dans l'ordre mobile -->
+                        <div class="w-full sm:w-auto relative inline-block text-left">
+                            <button-action 
+                                @click="toggleMenu"
+                                custom-classes="teal-btn"
+                                class="flex items-center justify-between gap-2 w-full sm:w-auto"
+                            >
+                                <span>Actions</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" 
+                                    :class="{'transform rotate-180': isMenuOpen}" 
+                                    viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button-action>
+
+                            <!-- Menu déroulant amélioré -->
+                            <transition
+                                enter-active-class="transition duration-100 ease-out"
+                                enter-from-class="transform scale-95 opacity-0"
+                                enter-to-class="transform scale-100 opacity-100"
+                                leave-active-class="transition duration-75 ease-in"
+                                leave-from-class="transform scale-100 opacity-100"
+                                leave-to-class="transform scale-95 opacity-0"
+                            >
+                                <div 
+                                    v-if="isMenuOpen"
+                                    class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-gray-200 focus:outline-none z-10 overflow-hidden"
+                                    v-click-outside="() => isMenuOpen = false"
+                                >
+                                    <div class="py-1 space-y-1">
+                                        <button 
+                                            @click="handleAddProduct"
+                                            class="flex items-center w-full text-left px-4 py-3 text-sm font-medium hover:bg-gray-50 transition-colors text-teal-600 hover:text-teal-800"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                            </svg>
+                                            Ajouter une entrée
+                                        </button>
+                                        <RouterLink 
+                                            to="/Stocks-exit" 
+                                            class="flex items-center px-4 py-3 text-sm font-medium hover:bg-gray-50 transition-colors text-rose-600 hover:text-rose-800"
+                                            @click="isMenuOpen = false"
+                                        >
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="red" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 12h16" />
+                                        </svg>
+                                            Voir les sorties
+                                        </RouterLink>
+                                    </div>
+                                </div>
+                            </transition>
                         </div>
                     </div>
                     
@@ -90,15 +128,15 @@
                                             <path fill-rule="evenodd" d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z" clip-rule="evenodd" />
                                         </svg>
                                     </div>
-                                    <div>
-                                        <p class="font-medium">{{ product.name }}</p>
+                                    <div class="min-w-0">
+                                        <p class="font-medium truncate text-sm sm:text-base">{{ product.name }}</p>
                                         <p class="text-xs text-gray-500">
                                             Dernier mouvement: {{ formatDate(getLatestMovement(product.name).date) }}
                                         </p>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <p class="font-semibold"
+                                <div class="text-right min-w-[70px]">
+                                    <p class="font-semibold text-sm sm:text-base"
                                         :class="getLatestMovement(product.name).type === 'entry' ? 'text-green-600' : 'text-rouge-fonce2'">
                                         {{ getLatestMovement(product.name).type === 'entry' ? '+' : '-' }}{{ getLatestMovement(product.name).quantity }}
                                     </p>
@@ -129,11 +167,11 @@
                                             </svg>
                                         </div>
                                         <div>
-                                            <p class="text-sm">{{ formatDate(movement.date) }}</p>
+                                            <p class="text-xs sm:text-sm">{{ formatDate(movement.date) }}</p>
                                             <p class="text-xs text-gray-500">{{ movement.type === 'entry' ? 'Entrée' : 'Sortie' }}</p>
                                         </div>
                                     </div>
-                                    <p class="text-sm font-medium"
+                                    <p class="text-xs sm:text-sm font-medium"
                                         :class="movement.type === 'entry' ? 'text-green-600' : 'text-rouge-fonce2'">
                                         {{ movement.type === 'entry' ? '+' : '-' }}{{ movement.quantity }}
                                     </p>
@@ -168,6 +206,7 @@
     </div>
 </template>
 
+
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted, ref, computed } from 'vue'
 import ButtonAction from '@/components/Buttons/ButtonAction.vue'
@@ -175,7 +214,7 @@ import { fetchStocks } from '@/services/database'
 import { useConfigStore } from '@/stores/config'
 
 const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'))
-const NewProductForm = defineAsyncComponent(() => import('@/views/Stocks/NewStocksExit.vue'))
+const NewProductForm = defineAsyncComponent(() => import('@/views/Stocks/NewsStocks.vue'))
 
 // Store et état
 const configStore = useConfigStore()
@@ -188,6 +227,8 @@ const selectedFilter = ref('')
 const stockData = ref<any>({})
 const showAllProducts = ref(false)
 const maxVisibleProducts = ref(7)
+
+
 
 // Filtres
 const filter = ref([
@@ -371,8 +412,15 @@ const fetchStockData = async () => {
 // Gestion du formulaire
 const handleAddProduct = () => {
     isViewing.value = false
+    isMenuOpen.value = false
 }
+// Ajoutez cette variable pour gérer l'état du menu
+const isMenuOpen = ref(false)
 
+// Ajoutez cette fonction pour basculer le menu
+const toggleMenu = () => {
+    isMenuOpen.value = !isMenuOpen.value
+}
 const cancel = () => {
     isViewing.value = true
     if (created.value) {
@@ -410,4 +458,13 @@ onMounted(async () => {
 .text-rouge-fonce { color: rgba(232, 60, 60, 0.4); }  
 .bg-rouge-clair2 { background-color: rgba(228, 32, 32, 0.14); }
 .text-rouge-fonce2 { color: rgba(239, 17, 17, 0.81); }
+
+.origin-top-right {
+    transform-origin: top right;
+}
+
+/* Style pour les icônes */
+svg {
+    flex-shrink: 0;
+}
 </style>
