@@ -10,6 +10,12 @@
     import type ToastPayload from '@/types/Toast';
     import EventBus from '@/EventBus';
     import type { Table } from '@/services/serviceInterface';
+    import { useAuthStore } from '@/stores/auth';
+
+
+    const _authStore = useAuthStore();
+    const _token = _authStore.jwt;
+    const codeRestaurant = _authStore.restaurantCode;
     const configStore = useConfigStore();
     const isSaving = ref<boolean>(false);
     const emits = defineEmits(['cancel', "save", "back", "created"]);
@@ -74,11 +80,11 @@
             };
 
             if (props.action === "add") {
-                const result = await createTable(payload);
+                const result = await createTable(payload, _token, codeRestaurant);
                 console.log('updateTable', result);
             } else if (props.action === "update") {
                 console.log('props.table', payload);
-                const result = await updateTable(payload);
+                const result = await updateTable(payload,_token, codeRestaurant);
                 console.log('updatedTable', result);
             }
 

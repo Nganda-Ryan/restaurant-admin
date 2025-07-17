@@ -10,11 +10,15 @@
     import router from '@/router';
     import { useRoute } from 'vue-router';
     import { useI18n } from 'vue-i18n';
+    import { useAuthStore } from '@/stores/auth';
 
     const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
     const PopupModal = defineAsyncComponent(() => import('@/components/Modals/PopupModal.vue'));
     const NewTableForm = defineAsyncComponent(() => import('@/components/SettingsComponent/Tables/NewTables.vue'));
-    
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
+
     // États du composant
     const isEditing = ref<Boolean>(false);
     const isModalOpen = ref(false);
@@ -24,25 +28,6 @@
     const showQRModal = ref(false);
     const { t } = useI18n()
 
-  const profilesString = localStorage.getItem('profiles');
-    let restaurantCode = null;
-
-    if (profilesString) {
-  try {
-    const profiles = JSON.parse(profilesString);
-    // Si profiles est un tableau, prends le premier élément
-    if (Array.isArray(profiles) && profiles.length > 0) {
-      restaurantCode = profiles[0].RestaurantCode;
-    } else if (profiles && profiles.RestaurantCode) {
-      // Si c'est un objet unique
-      restaurantCode = profiles.RestaurantCode;
-    }
-  } catch (e) {
-    console.error('Erreur de parsing du localStorage profiles', e);
-  }
-}
-
-console.log('RestaurantCode:', restaurantCode);
     // Données des tables
     const tables = ref<any[]>([]);
     
@@ -125,7 +110,7 @@ console.log('RestaurantCode:', restaurantCode);
 const fetchTables = async () => {
     isloading.value = true;
     try {
-        const response = await fetchResto();
+        const response = await fetchResto(_token, restaurantCode);
         // Accéder directement au tableau des tables
          if (response?.tables && Array.isArray(response.tables)) {
             tables.value = response.tables.map((table:Table) => ({
@@ -184,9 +169,10 @@ const fetchTables = async () => {
     };
 
     const deleteAction = async () => {
+
         try {
             isDeleting.value = true;
-            const response = await deleteTable([{Code: TableInfo.value.Code}]);
+            const response = await deleteTable([{Code: TableInfo.value.Code}], _token, restaurantCode);
             console.log('delete.response', TableInfo.value.Code)
             router.push({path: '/settings'});
         } catch (e) {

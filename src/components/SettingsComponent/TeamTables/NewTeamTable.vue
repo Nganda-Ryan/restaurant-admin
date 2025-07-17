@@ -12,16 +12,15 @@
     import type Option from '@/components/Utilities/interfaceModel'
     import EventBus from '@/EventBus';
     import type { Team } from '@/services/serviceInterface';
+    import { useAuthStore } from '@/stores/auth';
+
     const configStore = useConfigStore();
     const isSaving = ref<boolean>(false);
     const emits = defineEmits(['cancel', "save", "back", "created"]);
+    const authStore = useAuthStore();
 
 
-    const storedData = localStorage.getItem('profiles');
-
-    const dataArray = storedData ? JSON.parse(storedData) : [];
-
-    const restaurantCode = dataArray[0]?.RestaurantCode ?? '';
+    const restaurantCode = authStore.restaurantCode;
 
     const props = defineProps({
         action: {
@@ -94,7 +93,7 @@ const roleOptions = computed(() => {
         try {
             isSaving.value = true;
             // Générer le code pour les nouvelles table
-
+            const usetoken = authStore.jwt;
             const payload = {
                 contact: {
                     external_id: teamForm.value.external_id,
@@ -114,7 +113,7 @@ const roleOptions = computed(() => {
 
             if (props.action === "add") {
                 console.log('payload.team', payload)
-                const result = await createTeam(payload);
+                const result = await createTeam(payload, usetoken);
                 console.log('updateTable', result);
             } else if (props.action === "update") {
                 console.log('props.table', payload);
