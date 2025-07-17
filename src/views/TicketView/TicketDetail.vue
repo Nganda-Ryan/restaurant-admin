@@ -3,6 +3,7 @@
     import { fetchSingleOrder, updateOrder, deleteOrder } from '@/services/database';
     import { defineAsyncComponent, onBeforeMount, ref } from 'vue';
     import Ticket from '@/components/Ticket/Ticket.vue';
+    import Invoice from '@/components/Ticket/Invoice.vue';
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import DefaultCardSkeleton from '@/components/Forms/DefaultCardSkeleton.vue';
     import PopupModal from '@/components/Modals/PopupModal.vue';
@@ -27,11 +28,13 @@
     const isLoading = ref(true);
     const isModalOpen = ref(false);
     const isDeleting = ref(false);
+    const isviewing = ref(false);
 
 
 const { handlePrint } = useVueToPrint({
-  content: () => printRef.value as HTMLElement, // Conversion de type explicite
+  content: () => printRef.value as HTMLElement,
 });
+
     const handleDeleteTicket = (e: any) => {
         isModalOpen.value = true;
     }
@@ -225,12 +228,19 @@ const { handlePrint } = useVueToPrint({
 
                     </div>
                 </template>
-            <div class="py-4.5 px-15" ref="printRef">
+            <div class="py-4.5 px-15">
                 <Ticket :createdDate="ticketInfo.CreatedDate" :code="ticketInfo.Code" :plates="plateInfo" :status="ticketInfo.StatusCode" :styled="false">
                     <template v-slot:footer>
                        
                     </template>
                 </Ticket>
+            </div>
+            <div class="print-only" ref="printRef">
+                <Invoice :createdDate="ticketInfo.CreatedDate" :code="ticketInfo.Code" :plates="plateInfo" :status="ticketInfo.StatusCode" :styled="false">
+                    <template v-slot:footer>
+                       
+                    </template>
+                </Invoice>
             </div>
 <!--              <div class="flex justify-end mt-10 border-t-2 border-slate-300 pt-5">
                             <button-action @click='handleKitchen' :custom-classes="ticketInfo.StatusCode == 'DRAFT' ? 'text-white bg-gradient-to-r from-orange-300 via-orange-400 to-orange-500 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-orange-100 dark:focus:ring-orange-600 font-medium rounded-lg text-sm py-2.5 text-center me-2 mb-2' : baseBtnStyle">IN KITCHEN</button-action>
@@ -257,3 +267,20 @@ const { handlePrint } = useVueToPrint({
         <DefaultCardSkeleton v-if="isLoading" />
     </div>
 </template>
+<style scoped>
+    @media screen {
+        .print-only {
+            display: none;
+        }
+        }
+
+        @media print {
+        .no-print {
+            display: none;
+        }
+        
+        .print-only {
+            display: block;
+        }
+    }
+</style>

@@ -211,14 +211,10 @@ export const useAuthStore = defineStore("authentication", {
       }
     },
     startTokenAutoRefresh() {
-  this.stopTokenAutoRefresh(); // Nettoyage préalable
-
-    // Rafraîchir immédiatement puis toutes les 14 minutes
-    this.refreshToken().catch(console.error);
-    
-    this.tokenRefreshInterval = setInterval(() => {
-      this.refreshToken().catch(console.error);
-    }, 14 * 60 * 1000); // 14 minutes
+    this.stopTokenAutoRefresh(); // Nettoyage préalable   
+      this.tokenRefreshInterval = setInterval(() => {
+        this.refreshToken().catch(console.error);
+      }, 14 * 60 * 1000); // 14 minutes
   },
 
     stopTokenAutoRefresh() {
