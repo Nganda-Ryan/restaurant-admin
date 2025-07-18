@@ -23,11 +23,8 @@
     const isEditing = ref<Boolean>(false);
     const isModalOpen = ref(false);
     const isDeleting = ref(false);
-    const storedData = localStorage.getItem('profiles');
 
-    const dataArray = storedData ? JSON.parse(storedData) : [];
-
-    const restaurantCode = dataArray[0]?.RestaurantCode ?? '';
+    const restaurantCode = authStore.restaurantCode;
     
     const titles = ref([
         {
@@ -113,7 +110,7 @@
         categorieplateCode.value = params.categorieplateCode;
         try {
             
-            const result = await fetchCategoriePlate(_token);
+            const result = await fetchCategoriePlate(_token, restaurantCode);
             rawCategories.value = result; // Stocke les données brutes
         Categories.value = result.map((categorie: Categorieplat) => ({
             ...categorie, // Inclut TOUS les champs (dont Code)
@@ -144,7 +141,7 @@
         try {
             console.log('deleteAction')
              isDeleting.value = true;
-            await deleteCategoriePlat([{Code: CategorieplateInfo.value.Code}], _token)
+            await deleteCategoriePlat([{Code: CategorieplateInfo.value.Code}],_token);
             router.push({path: '/settings'})
         } catch (e) {
             console.log("PlateDetails.handleDeletePlate.error", e)

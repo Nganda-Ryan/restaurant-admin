@@ -18,6 +18,7 @@
     const configStore = useConfigStore();
     const authStore = useAuthStore();
     const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
     const emits = defineEmits(['cancel', "go-back"]);
 
     interface Param {
@@ -106,7 +107,7 @@
             action.value = params.action;
             productCode.value = params.productcode;
 
-            const result = await fetchSingleProduct(productCode.value, _token);
+            const result = await fetchSingleProduct(productCode.value, _token, restaurantCode);
             
             productInfo.value = result.filter((p:any) => p.Code === productCode.value)[0];
             contentList.value = result.filter((p:any) => p.Code === productCode.value)[0].content.map((c: any) => {

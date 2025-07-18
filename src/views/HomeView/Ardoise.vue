@@ -16,6 +16,7 @@ const STATUS = {
 
 const authStore = useAuthStore();
 const _token = authStore.jwt;
+const codeRestaurant = authStore.restaurantCode;
 const isloading = ref(false)
 const ORANGE = 'bg-orange-300 rounded'
 const BLUE = 'bg-blue-300 rounded'
@@ -71,7 +72,7 @@ const statusConfig = {
 const refreshData = async () => {
   isloading.value = true
   try {
-    const result = await fetchOrder(_token)
+    const result = await fetchOrder(_token, codeRestaurant)
     orders.value = result
     console.log('Orders fetched:', orders.value)
   } catch (error) {

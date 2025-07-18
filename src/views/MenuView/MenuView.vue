@@ -12,6 +12,7 @@
 
     const authStore = useAuthStore();
     const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
 
     const pageTitle = ref('Menus');
     const titles = ref([
@@ -67,7 +68,7 @@
     const fetMenu = async () => {
         isloading.value = true;
         try {
-            const result = await fetchMenu(_token);
+            const result = await fetchMenu(_token, restaurantCode);
             // console.log('resultresult', result)
             const menuList = result.map((menu: any) => {
                 return Object.fromEntries(Object.entries(menu).filter(([key]) => key !== "items"))

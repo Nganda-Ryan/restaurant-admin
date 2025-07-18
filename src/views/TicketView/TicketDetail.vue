@@ -22,6 +22,7 @@
     }
     const authStore = useAuthStore();
     const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
     const ticketCode = ref('');
     const ticketInfo = ref<any>({});
     const plateInfo = ref<any>({});
@@ -38,14 +39,14 @@ const { handlePrint } = useVueToPrint({
     const handleDeleteTicket = (e: any) => {
         isModalOpen.value = true;
     }
-    const handleKitchen = async (ts: any) => {
+/*     const handleKitchen = async (ts: any) => {
         try {
             if(ticketInfo.value.StatusCode != 'DRAFT') {
                 isLoading.value = true;
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"DRAFT"
-                }, _token);
+                }, _token, restaurantCode);
                 ticketInfo.value.StatusCode = 'DRAFT';
                 const payload: ToastPayload = {
                     type: "info",
@@ -72,7 +73,7 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"IN PROGRESS"
-                }, _token);
+                }, _token, restaurantCode);
                 ticketInfo.value.StatusCode = 'IN PROGRESS'
                 const payload: ToastPayload = {
                     type: "info",
@@ -99,7 +100,7 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"COMPLETED"
-                }, _token);
+                }, _token, restaurantCode);
                 ticketInfo.value.StatusCode = 'COMPLETED';
                 const payload: ToastPayload = {
                     type: "success",
@@ -126,7 +127,7 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"CANCELED"
-                }, _token);
+                }, _token, restaurantCode);
                 ticketInfo.value.StatusCode = 'CANCELED';
                 const payload: ToastPayload = {
                     type: "success",
@@ -145,7 +146,7 @@ const { handlePrint } = useVueToPrint({
         } finally {
             isLoading.value = false;
         }
-    }
+    } */
     const handleCloseModal = () => {
         console.log('handleCloseModal')
         isModalOpen.value = false;
@@ -192,7 +193,7 @@ const { handlePrint } = useVueToPrint({
         const params = router.currentRoute.value.params as unknown as Param;
         ticketCode.value = params.ticketcode;
         console.log('*** params', ticketCode.value, params);
-        const result = await fetchSingleOrder(params.ticketcode, _token);
+        const result = await fetchSingleOrder(params.ticketcode, _token, restaurantCode);
         
         console.log('*** result', result)
         

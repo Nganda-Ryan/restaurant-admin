@@ -42,7 +42,9 @@
 const fetchRestaurant = async () => {
   try {
     const _token = authStore.jwt;
-    const response = await fetchResto(_token);
+    const restaurantCode = authStore.restaurantCode;
+    console.log('restaurantCode:', restaurantCode);
+    const response = await fetchResto(_token, restaurantCode);
     configStore.restaurantInfo = response;
     console.log('data.inforestaurant:', configStore.restaurantInfo);
     
@@ -99,7 +101,8 @@ const fetchRestaurant = async () => {
   const init = async () => {
     try {
       const _token = authStore.jwt;
-      const config = await fetchConfig(_token);
+       const restaurantCode = authStore.restaurantCode;
+      const config = await fetchConfig(_token, restaurantCode);
       console.log ("data.config",config);
       configStore.plateCategories = config.PlatCategories;
       configStore.productCategories = config.ProductCategories;

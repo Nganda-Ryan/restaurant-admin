@@ -63,12 +63,13 @@
     const configStore = useConfigStore();
     const authStore = useAuthStore();
     const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
 
     const fetProduct = async () => {
         isloading.value = true;
         try {
             
-            const result = await fetchProduct(_token);
+            const result = await fetchProduct(_token, restaurantCode);
             console.log("** result", result);
             const productList = result.map((product: any) => {
                 let img = "";

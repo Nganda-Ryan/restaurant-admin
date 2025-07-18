@@ -14,16 +14,10 @@
     import type ToastPayload from '@/types/Toast';
     const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
 
-    const storedData = localStorage.getItem('profiles');
-
-    const dataArray = storedData ? JSON.parse(storedData) : [];
-
-    const restaurantCode = dataArray[0]?.RestaurantCode ?? '';
-    
-
     const configStore = useConfigStore();
     const authStore = useAuthStore();
     const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
     const isSaving = ref<Boolean>(false);
     const emits = defineEmits(['cancel', "save", "back", "created"]);
     const props = defineProps({

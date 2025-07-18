@@ -37,6 +37,7 @@
     const ingredients = ref<any []>([]);
     const authStore = useAuthStore();
     const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
 
     const handleEditPlate = (e: any) => {
         console.log("handleEditPlate", plateInfo.value);
@@ -80,7 +81,7 @@
         plateCode.value = params.platecode;
         
         try {
-            const result = await fetchPlate(_token);
+            const result = await fetchPlate(_token, restaurantCode);
             
             console.log('result', result)
             plateInfo.value = result.filter((item: any) => item.Code == params.platecode)[0];

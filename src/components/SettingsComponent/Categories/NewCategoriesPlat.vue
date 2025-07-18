@@ -19,14 +19,13 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 const configStore = useConfigStore();
 const authStore = useAuthStore();
-const _token = authStore.jwt;   
+const _token = authStore.jwt;
+const restaurantCode = authStore.restaurantCode;   
 const isSaving = ref<boolean>(false);
 const emits = defineEmits(['cancel', "save", "back", "created"]);
 const storedData = localStorage.getItem('profiles');
 
-const dataArray = storedData ? JSON.parse(storedData) : [];
 
-const restaurantCode = dataArray[0]?.RestaurantCode ?? '';
 
 const props = defineProps({
     action: {

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { account, getUser } from "@/services/database";
+import { account, getUser,fetchResto  } from "@/services/database";
 import type { User, Profile } from "@/services/serviceInterface";
 import { AppwriteException } from "appwrite";
 
@@ -14,6 +14,7 @@ export const useAuthStore = defineStore("authentication", {
     ws: null as WebSocket | null,
     isLoading: false,
     restoname: "" as string,
+    logorestaurant:"" as string,
     RoleCode: "" as string,
     lastTokenUpdate: null as Date | null,
     tokenRefreshInterval: null as ReturnType<typeof setInterval> | null,
@@ -110,6 +111,32 @@ export const useAuthStore = defineStore("authentication", {
         throw error;
       }
     },
+    async fetchRestaurant  (_token:string, restaurantCode:string) {
+      try {
+        console.log('restaurantCode:', restaurantCode);
+        const response = await fetchResto(_token, restaurantCode)
+        
+        // Stockage dans localStorage
+        if (response) {
+          // 1. Stocker le nom du restaurant
+          this.restoname = response.Restaurant.Name
+          localStorage.setItem('restoname', this.restoname);
+          
+          // 2. Trouver et stocker le premier logo
+          if (response.Restaurant.content && response.Restaurant.content.length > 0) {
+            const logoItem = response.Restaurant.content.find((item:any) => item.TypeCode === 'LOGO');
+            if (logoItem) {
+              this.logorestaurant = logoItem.Body
+              localStorage.setItem('logoresto', this.logorestaurant);
+            }
+          }
+          
+        }
+        
+      } catch (e) {
+        console.log('error:', e);
+      }
+    },
     async login(email: string, password: string) {
       console.log("Tentative de connexion avec:", { email, password });
       try {
@@ -122,6 +149,7 @@ export const useAuthStore = defineStore("authentication", {
             this.setJWT(userToken);
             console.log('@@@@@after the getToken');
             await this.fetchUserData(userToken);
+            await this.fetchRestaurant(userToken,this.restaurantCode)
             console.log('@@@@@after the fetchData');
             this.startTokenAutoRefresh();
             return true;

@@ -15,6 +15,7 @@
 
     const _authStore = useAuthStore();
     const _token = _authStore.jwt;
+    const restaurantCode = _authStore.restaurantCode;
     const configStore = useConfigStore();
     const isSaving = ref<boolean>(false);
     const emits = defineEmits(['cancel', "save", "back", "created"]);
@@ -79,11 +80,11 @@
             };
 
             if (props.action === "add") {
-                const result = await createTable(payload, _token);
+                const result = await createTable(payload, _token, restaurantCode);
                 console.log('updateTable', result);
             } else if (props.action === "update") {
                 console.log('props.table', payload);
-                const result = await updateTable(payload,_token);
+                const result = await updateTable(payload,_token, restaurantCode);
                 console.log('updatedTable', result);
             }
 

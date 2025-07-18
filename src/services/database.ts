@@ -7,7 +7,6 @@ import { useAuthStore } from '@/stores/auth';
 const pinia = createPinia();
 
 const token = localStorage.getItem('jwt') || '';
-const restaurantCode = localStorage.getItem('restaurantCode')
 
 /* AUTHENTIFICATION*/
 
@@ -46,7 +45,7 @@ export const getUser= async (_token: string) => {
 
 
 /* MENU */
-export const fetchMenu = async (_token:string) => {
+export const fetchMenu = async (_token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     console.log('fetchMenu', url)
@@ -69,7 +68,7 @@ export const fetchMenu = async (_token:string) => {
         throw error;
     }
 };
-export const fetchSingleMenu = async (menuCode: string, _token:string) => {
+export const fetchSingleMenu = async (menuCode: string, _token:string,restaurantCode:string) => {
     console.log('fetchSingleMenu', menuCode)
     const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items?MenuCode=${menuCode}&RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
@@ -163,7 +162,7 @@ export const updateMenuItem = async (payload: any, _token:string) => {
     }
 };
 
-export const addMenuItem = async (payload: any, _token:string) => {
+export const addMenuItem = async (payload: any, _token:string,) => {
     const url =  `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus/items`;  
     const authStore = useAuthStore()
     try {   
@@ -181,7 +180,7 @@ export const addMenuItem = async (payload: any, _token:string) => {
         throw error;
     }
 }
-export const deleteMenu = async (codeList: any[], _token:string) => {
+export const deleteMenu = async (codeList: any[], _token:string,restaurantCode:string) => {
     const url = `${import.meta.env.VITE_APP_MENU_BASE_URL_V1}/menus?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     console.log('Database.deleteMenu.codeList', codeList)
@@ -222,7 +221,7 @@ export const deleteMenuItem = async (codeList: any[], _token:string) => {
 }
 
 /* PLATE */
-export const fetchPlate = async (_token:string) => {
+export const fetchPlate = async (_token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_PLAT_BASE_URL_V1}/plats?RestaurantCode=${restaurantCode}`;
     console.log('url', url)
     const authStore = useAuthStore()
@@ -358,7 +357,7 @@ export const getConsistency = async  (plateCode: string, _token:string): Promise
 
 /* ORDER */
 
-export const fetchOrder = async (_token:string) => {
+export const fetchOrder = async (_token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     try {
@@ -376,7 +375,7 @@ export const fetchOrder = async (_token:string) => {
         throw error;
     }
 }
-export const fetchSingleOrder = async (orderCode:string, _token:string) => {
+export const fetchSingleOrder = async (orderCode:string, _token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders/items?OrderCode=${orderCode}&RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     try {
@@ -394,7 +393,7 @@ export const fetchSingleOrder = async (orderCode:string, _token:string) => {
         throw error;
     }
 }
-export const updateOrder = async (payload: any, _token:string) => {
+export const updateOrder = async (payload: any, _token:string,restaurantCode:string) => {
     const authStore = useAuthStore();
     const url =  `${import.meta.env.VITE_APP_ORDER_BASE_URL_V1}/orders?RestaurantCode=${restaurantCode}`;
     try {
@@ -436,7 +435,7 @@ export const deleteOrder = async (codeList: any[], _token:string) => {
 
 
 /* PRODUCT */
-export const fetchProduct = async (_token:string ) => {
+export const fetchProduct = async (_token:string, restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     try {
@@ -454,7 +453,7 @@ export const fetchProduct = async (_token:string ) => {
         throw error;
     }
 }
-export const fetchSingleProduct = async (productCode:string, _token:string) => {
+export const fetchSingleProduct = async (productCode:string, _token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_PRODUCT_BASE_URL_V1}/products?RestaurantCode=${restaurantCode}&ProductCode=${productCode}`;
     const authStore = useAuthStore()
 
@@ -622,7 +621,7 @@ export const uploadContent = async (file: File) => {
 }
 
 /* CONFIG */
-export const fetchConfig = async (_token:string) => {
+export const fetchConfig = async (_token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_CONFIG_BASE_URL_V1}/configs?categories=true&QuantityUnit=true&&RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     try {
@@ -643,7 +642,7 @@ export const fetchConfig = async (_token:string) => {
 
 /* CATEGORIE PLATE */
 
-export const fetchCategoriePlate = async (_token:string) => {
+export const fetchCategoriePlate = async (_token:string, restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_CATEGORIE_BASE_URL_V1}/plat-categories?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     try {
@@ -725,7 +724,7 @@ export const deleteCategoriePlat = async (Code: any[], _token:string) => {
 
 //dashboard
 
-export const fetchPopularplate = async (_token:string) => {
+export const fetchPopularplate = async (_token:string, restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/popular-plats?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     try {
@@ -744,7 +743,7 @@ export const fetchPopularplate = async (_token:string) => {
     }
 }
 
-export const fetchDayCommande = async (_token:string) => {
+export const fetchDayCommande = async (_token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/orders?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     try {
@@ -762,7 +761,7 @@ export const fetchDayCommande = async (_token:string) => {
         throw error;
     }
 }
-export const fetchTotalMenu = async (_token:string) => {
+export const fetchTotalMenu = async (_token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/menus?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     try {
@@ -780,7 +779,7 @@ export const fetchTotalMenu = async (_token:string) => {
         throw error;
     }
 }
-export const fetchRecentOrder = async (_token:string) => {
+export const fetchRecentOrder = async (_token:string, restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_DASHBOARD_BASE_URL_V1}/recent-orders?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     try {
@@ -827,7 +826,7 @@ export const fetchinvoice = async (ordercode: string, _token:string) => {
 
 //stocks
 
-export const createstocks = async (payload:Stocks[], _token:string) => {
+export const createstocks = async (payload:Stocks[], _token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_STOCKS_BASE_URL_V1}/Entries/Add?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     console.log('Database.createConsistency.createContent.payload', payload)
@@ -848,7 +847,7 @@ export const createstocks = async (payload:Stocks[], _token:string) => {
     }        
 }
 
-export const fetchStocks = async (_token:string) => {
+export const fetchStocks = async (_token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_STOCKS_BASE_URL_V1}/Dashboard?RestaurantCode=${restaurantCode}&StartDate=2025-06-18 13:51:44&Limit=30&Offset=0&OrderBy=Quantity&OrderMode=DESC`;
     const authStore = useAuthStore()
     try {
@@ -869,7 +868,7 @@ export const fetchStocks = async (_token:string) => {
 
 //Table
 
-export const createTable= async (payload:Table, _token:string) => {
+export const createTable= async (payload:Table, _token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_RESTO_BASE_URL_V1}/restaurants/tables?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     console.log('Database.createTable.payload', payload)
@@ -890,7 +889,7 @@ export const createTable= async (payload:Table, _token:string) => {
     }
     
 }
-export const fetchResto = async (_token:string) => {
+export const fetchResto = async (_token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_RESTO_BASE_URL_V1}/restaurants/Detail?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     try {
@@ -929,7 +928,7 @@ export const updateResto = async (payload: any, _token:string) => {
     }
     
 }
-export const updateTable = async (payload:Table, _token:string) => {
+export const updateTable = async (payload:Table, _token:string,restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_RESTO_BASE_URL_V1}/restaurants/tables?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     console.log('Database.createConsistency.createTable.payload', payload)
@@ -950,7 +949,7 @@ export const updateTable = async (payload:Table, _token:string) => {
     }
     
 }
-export const deleteTable = async (Code: any[], _token:string) => {
+export const deleteTable = async (Code: any[], _token:string, restaurantCode:string) => {
     const url =  `${import.meta.env.VITE_APP_RESTO_BASE_URL_V1}/restaurants/tables?RestaurantCode=${restaurantCode}`;
     const authStore = useAuthStore()
     try {

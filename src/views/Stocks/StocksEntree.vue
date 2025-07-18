@@ -191,6 +191,7 @@ const stockData = ref<any>({})
 const showAllProducts = ref(false)
 const maxVisibleProducts = ref(7)
 const _token = authStore.jwt
+const codeRestaurant = authStore.restaurantCode
 
 
 // Filtres
@@ -362,7 +363,7 @@ const toggleProduct = (productName: string) => {
 const fetchStockData = async () => {
     isloading.value = true
     try {
-        const result = await fetchStocks(_token)
+        const result = await fetchStocks(_token, codeRestaurant);
         stockData.value = result
         console.log('Stock data fetched:', stockData.value)
     } catch (error) {

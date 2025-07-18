@@ -205,10 +205,7 @@ const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/Sel
 
 const authStore = useAuthStore();
 const _token = authStore.jwt;
-
-const storedData = localStorage.getItem('profiles');
-const dataArray = storedData ? JSON.parse(storedData) : [];
-const restaurantCode = dataArray[0]?.RestaurantCode ?? '';
+const restaurantCode = authStore.restaurantCode;
 
 // Types
 interface RestaurantFormData {

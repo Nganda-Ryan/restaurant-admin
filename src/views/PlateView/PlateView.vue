@@ -13,6 +13,7 @@ const NewPlateForm = defineAsyncComponent(() => import('@/views/PlateView/NewPla
 
 const authStore = useAuthStore();
 const _token = authStore.jwt;
+const restaurantCode = authStore.restaurantCode;
 const pageTitle = ref('Plate');
 const plateList = ref<Array<PlateOption>>([]);
 const rawPlateList = ref([]);
@@ -74,7 +75,7 @@ const viewPlate = (ts: any) => {
 
 const getPlate = async () => {
     isloading.value = true;
-    const result = await fetchPlate(_token);
+    const result = await fetchPlate(_token, restaurantCode);
     plateList.value = result.map((item: any) => {
         let img = item.content.find((ctn: any) => ctn.typex.Code == "COVER")?.Body || "";
         return {

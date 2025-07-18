@@ -22,13 +22,7 @@
 
     const authStore = useAuthStore();
     const _token = authStore.jwt;
-
-
-    const storedData = localStorage.getItem('profiles');
-
-    const dataArray = storedData ? JSON.parse(storedData) : [];
-
-    const restaurantCode = dataArray[0]?.RestaurantCode ?? '';
+    const restaurantCode = authStore.restaurantCode;
 
 
     const emits = defineEmits(['cancel', "go-back"]);
@@ -187,7 +181,7 @@
         try {
             isDeleting.value = true;
             console.log('menuifa.code', menuInfo.value.Code)
-            await deleteMenu([{Code: menuInfo.value.Code}], _token);
+            await deleteMenu([{Code: menuInfo.value.Code}], _token, restaurantCode);
     
             router.push({path: '/menus'})
         } catch (e) {
@@ -213,7 +207,7 @@
             action.value = params.action;
             menuCode.value = params.menucode;
 
-            const result = await fetchSingleMenu(menuCode.value, _token);
+            const result = await fetchSingleMenu(menuCode.value, _token, restaurantCode);
             console.log('result', result)
             menuInfo.value = result[0].Menu;
             console.log('result[0].Menu', result[0].Menu)

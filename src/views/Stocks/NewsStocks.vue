@@ -18,6 +18,7 @@
     const isSaving = ref<Boolean>(false);
     const authStore = useAuthStore();
     const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
     const products = ref<Product[]>([]);
     const stockForms = ref<Stocks[]>([{
         "code": "",
@@ -37,7 +38,7 @@
     // Récupérer la liste des produits pour le select
     const fetchProductsList = async() => {
         try {
-            const result = await fetchProduct(_token);
+            const result = await fetchProduct(_token, restaurantCode);
             products.value = Array.isArray(result) ? result : [result];
         } catch(error) {
             console.error('error.fetchProducts', error);
@@ -94,7 +95,7 @@
             }));
 
             if(props.action == "add") {
-                result = await createstocks(payload, _token);
+                result = await createstocks(payload, _token, restaurantCode);
                 console.log('data.create', result)
             } else if(props.action == "update") {
                 // result = await updateStock(payload);

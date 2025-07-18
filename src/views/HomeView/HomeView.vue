@@ -11,6 +11,7 @@
 
   const authStore = useAuthStore();
   const _token = authStore.jwt;
+  const restaurantCode = authStore.restaurantCode;
 
   const isloading = ref(false);
   const ORANGE = 'bg-orange-300 rounded';
@@ -123,7 +124,7 @@
   const fetchTicket = async () => {
     isloading.value = true;
     try {
-      const result = await fetchOrder(_token);
+      const result = await fetchOrder(_token, restaurantCode);
       const ticketList = result.map((ticket: any) => {
         let color = '';
         let event = 'kitchen';
@@ -175,7 +176,7 @@
         const result  = await updateOrder({
           "Code": ts.code,
           "StatusCode":"DRAFT"
-        }, _token);
+        }, _token, restaurantCode);
         tickets.value.forEach((ticket: any) => {
           if (ticket.code === ts.code) {
             ticket.class = ORANGE;
@@ -208,7 +209,7 @@
         const result  = await updateOrder({
           "Code": ts.code,
           "StatusCode":"IN PROGRESS"
-        }, _token);
+        }, _token, restaurantCode);
         tickets.value.forEach((ticket: any) => {
           if (ticket.code === ts.code) {
             ticket.class = BLUE;
@@ -241,7 +242,7 @@
         const result  = await updateOrder({
           "Code": ts.code,
           "StatusCode":"COMPLETED"
-        }, _token);
+        }, _token, restaurantCode);
         tickets.value.forEach((ticket: any) => {
           if (ticket.code === ts.code) {
             ticket.class = GREEN;
@@ -276,7 +277,7 @@
         const result  = await updateOrder({
           "Code": ts.code,
           "StatusCode":"CANCELED"
-        }, _token);
+        }, _token, restaurantCode);
         tickets.value.forEach((ticket: any) => {
           if (ticket.code === ts.code) {
             ticket.class = RED;

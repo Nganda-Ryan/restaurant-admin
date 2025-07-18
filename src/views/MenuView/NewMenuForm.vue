@@ -16,12 +16,6 @@
     const Spinner = defineAsyncComponent(() => import('@/components/Utilities/Spinner.vue'));
 
 
-    const storedData = localStorage.getItem('profiles');
-
-    const dataArray = storedData ? JSON.parse(storedData) : [];
-
-    const restaurantCode = dataArray[0]?.RestaurantCode ?? '';
-
     const emits = defineEmits(['cancel', "save"]);
     const props = defineProps({
         action: {
@@ -37,6 +31,7 @@
     
     const authStore = useAuthStore();
     const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
     const reloadView = ref(false);
     const plateList = ref<Array<PlateOption>>([])
     const plateListToadd = ref<Array<any>>([])
@@ -245,7 +240,7 @@
         }
     }
     const getPlate = async () => {
-        const result = await fetchPlate(_token);
+        const result = await fetchPlate(_token, restaurantCode);
         plateList.value = result.map((item:any) => {
             return {
                 name: item.Title,

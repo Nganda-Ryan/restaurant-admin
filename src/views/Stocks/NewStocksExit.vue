@@ -18,6 +18,7 @@
     const isSaving = ref<Boolean>(false);
     const products = ref<Product[]>([]);
     const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
     const stockForms = ref<Stocks[]>([{
         "code": "",
         "quantity": 0,
@@ -36,7 +37,7 @@
     // Récupérer la liste des produits pour le select
     const fetchProductsList = async() => {
         try {
-            const result = await fetchProduct(_token);
+            const result = await fetchProduct(_token, restaurantCode);
             products.value = Array.isArray(result) ? result : [result];
         } catch(error) {
             console.error('error.fetchProducts', error);
@@ -82,7 +83,7 @@
     }
 
     // Sauvegarder les stocks
-    const saveStock = async () => {
+/*     const saveStock = async () => {
        try {
             isSaving.value = true;
             let result: any = null;
@@ -115,7 +116,7 @@
             isSaving.value = false;
        }
     }
-
+ */
     const stopAction = () => {
         resetForms();
         emits('cancel');
@@ -156,7 +157,7 @@
                     </button>
                 </template>
                 
-                <form @submit.prevent="saveStock">
+                <form @submit.prevent="">
                     <div class="p-6.5">
                         <div v-for="(stockInfo, index) in stockForms" :key="index" class="mb-8 relative">
                             <div class="mb-4.5 flex flex-col gap-6 xl:flex-row items-start">

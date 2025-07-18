@@ -21,15 +21,10 @@
     import { QuillEditor } from '@vueup/vue-quill';
     import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
-
-    const storedData = localStorage.getItem('profiles');
-
-    const dataArray = storedData ? JSON.parse(storedData) : [];
-
-    const restaurantCode = dataArray[0]?.RestaurantCode ?? '';
     const fileInput = ref<HTMLInputElement | null>(null)
     const authStore = useAuthStore();
     const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
     const currency = localStorage.getItem('currency');
     const configStore = useConfigStore();
     const isSaving = ref<Boolean>(false);
@@ -546,7 +541,7 @@
     }
 
     const getProduct = async () => {
-        const result = await fetchProduct(_token);
+        const result = await fetchProduct(_token,restaurantCode);
         rawProduct.value = result;
         productList.value = result.map((item: any) => {
             return {
@@ -563,7 +558,7 @@
 
     onBeforeMount(async () => {
         await getProduct();
-        await fetchPlate(_token)
+        await fetchPlate(_token,restaurantCode)
         if (props.action === "update") {
             if (props.plate) {
                 plateInfo.value = {

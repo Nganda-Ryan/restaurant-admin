@@ -21,9 +21,9 @@
   })
 
   // ...existing code...
-  const nameResto = computed(() => localStorage.getItem('restoname') || 'Broccoli Admin');
+  const nameResto = authStore.restoname;
   const email = computed(() => authStore.userEmail);
-  const logoresto = computed(() => localStorage.getItem('logoresto') || 'https://cdn-icons-png.flaticon.com/512/107/107831.png');
+  const logoresto = computed(() => authStore.logorestaurant || 'https://cdn-icons-png.flaticon.com/512/107/107831.png');
 // ...existing code...
   const userRole = ref<Role>((localStorage.getItem('userRole') as Role || 'ADMIN') as Role);
   console.log('userRole:', userRole.value);

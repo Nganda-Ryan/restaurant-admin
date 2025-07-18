@@ -18,13 +18,8 @@
     const isSaving = ref<boolean>(false);
     const emits = defineEmits(['cancel', "save", "back", "created"]);
     const authStore = useAuthStore();
-
-
-    const storedData = localStorage.getItem('profiles');
-
-    const dataArray = storedData ? JSON.parse(storedData) : [];
-
-    const restaurantCode = dataArray[0]?.RestaurantCode ?? '';
+    const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
 
     const props = defineProps({
         action: {
