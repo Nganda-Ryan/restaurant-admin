@@ -44,6 +44,15 @@
                                 + New Entry
                             </button-action>
                         </div>
+                        <div>
+                            <ul>
+                                <li class="w-full mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium text-center transition-colors duration-200 cursor-pointer">
+                                    <RouterLink to="/Stocks-exit" class="w-full block">
+                                    Consulter les sorties
+                                    </RouterLink>
+                                </li>
+                            </ul>
+                        </div>
                         <div class="w-full sm:w-auto">
                             <select 
                                 v-model="selectedFilter"
@@ -164,12 +173,14 @@ import { defineAsyncComponent, onMounted, ref, computed } from 'vue'
 import ButtonAction from '@/components/Buttons/ButtonAction.vue'
 import { fetchStocks } from '@/services/database'
 import { useConfigStore } from '@/stores/config'
+import { useAuthStore } from '@/stores/auth'
 
 const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'))
-const NewProductForm = defineAsyncComponent(() => import('@/views/Stocks/NewsStocks.vue'))
+const NewProductForm = defineAsyncComponent(() => import('@/views/Stocks/NewStocksExit.vue'))
 
 // Store et état
 const configStore = useConfigStore()
+const authStore = useAuthStore()
 const isloading = ref(false)
 const isViewing = ref(true)
 const created = ref(false)
@@ -179,6 +190,8 @@ const selectedFilter = ref('')
 const stockData = ref<any>({})
 const showAllProducts = ref(false)
 const maxVisibleProducts = ref(7)
+const _token = authStore.jwt
+
 
 // Filtres
 const filter = ref([
@@ -349,7 +362,7 @@ const toggleProduct = (productName: string) => {
 const fetchStockData = async () => {
     isloading.value = true
     try {
-        const result = await fetchStocks()
+        const result = await fetchStocks(_token)
         stockData.value = result
         console.log('Stock data fetched:', stockData.value)
     } catch (error) {

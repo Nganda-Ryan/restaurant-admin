@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
   import { onClickOutside } from '@vueuse/core'
   import { useSidebarStore } from '@/stores/sidebar'
   // import OrderCard from '../OrderCard/OrderCard.vue';
@@ -9,7 +9,8 @@
   import SidebarItem from '../Sidebar/SidebarItem.vue';
   import { useRoute, useRouter } from 'vue-router'
   import { useAuthStore } from '@/stores/auth'
-
+  import { canAccessMenu} from '@/config/roleguards';
+  import type { Role } from '@/config/roleguards';
 
   const target = ref(null)
   const sidebarStore = useSidebarStore();
@@ -19,15 +20,30 @@
     sidebarStore.isSidebarOpen = false
   })
 
-  const nameResto = localStorage.getItem('restoname') || 'Broccoli Admin';
-  const email = localStorage.getItem('euser')
-  const logoresto = localStorage.getItem('logoresto') || 'https://cdn-icons-png.flaticon.com/512/107/107831.png';
+  // ...existing code...
+  const nameResto = computed(() => localStorage.getItem('restoname') || 'Broccoli Admin');
+  const email = computed(() => authStore.userEmail);
+  const logoresto = computed(() => localStorage.getItem('logoresto') || 'https://cdn-icons-png.flaticon.com/512/107/107831.png');
+// ...existing code...
+  const userRole = ref<Role>((localStorage.getItem('userRole') as Role || 'ADMIN') as Role);
+  console.log('userRole:', userRole.value);
+  localStorage.getItem('userRole');
+  
+  // Menus filtrés selon le rôle
+  const filteredMenuGroups = computed(() => {
+    return menuGroups.value.map(group => ({
+      ...group,
+      menuItems: group.menuItems.filter(item => canAccessMenu(userRole.value, item.label))
+    })).filter(group => group.menuItems.length > 0);
+  });
   const handleLogout = () => {
     authStore.logout()
     router.push('/login') 
     sidebarStore.isSidebarOpen = false;
     // Add your logout logic here, e.g., clear user session, redirect to login page, etc.
   }
+
+  
 
   const menuGroups = ref([
     {
@@ -184,7 +200,7 @@
   ])
 </script>
 
-<template>
+<template >
   <aside class="absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden duration-300 ease-linear lg:static lg:translate-x-0 bg-gradient-to-b from-olive-900 to-olive-800"
     :class="{
       'translate-x-0': sidebarStore.isSidebarOpen,
@@ -209,13 +225,15 @@
     </div>
     <!-- Sidebar Menu -->
     <nav class="mt-5 py-4 px-4 lg:mt-9 lg:px-6">
-      <template v-for="menuGroup in menuGroups" :key="menuGroup.name">
+      <template v-for="menuGroup in filteredMenuGroups" :key="menuGroup.name">
         <div>
-          <h3 class="mb-4 ml-4 text-base font-medium text-slate-100">{{ menuGroup.name }}</h3>
-
           <ul class="mb-6 flex flex-col gap-1.5">
-            <SidebarItem v-for="(menuItem, index) in menuGroup.menuItems" :item="menuItem" :key="index"
-              :index="index" />
+            <SidebarItem 
+              v-for="(menuItem, index) in menuGroup.menuItems" 
+              :item="menuItem" 
+              :key="index"
+              :index="index" 
+            />
           </ul>
         </div>
       </template>

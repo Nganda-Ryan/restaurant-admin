@@ -197,9 +197,14 @@ import Spinner from '@/components/Utilities/Spinner.vue';
 import EventBus from '@/EventBus';
 import { updateResto, uploadContent, createContent, updateContent } from '@/services/database';
 import type { Content } from '@/services/serviceInterface'
+import { useAuthStore } from '@/stores/auth';
 
 const DisabledFieldWrapper = defineAsyncComponent(() => import('../DisabledFieldWrapper.vue.vue'));
 const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
+
+
+const authStore = useAuthStore();
+const _token = authStore.jwt;
 
 const storedData = localStorage.getItem('profiles');
 const dataArray = storedData ? JSON.parse(storedData) : [];
@@ -345,7 +350,7 @@ const handleSubmit = async () => {
       Capacity: Number(formData.value.Capacity) || 0
     };
 
-    const result = await updateResto({ ...submitData, Code: restaurantCode });
+    const result = await updateResto({ ...submitData, Code: restaurantCode }, _token);
     
    let logoUploadedUrl = logoUrl.value;
     if (selectedFile.value) {
@@ -369,9 +374,9 @@ const handleSubmit = async () => {
 
         // 3. Choisir entre update et create
         if (currentLogoId > 0) {
-          await updateContent(ctnList);
+          await updateContent(ctnList, _token);
         } else {
-          const createdContent = await createContent(ctnList);
+          const createdContent = await createContent(ctnList, _token);
           if (createdContent?.[0]?.Id) {
             // Mettre à jour l'ID pour les futurs updates
             logoId.value = createdContent[0].Id;

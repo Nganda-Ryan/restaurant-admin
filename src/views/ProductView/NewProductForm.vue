@@ -7,6 +7,7 @@
     import InputGroup from '@/components/Forms/InputGroup.vue';
     import type { Content, Product } from '@/services/serviceInterface';
     import { useConfigStore } from '@/stores/config';
+    import { useAuthStore } from '@/stores/auth';
     import type Option from '../../../src/components/Utilities/interfaceModel';
     import { createProduct, generateCode, createContent, updateProduct, uploadContent } from '@/services/database';
     import EventBus from '@/EventBus';
@@ -21,6 +22,8 @@
     
 
     const configStore = useConfigStore();
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
     const isSaving = ref<Boolean>(false);
     const emits = defineEmits(['cancel', "save", "back", "created"]);
     const props = defineProps({
@@ -62,7 +65,7 @@
             isSaving.value = true;
             if(props.action == "add"){
                 //creation du product
-                result = await createProduct(payload);
+                result = await createProduct(payload, _token);
                 if(result[0] && result[0].success == true) {
                     //upload de l'image vers le bucket
                         console.log("productInfo.value.Image", productInfo.value.Image);
@@ -82,12 +85,12 @@
                                 "TypeCode": "COVER",
                                 "DisplayOrder": 2
                             }]
-                            result2 = await createContent(payload2);
+                            result2 = await createContent(payload2, _token);
                         }
                     }
                 }
             } else if(props.action == "update") {
-                result = await updateProduct(payload);
+                result = await updateProduct(payload, _token);
                 if(result.success == true) {
                     if(productInfo.value.Image){
                     const uploadDedImage1 = await uploadContent(productInfo.value.Image);
@@ -102,7 +105,7 @@
                             "TypeCode": "COVER",
                             "DisplayOrder": 2
                         }];
-                        result2 = await createContent(payload2);
+                        result2 = await createContent(payload2, _token);
                         console.log("updateProduct", result);
                     }
                     

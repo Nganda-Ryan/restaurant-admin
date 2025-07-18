@@ -12,9 +12,12 @@
     const InputGroup = defineAsyncComponent(() => import('@/components/Forms/InputGroup.vue'));
     import type { Content, Product } from '../../services/serviceInterface';
     import { useConfigStore } from '@/stores/config';
+    import { useAuthStore } from '@/stores/auth';
     import { deleteProduct } from '@/services/database';
 
     const configStore = useConfigStore();
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
     const emits = defineEmits(['cancel', "go-back"]);
 
     interface Param {
@@ -77,7 +80,7 @@
     const deleteAction = async () => {
         try {
             isDeleting.value = true;
-            await deleteProduct([{Code: productInfo.value.Code}])
+            await deleteProduct([{Code: productInfo.value.Code}], _token);
             router.push({path: '/products'})
         } catch (e) {
             console.log("ProductDetails.handleDeleteProduct.error", e)
@@ -103,7 +106,7 @@
             action.value = params.action;
             productCode.value = params.productcode;
 
-            const result = await fetchSingleProduct(productCode.value);
+            const result = await fetchSingleProduct(productCode.value, _token);
             
             productInfo.value = result.filter((p:any) => p.Code === productCode.value)[0];
             contentList.value = result.filter((p:any) => p.Code === productCode.value)[0].content.map((c: any) => {
