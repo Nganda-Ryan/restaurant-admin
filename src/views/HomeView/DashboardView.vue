@@ -84,6 +84,8 @@
   const popularplate = ref([])
   const recentOrders = ref([])
   const authStore = useAuthStore()
+  const _token = authStore.jwt;
+  const restaurantCode = authStore.restaurantCode;
 
   // Récupère le plat le plus populaire
   const mostPopularDish = computed(() => {
@@ -126,7 +128,7 @@
   const fetchtotalMenus = async () => {
     try {
       isloading.value = true
-      const responsedata = await fetchTotalMenu()
+      const responsedata = await fetchTotalMenu(_token, restaurantCode);
       TotalMenu.value = responsedata
     } catch(error) {
       console.error('Erreur fetchTotalMenu:', error)
@@ -138,7 +140,7 @@
   const fetchDayCommandes = async () => {
     try {
       isloading.value = true
-      const responsedata = await fetchDayCommande()
+      const responsedata = await fetchDayCommande(_token, restaurantCode);
       DayCommande.value = responsedata
       console.log('Commandes du jour:', DayCommande.value)
     } catch(error) {
@@ -151,7 +153,7 @@
   const fetchPopularplates = async () => {
     try {
       isloading.value = true
-      const responseData = await fetchPopularplate()
+      const responseData = await fetchPopularplate(_token, restaurantCode);
       console.log('Popular plates:', responseData)
       // Trie les plats par nombre de commandes (ordre décroissant)
       popularplate.value = responseData.results.sort((a, b) => b.orderCount - a.orderCount)
@@ -165,7 +167,7 @@
   const fetchRecentOrders = async () => {
     try {
       isloading.value = true
-      const responsedata = await fetchRecentOrder()
+      const responsedata = await fetchRecentOrder(_token, restaurantCode);
       console.log('Recent orders:', responsedata)
       recentOrders.value = responsedata || []
       console.log('Commandes récentes:', recentOrders.value)
@@ -178,12 +180,10 @@
 
   const fetchUser = async () => {
     try {
-      const response = await getUser()
+      const response = await getUser(_token, restaurantCode)
       const userData = response.user || {}
       const profileData = response.profiles || []
       // Stocke les données utilisateur dans le localStorage
-      localStorage.setItem("user", JSON.stringify(userData))
-      localStorage.setItem("profiles", JSON.stringify(profileData))
       console.log('Données utilisateur récupérées:', userData, profileData)
       console.log('Utilisateur:', response)
     } catch(error) {
@@ -192,9 +192,12 @@
   }
   const users = JSON.parse(localStorage.getItem("user")) || null
   const profile = JSON.parse(localStorage.getItem("profiles")) || null
+  const role = authStore.RoleCode;
   onMounted(() => {
     isloading.value = true;
     console.log('Utilisateur récupéré:', users, profile)
+    console.log('Rôle de l\'utilisateur:', role)
+    console.log('token:',role)
     fetchtotalMenus()
     fetchDayCommandes()
     fetchPopularplates()

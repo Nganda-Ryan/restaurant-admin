@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { fetchinvoice } from '@/services/database';
+import { useAuthStore } from '@/stores/auth';
+
 
 const props = defineProps(['createdDate', 'code', 'plates', 'status', 'styled','invoice'])
 const invoiceData = ref<any>(null);
 const isLoading = ref(true);
+const authStore = useAuthStore();
+const _token = authStore.jwt;
 
 // Formatage des prix
 const formatPrice = (price: number) => {
@@ -16,7 +20,7 @@ const formatPrice = (price: number) => {
 const fetchInvoice = async () => {
   try {
     isLoading.value = true
-    const response = await fetchinvoice(props.code);
+    const response = await fetchinvoice(props.code, _token);
     console.log('code:', props.code);
     console.log('Invoice data:', response);
     invoiceData.value = response.data.body; // Accès aux données via data.body

@@ -4,19 +4,25 @@
     import ButtonAction from '@/components/Buttons/ButtonAction.vue';
     import DefaultCard from '@/components/Forms/DefaultCard.vue';
     import InputGroup from '@/components/Forms/InputGroup.vue';
-    import type { Content, Product, Stocks} from '@/services/serviceInterface';
+    import type { Content, Product, StocksExit} from '@/services/serviceInterface';
     import { useConfigStore } from '@/stores/config';
     import type Option from '../../../src/components/Utilities/interfaceModel';
-    import { createstocks, fetchProduct } from '@/services/database';
+    import { createNewExit, fetchProduct } from '@/services/database';
     import EventBus from '@/EventBus';
     import type ToastPayload from '@/types/Toast';
+    import { useAuthStore } from '@/stores/auth';
 
     const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
+
     const configStore = useConfigStore();
     const isSaving = ref<Boolean>(false);
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
     const products = ref<Product[]>([]);
-    const stockForms = ref<Stocks[]>([{
-        "code": "",
+    const stockForms = ref<StocksExit[]>([{
+        "ProductCode": "",
+        "QuantityUnitCode":"",
         "quantity": 0,
     }]);
     
@@ -26,14 +32,14 @@
             type: String,
         },
         stock: {
-            type: Object as () => Stocks
+            type: Object as () => StocksExit
         }
     });
 
     // Récupérer la liste des produits pour le select
     const fetchProductsList = async() => {
         try {
-            const result = await fetchProduct();
+            const result = await fetchProduct(_token, restaurantCode);
             products.value = Array.isArray(result) ? result : [result];
         } catch(error) {
             console.error('error.fetchProducts', error);
@@ -43,7 +49,26 @@
             });
         }
     }
-
+    const kitchenOption : Option[] = [
+        { "name": "📏 Gram", "api": "G" },
+        { "name": "⚖️ Kilogram", "api": "KG" },
+        { "name": "📏 Milligram", "api": "MG" },
+        { "name": "💧 Liter", "api": "L" },
+        { "name": "💧 Milliliter", "api": "MD" },
+        { "name": "💧 Centiliter", "api": "CL" },
+        { "name": "🥄 Teaspoon", "api": "TSP" },
+        { "name": "🥄 Tablespoon", "api": "TBSP" },
+        { "name": "☕ Cup", "api": "CUP" },
+        { "name": "🍺 Pint", "api": "PT" },
+        { "name": "🥤 Fluid ounce", "api": "FLOZ" },
+        { "name": "📏 Ounce", "api": "OZ" },
+        { "name": "⚖️ Pound", "api": "LB" },
+        { "name": "🛢️ Gallon", "api": "GAL" },
+        { "name": "👌 Pinch", "api": "PINCH" },
+        { "name": "👈 Dash", "api": "DASH" },
+        { "name": "🍶 Quart", "api": "QT" },
+        { "name": "🛢️ Barrel", "api": "BBL" }
+    ]
     // Options pour le select des produits
     const productOptions = computed<Option[]>(() => {
         return products.value.map(item => ({
@@ -55,14 +80,16 @@
     // Ajouter un nouveau formulaire de stock
     const addStockForm = () => {
         stockForms.value.push({
-            "code": "",
+            "ProductCode": "",
+            "QuantityUnitCode":"",
             "quantity": 0,
         });
     }
 
         const resetForms = () => {
         stockForms.value = [{
-            "code": "",
+            "ProductCode": "",
+            "QuantityUnitCode":"",
             "quantity": 0,
         }];
     }
@@ -85,13 +112,14 @@
             let result: any = null;
 
             const payload = stockForms.value.map(form => ({
-                code: form.code,
-                quantity: form.quantity,
+                ProductCode: form.ProductCode,
+                QuantityUnitCode: form.QuantityUnitCode,
+                Quantity: form.quantity,
             }));
 
             if(props.action == "add") {
-                result = await createstocks(payload);
-                console.log('data.create', result)
+                result = await createNewExit(payload, _token, restaurantCode);
+                console.log('data.creatExit', result)
             } else if(props.action == "update") {
                 // result = await updateStock(payload);
             }
@@ -122,7 +150,7 @@
         switch (act) {
             case "edit": return "Mettre à jour";
             case "clone": return "Cloner";
-            case "add": return "Save ";
+            case "add": return "Enregistrer";
             default: return "Mettre à jour";
         }
     }
@@ -143,7 +171,7 @@
 <template>
     <div class="grid grid-cols-1 gap-12 sm:grid-cols-1">
         <div class="flex flex-col gap-9">
-            <DefaultCard :cardTitle="`${getActionLabel(props.action)} Exit${stockForms.length > 1 ? 's' : ''}`">
+            <DefaultCard :cardTitle="`${getActionLabel(props.action)} Stock${stockForms.length > 1 ? 's' : ''}`">
                 <template v-slot:button>
                     <button class="flex items-center" @click="goBack">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
@@ -162,7 +190,7 @@
                                     :options="productOptions" 
                                     placeholder="Sélectionnez un produit"
                                     class="w-full xl:w-1/2" 
-                                    v-model="stockInfo.code" 
+                                    v-model="stockInfo.ProductCode" 
                                     required
                                 />
                                 <input-group 
@@ -175,6 +203,8 @@
                                     v-model="stockInfo.quantity" 
                                     required
                                 />
+                                <select-group-one label="Unit" :options="kitchenOption" :placeholder="'Select the unit'"
+                                class="w-full xl:w-1/2" v-model="stockInfo.QuantityUnitCode" required/>
                             </div>
                             
                             <!-- Bouton pour supprimer le formulaire -->
@@ -200,7 +230,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                             New Exit
+                            Ajouter un autre stock
                         </button>
 
                         <div class="flex justify-end mt-10 gap-4">

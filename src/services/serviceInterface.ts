@@ -1,3 +1,4 @@
+import type { stringOrNumber } from "@cloudinary/url-gen/types/types";
 
 export interface MenuRequest {
     Code: string | undefined,
@@ -105,6 +106,23 @@ export interface Stocks {
     "code"?: string,
     "quantity"?: number
 }
+export interface StocksExit {
+    "ProductCode"?: string,
+    "QuantityUnitCode"?: string,
+    "quantity"?: number
+}
+export interface StockData {
+    "ID"?: string,
+    "QuantityUnitCode"?: string,
+    "quantity"?: number,
+    "UpdateOn"?: Date,
+    "product": product
+}
+export interface product {
+    "Title"?: string,
+    "QuantityUnitCode"?: string
+}
+
 
 export interface Plate {
     "Code"?: string,

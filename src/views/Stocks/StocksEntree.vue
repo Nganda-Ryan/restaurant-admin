@@ -1,7 +1,19 @@
 <template>
     <div class="mt-8">
+
         <!-- Cartes des produits avec quantités -->
-        <div v-if="isViewing" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-4">
+        <div v-if="isViewing" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-4 relative">
+            <!-- Bouton précédent -->
+            <button 
+                v-if="filteredProductData.length > 7 && currentProductPage > 0"
+                @click="prevProductPage"
+                class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-6 bg-white rounded-full p-1 shadow-md hover:bg-gray-100 z-10"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+            </button>
+
             <div 
                 v-for="(product) in visibleProducts" 
                 :key="product.name"
@@ -18,16 +30,26 @@
                     <p>Quantité: {{ product.quantity }}</p>
                 </div>
             </div>
-        </div>
 
+            <!-- Bouton suivant -->
+            <button 
+                v-if="filteredProductData.length > 7 && (currentProductPage + 1) * 7 < filteredProductData.length"
+                @click="nextProductPage"
+                class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-6 bg-white rounded-full p-1 shadow-md hover:bg-gray-100 z-10"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
         <!-- Bouton pour afficher/masquer les produits supplémentaires -->
         <div v-if="filteredProducts.length > 7 && isViewing" class="flex justify-center mt-4">
-            <button 
-                @click="toggleShowAllProducts"
-                class="text-sm text-blue-600 hover:text-blue-800 font-medium"
-            >
-                {{ showAllProducts ? 'Afficher moins' : `Tout afficher` }}
-            </button>
+        <button 
+            @click="toggleShowAllProducts"
+            class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+        >
+            {{ showAllProducts ? 'Afficher moins' : `Voir plus (${filteredProducts.length - 7})` }}
+        </button>
         </div>
 
         <!-- Carte des mouvements de stock -->
@@ -79,7 +101,7 @@
                                 <div 
                                     v-if="isMenuOpen"
                                     class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-gray-200 focus:outline-none z-10 overflow-hidden"
-                                    v-click-outside="() => isMenuOpen = false"
+                                    ref="dropdownMenu"
                                 >
                                     <div class="py-1 space-y-1">
                                         <button 
@@ -126,7 +148,7 @@
                                             :class="getLatestMovement(product.name).type === 'entry' ? 'text-green-600 transform rotate-90' : 'text-rouge-fonce transform -rotate-90'"
                                         >
                                             <path fill-rule="evenodd" d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z" clip-rule="evenodd" />
-                                        </svg>
+                                        </svg>  
                                     </div>
                                     <div class="min-w-0">
                                         <p class="font-medium truncate text-sm sm:text-base">{{ product.name }}</p>
@@ -208,16 +230,19 @@
 
 
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted, ref, computed } from 'vue'
+import { defineAsyncComponent, onMounted, ref, computed, onUnmounted} from 'vue'
 import ButtonAction from '@/components/Buttons/ButtonAction.vue'
-import { fetchStocks } from '@/services/database'
+import { fetchStocks, fetchProduct } from '@/services/database'
 import { useConfigStore } from '@/stores/config'
+import { useAuthStore } from '@/stores/auth'
+//import { directive as onClickOutside } from 'vue-click-outside'
 
 const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'))
 const NewProductForm = defineAsyncComponent(() => import('@/views/Stocks/NewsStocks.vue'))
 
 // Store et état
 const configStore = useConfigStore()
+const authStore = useAuthStore()
 const isloading = ref(false)
 const isViewing = ref(true)
 const created = ref(false)
@@ -227,9 +252,31 @@ const selectedFilter = ref('')
 const stockData = ref<any>({})
 const showAllProducts = ref(false)
 const maxVisibleProducts = ref(7)
+const _token = authStore.jwt
+const codeRestaurant = authStore.restaurantCode
+const productData = ref<any>({})
+//const vClickOutside = onClickOutside
+const menuButton = ref<HTMLElement | null>(null)
+const dropdownMenu = ref<HTMLElement | null>(null)
+const currentProductPage = ref(0)
+const productsPerPage = 7
 
 
+const handleClickOutside = (event: MouseEvent) => {
+  if (dropdownMenu.value && 
+      !dropdownMenu.value.contains(event.target as Node) && 
+      !menuButton.value?.contains(event.target as Node)) {
+    isMenuOpen.value = false
+  }
+}
 
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 // Filtres
 const filter = ref([
     { name: 'ALL', api: '' },
@@ -240,7 +287,18 @@ const filter = ref([
     { name: 'Thismonth', api: 'thismonth' },
     { name: 'lastmonth', api: 'lastmonth'}
 ])
-
+const fetchproductData = async () => {
+    try {
+        const productdata = await fetchProduct ( _token, codeRestaurant)
+        productData.value = productdata.map((product:any) => ({
+            name:product.Title,
+            quantity: product.AvailableQuantity
+        }))
+       console.log('productData', productData.value) 
+    }catch(e){
+        console.log('error', e)
+    }
+}
 // Produits filtrés (quantité <= 30)
 const filteredProducts = computed(() => {
     if (!stockData.value.dashboard?.results) return []
@@ -254,11 +312,30 @@ const filteredProducts = computed(() => {
         .sort((a:any, b:any) => a.quantity - b.quantity)
 })
 
+const filteredProductData = computed(() => {
+  if (!productData.value.length) return []
+  return productData.value
+    .filter((p: any) => p.quantity <= 30) // Seulement les produits critiques
+    .sort((a:any, b:any) => a.quantity - b.quantity) // Tri par quantité
+})
+
+const nextProductPage = () => {
+    if ((currentProductPage.value + 1) * productsPerPage < filteredProductData.value.length) {
+        currentProductPage.value++
+    }
+}
+
+const prevProductPage = () => {
+    if (currentProductPage.value > 0) {
+        currentProductPage.value--
+    }
+}
+
 // Produits visibles (limités à 7 par défaut)
 const visibleProducts = computed(() => {
-    return showAllProducts.value 
-        ? filteredProducts.value 
-        : filteredProducts.value.slice(0, 7)
+    const start = currentProductPage.value * productsPerPage
+    const end = start + productsPerPage
+    return filteredProductData.value.slice(start, end)
 })
 
 // Basculer l'affichage de tous les produits
@@ -399,7 +476,7 @@ const toggleProduct = (productName: string) => {
 const fetchStockData = async () => {
     isloading.value = true
     try {
-        const result = await fetchStocks()
+        const result = await fetchStocks(_token, codeRestaurant);
         stockData.value = result
         console.log('Stock data fetched:', stockData.value)
     } catch (error) {
@@ -418,7 +495,9 @@ const handleAddProduct = () => {
 const isMenuOpen = ref(false)
 
 // Ajoutez cette fonction pour basculer le menu
-const toggleMenu = () => {
+const toggleMenu = (event: MouseEvent) => {
+  // Empêche le clic de se propager au document
+  event.stopPropagation()
     isMenuOpen.value = !isMenuOpen.value
 }
 const cancel = () => {
@@ -436,6 +515,7 @@ const handleCreate = () => {
 onMounted(async () => {
     isloading.value = true;
     await fetchStockData()
+    await fetchproductData()
 })
 </script>
 

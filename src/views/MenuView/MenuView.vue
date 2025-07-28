@@ -3,9 +3,16 @@
     import ButtonAction from '@/components/Buttons/ButtonAction.vue';
     import TableOne from '@/components/Tables/TableOne.vue';
     import { fetchMenu } from '@/services/database';
+    import { useAuthStore } from '@/stores/auth';
+
 
     const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
     const NewMenuForm = defineAsyncComponent(() => import('@/views/MenuView/NewMenuForm.vue'));
+
+
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
 
     const pageTitle = ref('Menus');
     const titles = ref([
@@ -61,7 +68,7 @@
     const fetMenu = async () => {
         isloading.value = true;
         try {
-            const result = await fetchMenu();
+            const result = await fetchMenu(_token, restaurantCode);
             // console.log('resultresult', result)
             const menuList = result.map((menu: any) => {
                 return Object.fromEntries(Object.entries(menu).filter(([key]) => key !== "items"))

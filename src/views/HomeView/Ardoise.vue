@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import { fetchOrder, updateOrder } from '@/services/database'
 import EventBus from '@/EventBus'
+import { useAuthStore } from '@/stores/auth'
 import StatCard from '@/components/Dashboard/statCards.vue'
 const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
 
@@ -13,6 +14,9 @@ const STATUS = {
   CANCELED: 'CANCELED'
 };
 
+const authStore = useAuthStore();
+const _token = authStore.jwt;
+const codeRestaurant = authStore.restaurantCode;
 const isloading = ref(false)
 const ORANGE = 'bg-orange-300 rounded'
 const BLUE = 'bg-blue-300 rounded'
@@ -68,7 +72,7 @@ const statusConfig = {
 const refreshData = async () => {
   isloading.value = true
   try {
-    const result = await fetchOrder()
+    const result = await fetchOrder(_token, codeRestaurant)
     orders.value = result
     console.log('Orders fetched:', orders.value)
   } catch (error) {
@@ -120,7 +124,7 @@ const takeOrder = async (orderCode: string) => {
     await updateOrder({
       Code: orderCode,
       StatusCode: STATUS.IN_PROGRESS
-    })
+    }, _token)
     // Rafraîchissement pour synchronisation
     await refreshData()
     
@@ -147,7 +151,7 @@ const updateStatus = async (orderCode: string, newStatus: 'COMPLETED' | 'CANCELE
     await updateOrder({
       Code: orderCode,
       StatusCode: newStatus
-    })
+    }, _token)
     // Rafraîchissement pour synchronisation
     await refreshData()
     

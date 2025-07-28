@@ -7,20 +7,17 @@
     import InputGroup from '@/components/Forms/InputGroup.vue';
     import type { Content, Product } from '@/services/serviceInterface';
     import { useConfigStore } from '@/stores/config';
+    import { useAuthStore } from '@/stores/auth';
     import type Option from '../../../src/components/Utilities/interfaceModel';
     import { createProduct, generateCode, createContent, updateProduct, uploadContent } from '@/services/database';
     import EventBus from '@/EventBus';
     import type ToastPayload from '@/types/Toast';
     const SelectGroupOne = defineAsyncComponent(() => import('@/components/Forms/SelectGroup/SelectGroupOne.vue'));
 
-    const storedData = localStorage.getItem('profiles');
-
-    const dataArray = storedData ? JSON.parse(storedData) : [];
-
-    const restaurantCode = dataArray[0]?.RestaurantCode ?? '';
-    
-
     const configStore = useConfigStore();
+    const authStore = useAuthStore();
+    const _token = authStore.jwt;
+    const restaurantCode = authStore.restaurantCode;
     const isSaving = ref<Boolean>(false);
     const emits = defineEmits(['cancel', "save", "back", "created"]);
     const props = defineProps({
@@ -62,7 +59,7 @@
             isSaving.value = true;
             if(props.action == "add"){
                 //creation du product
-                result = await createProduct(payload);
+                result = await createProduct(payload, _token);
                 if(result[0] && result[0].success == true) {
                     //upload de l'image vers le bucket
                         console.log("productInfo.value.Image", productInfo.value.Image);
@@ -82,12 +79,12 @@
                                 "TypeCode": "COVER",
                                 "DisplayOrder": 2
                             }]
-                            result2 = await createContent(payload2);
+                            result2 = await createContent(payload2, _token);
                         }
                     }
                 }
             } else if(props.action == "update") {
-                result = await updateProduct(payload);
+                result = await updateProduct(payload, _token);
                 if(result.success == true) {
                     if(productInfo.value.Image){
                     const uploadDedImage1 = await uploadContent(productInfo.value.Image);
@@ -102,7 +99,7 @@
                             "TypeCode": "COVER",
                             "DisplayOrder": 2
                         }];
-                        result2 = await createContent(payload2);
+                        result2 = await createContent(payload2, _token);
                         console.log("updateProduct", result);
                     }
                     
@@ -177,7 +174,6 @@
         { "name": "🍶 Quart", "api": "QT" },
         { "name": "🛢️ Barrel", "api": "BBL" }
     ]
-
 
     const stopAction = () => {
         emits('cancel');
