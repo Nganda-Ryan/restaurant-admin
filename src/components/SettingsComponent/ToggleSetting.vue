@@ -41,7 +41,8 @@
           <div class="flex items-center h-5">
             <input
               :id="`lang-${language.code}`"
-              v-model="selectedLanguage"
+              v-model="selectedLanguage.code"
+              @click="setLanguage(language)"
               type="radio"
               :value="language.code"
               class="focus:ring-olive-500 h-4 w-4 text-olive-600 border-gray-300"
@@ -86,13 +87,23 @@
       v-if="(showSectionsCount % 2) === 1"
       class="hidden md:block"
     ></div>
+    <SpinnerOverPage v-if="isloading"/>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useLanguageStore, type LanguageCode } from '@/lang/language'
+import { ref, computed, watch, defineAsyncComponent } from 'vue'
+import { useLanguageStore} from '@/lang/language'
 import { updateResto } from '@/services/database'
+import { useI18n } from 'vue-i18n'
+
+const SpinnerOverPage = defineAsyncComponent(() => import('@/components/Utilities/SpinnerOverPage.vue'));
+
+
+const { t, locale } = useI18n({ useScope: 'global' })
+const show = ref(false)
+const useLanguage = useLanguageStore()
+const isloading = ref(false)
 
 interface Preference {
   id: string
@@ -121,7 +132,6 @@ const props = defineProps<{
   languageValue?: string | null
 }>()
 
-const languageStore = useLanguageStore()
 const showSectionsCount = ref<number>(3)
 
 const emit = defineEmits<{
@@ -183,17 +193,20 @@ const languages = ref<Language[]>([
   { code: 'de', label: 'Allemand', nativeName: 'Deutsch' }
 ])
 
-const selectedLanguage = computed<string>({
-  get() {
-    return props.languageValue || languageStore.locale
-  },
-  set(value: string) {
-    emit('update:languageValue', value)
-    languageStore.set(value as LanguageCode) // Met à jour le store Pinia
-  }
+const selectedLanguage = computed(() => {
+  return languages.value.filter((e) => e.code === useLanguage.locale)[0] || languages.value.find((e) => e.code === 'en')!;
 })
-
+const setLanguage = (lg: any) => {
+  show.value = !show.value
+  if (lg.code !== locale.value) {
+    isloading.value = true;
+    locale.value = lg.code
+    emit('update:languageValue', lg.code);
+    useLanguage.set(locale.value)
+  }
+}
 watch(selectedLanguage, (newLang) => {
   console.log('Langue changée :', newLang)
+  isloading.value = false;
 })
 </script>

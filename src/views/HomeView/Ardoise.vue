@@ -16,7 +16,7 @@ const STATUS = {
 
 const authStore = useAuthStore();
 const _token = authStore.jwt;
-const codeRestaurant = authStore.restaurantCode;
+const restaurantCode = authStore.restaurantCode;
 const isloading = ref(false)
 const ORANGE = 'bg-orange-300 rounded'
 const BLUE = 'bg-blue-300 rounded'
@@ -72,7 +72,7 @@ const statusConfig = {
 const refreshData = async () => {
   isloading.value = true
   try {
-    const result = await fetchOrder(_token, codeRestaurant)
+    const result = await fetchOrder(_token, restaurantCode)
     orders.value = result
     console.log('Orders fetched:', orders.value)
   } catch (error) {
@@ -124,7 +124,7 @@ const takeOrder = async (orderCode: string) => {
     await updateOrder({
       Code: orderCode,
       StatusCode: STATUS.IN_PROGRESS
-    }, _token)
+    }, _token, restaurantCode)
     // Rafraîchissement pour synchronisation
     await refreshData()
     
@@ -151,7 +151,7 @@ const updateStatus = async (orderCode: string, newStatus: 'COMPLETED' | 'CANCELE
     await updateOrder({
       Code: orderCode,
       StatusCode: newStatus
-    }, _token)
+    }, _token, restaurantCode)
     // Rafraîchissement pour synchronisation
     await refreshData()
     

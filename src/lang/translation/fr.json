@@ -45,5 +45,6 @@
     "phrase9": "Description de la table",
     "AddTable": "Ajouter une table",
     "Delete": "Supprimer",
-    "infoQrcode": "Scannez ce code avec l'appareil photo de votre téléphone pour accéder au menu."
+    "infoQrcode": "Scannez ce code avec l'appareil photo de votre téléphone pour accéder au menu.",
+    "Restaurant": "Restaurant"
 }

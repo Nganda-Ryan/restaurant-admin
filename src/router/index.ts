@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 import HomeView from '../views/HomeView/HomeView.vue'
 import Dashboard from '../views/HomeView/DashboardView.vue'
 import login from '../views/Connexion/authentificationView.vue'
-import Ardoise from '@/views/HomeView/ardoise.vue'
+import Ardoise from '../views/HomeView/Ardoise.vue'
 // @ts-ignore
 import HomeSetting from '../views/SettingsView/HomeSetting.vue'
 

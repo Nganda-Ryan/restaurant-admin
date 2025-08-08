@@ -1,18 +1,29 @@
 // src/lang/language.ts
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore } from 'pinia';
 
-export type LanguageCode = 'en' | 'fr' | 'es' | 'de' // Étendez selon vos besoins
+export const useLanguageStore = defineStore('language', {
+  state: () => ({
+    language: localStorage.getItem('language') || null as string | null,
+  }),
 
-export const useLanguageStore = defineStore('language', () => {
-  const locale = ref<LanguageCode>((localStorage.getItem('lang') as LanguageCode) || 'en')
+  getters: {
+    locale: (state) => state.language,
+  },
 
-  const set = (lang: LanguageCode): void => {
-    locale.value = lang
-    localStorage.setItem('lang', lang)
-    // Déclencher un événement personnalisé pour notifier les changements
-    window.dispatchEvent(new CustomEvent('language-changed', { detail: lang }))
-  }
+  actions: {
+    set(lang: string | null) {
+      this.language = lang;
+      localStorage.setItem('language', lang || '');
+      console.log('here', lang);
+    },
 
-  return { locale, set }
-})
+    init() {
+      // Cette action peut être appelée au démarrage de l'application
+      const storedLanguage = localStorage.getItem('language');
+      if (storedLanguage) {
+        this.language = storedLanguage;
+      }
+    },
+  },
+  persist: true,
+});
