@@ -46,7 +46,11 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"DRAFT"
+<<<<<<< HEAD
                 }, _token, restaurantCode);
+=======
+                }, _token);
+>>>>>>> origin/feature/media-dishes-history
                 ticketInfo.value.StatusCode = 'DRAFT';
                 const payload: ToastPayload = {
                     type: "info",
@@ -73,7 +77,11 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"IN PROGRESS"
+<<<<<<< HEAD
                 }, _token, restaurantCode);
+=======
+                }, _token);
+>>>>>>> origin/feature/media-dishes-history
                 ticketInfo.value.StatusCode = 'IN PROGRESS'
                 const payload: ToastPayload = {
                     type: "info",
@@ -100,7 +108,11 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"COMPLETED"
+<<<<<<< HEAD
                 }, _token, restaurantCode);
+=======
+                }, _token);
+>>>>>>> origin/feature/media-dishes-history
                 ticketInfo.value.StatusCode = 'COMPLETED';
                 const payload: ToastPayload = {
                     type: "success",
@@ -127,7 +139,11 @@ const { handlePrint } = useVueToPrint({
                 const result  = await updateOrder({
                     "Code": ticketInfo.value.Code,
                     "StatusCode":"CANCELED"
+<<<<<<< HEAD
                 }, _token, restaurantCode);
+=======
+                }, _token);
+>>>>>>> origin/feature/media-dishes-history
                 ticketInfo.value.StatusCode = 'CANCELED';
                 const payload: ToastPayload = {
                     type: "success",

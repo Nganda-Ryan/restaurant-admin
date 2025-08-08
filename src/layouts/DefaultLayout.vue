@@ -42,9 +42,8 @@
 const fetchRestaurant = async () => {
   try {
     const _token = authStore.jwt;
-    const restaurantCode = authStore.restaurantCode;
-    console.log('restaurantCode:', restaurantCode);
-    const response = await fetchResto(_token, restaurantCode);
+    const codeRestaurant = authStore.restaurantCode;
+    const response = await fetchResto(_token, codeRestaurant);
     configStore.restaurantInfo = response;
     console.log('data.inforestaurant:', configStore.restaurantInfo);
     
@@ -101,7 +100,8 @@ const fetchRestaurant = async () => {
   const init = async () => {
     try {
       const _token = authStore.jwt;
-       const restaurantCode = authStore.restaurantCode;
+      const restaurantCode = authStore.restaurantCode;
+      console.log('DefaultLayout.init', _token, restaurantCode);
       const config = await fetchConfig(_token, restaurantCode);
       console.log ("data.config",config);
       configStore.plateCategories = config.PlatCategories;
