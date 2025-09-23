@@ -12,8 +12,6 @@ const isMenuOpen = ref(false);
 const menuButton = ref<HTMLElement | null>(null)
 const dropdownMenu = ref<HTMLElement | null>(null)
 
-
-
 const handleClickOutside = (event: MouseEvent) => {
   if (dropdownMenu.value && 
       !dropdownMenu.value.contains(event.target as Node) && 
@@ -39,9 +37,8 @@ const updateTheme = () => {
 };
 
 const toggleMenu = (event: MouseEvent) => {
-  // Empêche le clic de se propager au document
   event.stopPropagation()
-    isMenuOpen.value = !isMenuOpen.value
+  isMenuOpen.value = !isMenuOpen.value
 }
 
 onUnmounted(() => {
@@ -50,7 +47,7 @@ onUnmounted(() => {
 onMounted(() => {
   darkMode.value = localStorage.getItem('darkMode') === 'true';
   updateTheme();
-   document.addEventListener('click', handleClickOutside)
+  document.addEventListener('click', handleClickOutside)
 });
 
 // Gestion de la langue
@@ -88,12 +85,12 @@ const getInitials = (email: string) => {
 </script>
 
 <template>
-  <header class="sticky top-0 z-999 flex w-full bg-white shadow dark:bg-gray-800">
+  <header class="sticky top-0 z-999 flex w-full bg-white shadow dark:bg-slate-800 dark:shadow-slate-700/50">
     <div class="flex flex-grow items-center justify-between py-3 px-4 md:px-6 2xl:px-11">
       <!-- Partie gauche - Menu mobile -->
       <div class="flex items-center gap-2 sm:gap-4 lg:hidden">
         <button
-          class="z-99999 block rounded-sm border border-stroke bg-white p-1.5 shadow-sm dark:border-gray-600 dark:bg-gray-700 lg:hidden"
+          class="z-99999 block rounded-sm border border-stroke bg-white p-1.5 shadow-sm dark:border-slate-600 dark:bg-slate-700 lg:hidden"
           @click="toggleSidebar()">
           <span class="relative block h-5.5 w-5.5 cursor-pointer">
             <span class="block absolute right-0 h-full w-full">
@@ -123,28 +120,34 @@ const getInitials = (email: string) => {
         </router-link>
       </div>
 
-      <!-- Barre de recherche - Taille originale -->
-      <div class="hidden sm:flex items-center p-2 rounded-lg bg-gray-50 shadow h-14 mx-4 dark:bg-gray-700" 
+      <!-- Barre de recherche améliorée -->
+      <div class="hidden sm:flex items-center p-2 rounded-lg bg-gray-50 shadow h-14 mx-4 dark:bg-slate-700 dark:shadow-slate-600/30" 
            :class="{'w-3/5 sm:w-4/5 md:w-9/12 lg:w-full': true}">
         <form class="w-full">
           <div class="relative">
-            <button class="absolute top-1/2 left-0 -translate-y-1/2">
-              <svg class="fill-gray-500 hover:fill-primary dark:fill-gray-300 dark:hover:fill-primary" width="20"
-                height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" clip-rule="evenodd"
-                  d="M9.16666 3.33332C5.945 3.33332 3.33332 5.945 3.33332 9.16666C3.33332 12.3883 5.945 15 9.16666 15C12.3883 15 15 12.3883 15 9.16666C15 5.945 12.3883 3.33332 9.16666 3.33332ZM1.66666 9.16666C1.66666 5.02452 5.02452 1.66666 9.16666 1.66666C13.3088 1.66666 16.6667 5.02452 16.6667 9.16666C16.6667 13.3088 13.3088 16.6667 9.16666 16.6667C5.02452 16.6667 1.66666 13.3088 1.66666 9.16666Z"
-                  fill="" />
-                <path fill-rule="evenodd" clip-rule="evenodd"
-                  d="M13.2857 13.2857C13.6112 12.9603 14.1388 12.9603 14.4642 13.2857L18.0892 16.9107C18.4147 17.2362 18.4147 17.7638 18.0892 18.0892C17.7638 18.4147 17.2362 18.4147 16.9107 18.0892L13.2857 14.4642C12.9603 14.1388 12.9603 13.6112 13.2857 13.2857Z"
-                  fill="" />
+            <button class="absolute top-1/2 left-3 -translate-y-1/2">
+              <svg class="w-5 h-5 text-gray-500 hover:text-primary dark:text-slate-300 dark:hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
             </button>
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search..."
-              class="w-full bg-transparent pl-9 pr-4 font-medium focus:outline-none dark:text-white"
+              class="w-full bg-transparent pl-10 pr-4 font-medium focus:outline-none text-gray-800 dark:text-slate-200 placeholder-gray-500 dark:placeholder-slate-400"
             />
+            <!-- Animation de la loupe -->
+            <transition name="fade">
+              <button 
+                v-if="searchQuery" 
+                @click="searchQuery = ''"
+                class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-slate-300 dark:hover:text-slate-100"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </transition>
           </div>
         </form>
       </div>
@@ -154,7 +157,7 @@ const getInitials = (email: string) => {
         <!-- Dark/Light mode -->
         <button
           @click="toggleDarkMode"
-          class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+          class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200"
           :title="darkMode ? 'Passer en mode clair' : 'Passer en mode sombre'"
         >
           <svg
@@ -173,7 +176,7 @@ const getInitials = (email: string) => {
           <svg
             v-else
             xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5 text-gray-700 dark:text-gray-300"
+            class="h-5 w-5 text-gray-700 dark:text-slate-300"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -187,7 +190,7 @@ const getInitials = (email: string) => {
         <div class="relative">
           <button
             @click="showLanguageDropdown = !showLanguageDropdown"
-            class="flex items-center gap-1 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+            class="flex items-center gap-1 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200"
           >
             <span class="text-lg">{{ locale === 'en' ? '🇬🇧' : '🇫🇷' }}</span>
           </button>
@@ -202,7 +205,7 @@ const getInitials = (email: string) => {
           >
             <div
               v-if="showLanguageDropdown"
-              class="absolute right-0 mt-2 w-32 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-700 dark:ring-gray-600 z-50"
+              class="absolute right-0 mt-2 w-32 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-slate-700 dark:ring-slate-600 z-50"
               @click.away="showLanguageDropdown = false"
             >
               <div class="py-1" role="none">
@@ -210,8 +213,8 @@ const getInitials = (email: string) => {
                   v-for="lang in languages"
                   :key="lang.code"
                   @click="locale = lang.code; showLanguageDropdown = false"
-                  class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600"
-                  :class="{ 'bg-gray-100 dark:bg-gray-600': locale === lang.code }"
+                  class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-600 transition-colors duration-150"
+                  :class="{ 'bg-gray-100 dark:bg-slate-600': locale === lang.code }"
                 >
                   {{ lang.flag }} {{ lang.name }}
                 </button>
@@ -220,7 +223,7 @@ const getInitials = (email: string) => {
           </transition>
         </div>
 
-        <!-- Menu utilisateur - Nouveau design -->
+        <!-- Menu utilisateur -->
         <div class="relative">
           <button
             @click="showUserDropdown = !showUserDropdown"
@@ -230,7 +233,6 @@ const getInitials = (email: string) => {
             {{ getInitials(user.email) }}
           </button>
 
-          <!-- Nouveau menu déroulant -->
           <transition
             enter-active-class="transition ease-out duration-100"
             enter-from-class="transform opacity-0 scale-95"
@@ -241,7 +243,7 @@ const getInitials = (email: string) => {
           >
             <div
               v-if="showUserDropdown"
-              class="absolute right-0 mt-2 w-64 origin-top-right rounded-lg bg-white shadow-xl dark:bg-gray-700 z-50 overflow-hidden"
+              class="absolute right-0 mt-2 w-64 origin-top-right rounded-lg bg-white shadow-xl dark:bg-slate-700 dark:shadow-slate-900/50 z-50 overflow-hidden"
               @click.away="showUserDropdown = false"
             >
               <!-- En-tête avec couleur de profil -->
@@ -250,11 +252,11 @@ const getInitials = (email: string) => {
               <!-- Photo de profil et infos -->
               <div class="px-4 pb-4 -mt-8">
                 <div class="flex items-end">
-                  <div class="w-16 h-16 rounded-full border-4 border-white dark:border-gray-700 flex items-center justify-center text-2xl font-bold text-white" :class="randomColor">
+                  <div class="w-16 h-16 rounded-full border-4 border-white dark:border-slate-700 flex items-center justify-center text-2xl font-bold text-white" :class="randomColor">
                     {{ getInitials(user.email) }}
                   </div>
-                  <button class="ml-auto p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <button class="ml-auto p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                     </svg>
                   </button>
@@ -262,39 +264,39 @@ const getInitials = (email: string) => {
 
                 <div class="mt-3">
                   <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ user.name }}</h3>
-                  <p class="text-sm text-gray-500 dark:text-gray-300">{{ user.role }}</p>
-                  <p class="text-xs text-gray-400 dark:text-gray-400 mt-1 truncate">{{ user.email }}</p>
+                  <p class="text-sm text-gray-500 dark:text-slate-300">{{ user.role }}</p>
+                  <p class="text-xs text-gray-400 dark:text-slate-400 mt-1 truncate">{{ user.email }}</p>
                 </div>
               </div>
 
               <!-- Menu -->
-              <div class="border-t border-gray-200 dark:border-gray-600 py-1">
+              <div class="border-t border-gray-200 dark:border-slate-600 py-1">
                 <router-link
                   to="/profile"
-                  class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 flex items-center"
+                  class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-600 flex items-center transition-colors duration-150"
                   @click="showUserDropdown = false"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   Mon profil
                 </router-link>
                 <router-link
                   to="/settings"
-                  class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 flex items-center"
+                  class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-600 flex items-center transition-colors duration-150"
                   @click="showUserDropdown = false"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   Paramètres
                 </router-link>
                 <button
-                  class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 flex items-center"
+                  class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-600 flex items-center transition-colors duration-150"
                   @click="showUserDropdown = false"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
                   Déconnexion
@@ -309,21 +311,34 @@ const getInitials = (email: string) => {
 </template>
 
 <style scoped>
-  .shadow-top {
-    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
-  }
+.shadow-top {
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
+}
 
-  .custom-scrollbar {
-    overflow-x: auto;
-  }
+.custom-scrollbar {
+  overflow-x: auto;
+}
 
-  .custom-scrollbar::-webkit-scrollbar {
-    height: 8px;
-    background-color: transparent;
-  }
+.custom-scrollbar::-webkit-scrollbar {
+  height: 8px;
+  background-color: transparent;
+}
 
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #4CAF50; 
-    border-radius: 10px;
-  }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #4CAF50; 
+  border-radius: 10px;
+}
+
+/* Animation pour la loupe */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.2s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+/* Transition pour le dark mode */
+.dark .header-transition {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
 </style>

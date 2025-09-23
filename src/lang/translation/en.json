@@ -1,9 +1,69 @@
 
 {
+    "tabless": {
+        "headers": {
+        "code": "Code",
+        "plates": "Plate(s)",
+        "date": "Date"
+        }
+    },
+    "filters": {
+        "all": "All",
+        "today": "Today",
+        "this_week": "This week",
+        "last_week": "Last Week",
+        "this_month": "This Month"
+    },
+    "messages": {
+        "order_sent_to_kitchen": "Order {code} sent to kitchen successfully",
+        "order_processed": "Order {code} successfully processed",
+        "order_completed": "Order {code} completed!",
+        "order_canceled": "Order {code} canceled!"
+    },
+    "error": {
+        "fetch_tickets": "Error while fetching tickets",
+        "fetch_tickets_message": "Failed to load orders",
+        "kitchen_process": "Error while processing kitchen action",
+        "progress_process": "Error while processing order",
+        "complete_process": "Error while completing order",
+        "cancel_process": "Error while canceling order",
+        "general_error": "Something went wrong during the process!"
+    },
+
     "dashboard": {
-        "export": "Export",
-        "exportPDF" : "Export as PDF",
-        "exportEXCEL" : "Export as Excel"
+        "title": "Restaurant Dashboard",
+        "statistics": {
+        "revenue": "Revenue",
+        "weekly_orders": "Weekly Orders",
+        "menus": "Menus",
+        "popular_dish": "Most Popular Dish"
+        },
+        "sales_chart": {
+        "title": "Sales for the last 7 days",
+        "label": "Sales (€)"
+        },
+        "recent_orders": {
+        "title": "Recent Orders"
+        },
+        "popular_dishes": {
+        "title": "Top 5 Popular Dishes"
+        }
+    },
+    "weekdays": {
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat",
+        "sun": "Sun"
+    },
+    "errors": {
+        "fetchTotalMenu": "Error fetching total menus",
+        "fetchDayCommande": "Error fetching today's orders",
+        "fetchPopularplate": "Error fetching popular plates",
+        "fetchRecentOrder": "Error fetching recent orders",
+        "getUser": "Error fetching user data"
     },
     "tables": {
         "title": "Title",
@@ -12,6 +72,96 @@
         "All": "All",
         "Description": "Description"
     },
+     "orders": {
+        "dashboard": {
+        "title": "Order Management",
+        "stats": {
+            "pending": "Pending Orders",
+            "in_progress": "In Preparation",
+            "completed": "Completed Orders",
+            "canceled": "Canceled Orders"
+        },
+        "sections": {
+            "new_orders": "New Orders",
+            "in_progress": "Orders in Progress",
+            "no_orders": "No new orders",
+            "no_in_progress": "No orders in preparation"
+        },
+        "actions": {
+            "take_order": "Take order",
+            "mark_completed": "Mark as completed",
+            "cancel_order": "Cancel order"
+        },
+        "messages": {
+            "order_taken": "Order {code} taken in charge",
+            "status_updated": "Status updated for order {code}",
+            "error_taking": "Error while taking order",
+            "error_updating": "Error while updating status",
+            "error_loading": "Error loading orders"
+        },
+        "order_number": "Order #{code}"
+        },
+        "status": {
+        "draft": "PENDING",
+        "in_progress": "IN PROGRESS",
+        "completed": "COMPLETED",
+        "canceled": "CANCELED"
+        }
+    },
+    "menu": {
+    "page_title": "Menus",
+    "table": {
+      "headers": {
+        "title": "Title",
+        "price": "Price",
+        "quantity": "Quantity",
+        "description": "Description",
+        "actions": "Actions"
+      }
+    },
+    "actions": {
+      "view": "View",
+      "delete": "Delete",
+      "add": "Add Menu"
+    },
+    "form": {
+      "code": "Menu Code",
+      "title": "Title",
+      "start_date": "Start Date",
+      "end_date": "End Date",
+      "description": "Description"
+    },
+    "plate_list": "PLATE LIST",
+    "messages": {
+      "item_deleted": "Item {title} deleted successfully! 🍕"
+    },
+    "delete_confirmation": {
+      "title": "Menu deletion",
+      "message": "Are you sure you want to delete this Menu? This action cannot be undone."
+    }
+    },
+    "filter": {
+        "all": "All",
+        "today": "Today",
+        "this_week": "This week",
+        "last_week": "Last Week"
+    },
+    "actions": {
+        "go_back": "Go back",
+        "edit": "Edit",
+        "clone": "Clone",
+        "delete": "Delete",
+        "cancel": "Cancel"
+    },
+    "errorrs": {
+        "delete_item": "Error while deleting item",
+        "delete_menu": "Error while deleting menu",
+        "fetch_menu": "Error while fetching menu",
+        "general_error": "Something went wrong during the process! 🍕",
+        "fetch_menu_message": "Failed to load menus"
+    },
+
+
     "French" : "French",
     "English" : "English",
     "paragraph1": "There were 1 errors with your submission",
@@ -47,5 +197,6 @@
     "AddTable": "Add Table",
     "Delete": "Delete",
     "infoQrcode":"Scan this code with your phone's camera to access the menu.",
-    "Restaurant": "Restaurantsss"
+    "Restaurant": "Restaurantsss",
+    "locale": "en-US"
 }

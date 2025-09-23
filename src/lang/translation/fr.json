@@ -1,15 +1,159 @@
 {
     "dashboard": {
-        "export": "Exporter",
-        "exportPDF": "Exporter en PDF",
-        "exportEXCEL": "Exporter en Excel"
+    "title": "Tableau de bord du restaurant",
+    "statistics": {
+      "revenue": "Chiffre d'affaires",
+      "weekly_orders": "Commandes de la semaine",
+      "menus": "Menus",
+      "popular_dish": "Plat le plus populaire"
     },
+    "sales_chart": {
+      "title": "Ventes des 7 derniers jours",
+      "label": "Ventes (€)"
+    },
+    "recent_orders": {
+      "title": "Commandes récentes"
+    },
+    "popular_dishes": {
+      "title": "Top 5 des plats populaires"
+    }
+  },
+  "weekdays": {
+    "mon": "Lun",
+    "tue": "Mar",
+    "wed": "Mer",
+    "thu": "Jeu",
+    "fri": "Ven",
+    "sat": "Sam",
+    "sun": "Dim"
+  },
+  "errors": {
+    "fetchTotalMenu": "Erreur lors de la récupération des menus",
+    "fetchDayCommande": "Erreur lors de la récupération des commandes du jour",
+    "fetchPopularplate": "Erreur lors de la récupération des plats populaires",
+    "fetchRecentOrder": "Erreur lors de la récupération des commandes récentes",
+    "getUser": "Erreur lors de la récupération des données utilisateur"
+  },
+    "orders": {
+        "dashboard": {
+        "title": "Gestion des Commandes",
+        "stats": {
+            "pending": "Commandes en attente",
+            "in_progress": "En préparation",
+            "completed": "Commandes terminées",
+            "canceled": "Commandes annulées"
+        },
+        "sections": {
+            "new_orders": "Nouvelles commandes",
+            "in_progress": "Commandes en cours",
+            "no_orders": "Aucune nouvelle commande",
+            "no_in_progress": "Aucune commande en préparation"
+        },
+        "actions": {
+            "take_order": "Prendre en charge",
+            "mark_completed": "Marquer comme terminé",
+            "cancel_order": "Annuler la commande"
+        },
+        "messages": {
+            "order_taken": "Commande {code} prise en charge",
+            "status_updated": "Statut mis à jour pour la commande {code}",
+            "error_taking": "Erreur lors de la prise en charge",
+            "error_updating": "Erreur lors de la mise à jour du statut",
+            "error_loading": "Erreur lors du chargement des commandes"
+        },
+        "order_number": "Commande #{code}"
+        },
+        "status": {
+        "draft": "EN ATTENTE",
+        "in_progress": "EN COURS",
+        "completed": "TERMINÉ",
+        "canceled": "ANNULÉ"
+        }
+    },
+    "tabless": {
+    "headers": {
+      "code": "Code",
+      "plates": "Plat(s)",
+      "date": "Date"
+    }
+  },
+  "filters": {
+    "all": "Tous",
+    "today": "Aujourd'hui",
+    "this_week": "Cette semaine",
+    "last_week": "Semaine dernière",
+    "this_month": "Ce mois-ci"
+  },
+  "messages": {
+    "order_sent_to_kitchen": "Commande {code} envoyée en cuisine avec succès",
+    "order_processed": "Commande {code} traitée avec succès",
+    "order_completed": "Commande {code} terminée !",
+    "order_canceled": "Commande {code} annulée !"
+  },
+  "error": {
+    "fetch_tickets": "Erreur lors de la récupération des tickets",
+    "fetch_tickets_message": "Échec du chargement des commandes",
+    "kitchen_process": "Erreur lors du traitement de l'action cuisine",
+    "progress_process": "Erreur lors du traitement de la commande",
+    "complete_process": "Erreur lors de la finalisation de la commande",
+    "cancel_process": "Erreur lors de l'annulation de la commande",
+    "general_error": "Un problème est survenu pendant le processus !"
+  },
     "tables": {
         "title": "Titre",
         "Status": "Statut",
         "Actions": "Actions",
         "All": "Tous",
         "Description": "Description"
+    },
+    "menu": {
+        "table": {
+        "headers": {
+            "title": "Titre",
+            "price": "Prix",
+            "quantity": "Quantité",
+            "description": "Description",
+            "actions": "Actions"
+        }
+        },
+        "actions": {
+        "view": "Voir",
+        "delete": "Supprimer"
+        },
+        "form": {
+        "code": "Code Menu",
+        "title": "Titre",
+        "start_date": "Date de début",
+        "end_date": "Date de fin",
+        "description": "Description"
+        },
+        "plate_list": "LISTE DES PLATS",
+        "messages": {
+        "item_deleted": "Élément {title} supprimé avec succès ! 🍕"
+        },
+        "delete_confirmation": {
+        "title": "Suppression de menu",
+        "message": "Êtes-vous sûr de vouloir supprimer ce menu ? Cette action est irréversible."
+        }
+    },
+    "filter": {
+        "all": "Tous",
+        "today": "Aujourd'hui",
+        "this_week": "Cette semaine",
+        "last_week": "Semaine dernière"
+    },
+    "actions": {
+        "go_back": "Retour",
+        "edit": "Modifier",
+        "clone": "Dupliquer",
+        "delete": "Supprimer",
+        "cancel": "Annuler"
+    },
+    "errorrs": {
+        "delete_item": "Erreur lors de la suppression de l'élément",
+        "delete_menu": "Erreur lors de la suppression du menu",
+        "fetch_menu": "Erreur lors de la récupération du menu",
+        "general_error": "Un problème est survenu pendant le processus ! 🍕"
     },
     "French": "Français",
     "English": "Anglais",
@@ -46,5 +190,6 @@
     "AddTable": "Ajouter une table",
     "Delete": "Supprimer",
     "infoQrcode": "Scannez ce code avec l'appareil photo de votre téléphone pour accéder au menu.",
-    "Restaurant": "Restaurant"
+    "Restaurant": "Restaurant",
+    "locale": "fr-FR"
 }
